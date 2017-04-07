@@ -1,0 +1,16 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.springframework.boot:spring-boot-starter-web"
+    compile "org.springframework.boot:spring-boot-starter-data-rest"
+    compile "org.springframework.boot:spring-boot-starter-data-jpa"
+
+    compile 'org.openlmis:openlmis-service-util:3.0.0'
+
+    compile "org.postgresql:postgresql:9.4.1208"
+    compile "org.projectlombok:lombok:1.16.8"
+
+    testCompile "junit:junit"
+}
