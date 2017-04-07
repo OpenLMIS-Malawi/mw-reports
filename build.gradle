@@ -20,3 +20,4 @@ jar {
 }
 
 apply from: "dependency.gradle"
+apply from: "codeAnalysis.gradle"
