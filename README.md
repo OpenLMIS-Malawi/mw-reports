@@ -1,2 +1,2 @@
-# mw-reports
-Malawi Reporting Service
+# Malawi Reporting Service
+The service contains logics for managing and printing reports.
