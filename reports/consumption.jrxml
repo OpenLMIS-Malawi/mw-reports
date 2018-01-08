@@ -89,8 +89,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-GROUP BY periodname
-]]>
+GROUP BY periodname]]>
 		</queryString>
 		<field name="periodname" class="java.lang.String"/>
 		<field name="completed" class="java.lang.Integer"/>
@@ -441,7 +440,7 @@ ORDER BY  referencedata.orderables.fullproductname DESC,
 					<topPen lineWidth="0.0"/>
 				</box>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($F{quantity} == null) ? "-" : $F{quantity}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="20" y="0" width="290" height="15" uuid="ca5f7836-1b08-4226-858d-08cea1f0328e">
@@ -456,7 +455,7 @@ ORDER BY  referencedata.orderables.fullproductname DESC,
 				<reportElement x="430" y="0" width="124" height="15" uuid="e4719339-68bf-4f10-9817-97b75008bff3"/>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$F{quantity}.doubleValue() / $V{quantity_SUM}.doubleValue()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($F{quantity} == null || $V{quantity_SUM} == null || $V{quantity_SUM} <= 0L) ? "-" : $F{quantity}.doubleValue() / $V{quantity_SUM}.doubleValue()]]></textFieldExpression>
 			</textField>
 		</band>
 		<band height="15">
