@@ -242,6 +242,7 @@ public class JasperReportsViewService {
     items.sort(Comparator.comparing(c -> c.getOrderable().getProductCode()));
 
     parameters.put(ITEM_DATA_SOURCE, new JRBeanCollectionDataSource(items));
+    parameters.put(DATASOURCE, replicationDataSource);
     parameters.put("order", order);
 
     return new ModelAndView(jasperView, parameters);
