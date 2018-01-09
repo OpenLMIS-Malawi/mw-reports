@@ -393,10 +393,9 @@ public class JasperReportsViewService {
 
   private ProcessingPeriodDto findNextPeriod(ProcessingPeriodDto period) {
     Collection<ProcessingPeriodDto> periods = periodReferenceDataService.search(
-        period.getProcessingSchedule().getId(),
-        period.getEndDate()
-    );
+        period.getProcessingSchedule().getId(), null);
     return periods.stream()
+        .filter(p -> p.getStartDate().isAfter(period.getEndDate()))
         .min(Comparator.comparing(ProcessingPeriodDto::getStartDate)).orElse(null);
   }
 }
