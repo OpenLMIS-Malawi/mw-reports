@@ -242,6 +242,8 @@ public class JasperReportsViewService {
 
     parameters.put(DATASOURCE, new JRBeanCollectionDataSource(items));
     parameters.put("order", order);
+    parameters.put("orderingPeriod", order.getEmergency()
+        ? order.getProcessingPeriod() : findNextPeriod(order.getProcessingPeriod()));
 
     return new ModelAndView(jasperView, parameters);
   }
@@ -387,5 +389,14 @@ public class JasperReportsViewService {
 
     return facilitiesMissingRnR.stream()
             .sorted(comparator).collect(Collectors.toList());
+  }
+
+  private ProcessingPeriodDto findNextPeriod(ProcessingPeriodDto period) {
+    Collection<ProcessingPeriodDto> periods = periodReferenceDataService.search(
+        period.getProcessingSchedule().getId(),
+        period.getEndDate()
+    );
+    return periods.stream()
+        .min(Comparator.comparing(ProcessingPeriodDto::getStartDate)).orElse(null);
   }
 }
