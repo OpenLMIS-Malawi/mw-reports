@@ -30,6 +30,7 @@
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="user" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="orderingPeriod" class="mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -78,44 +79,45 @@
 		</band>
 	</title>
 	<pageHeader>
-		<band height="185">
+		<band height="200">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
-				<reportElement x="321" y="55" width="80" height="15" uuid="2ebe95a1-27cc-45b6-86c0-4fe603b2a68c"/>
+				<reportElement x="321" y="70" width="80" height="15" uuid="2ebe95a1-27cc-45b6-86c0-4fe603b2a68c"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Facility: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="160" width="80" height="15" uuid="e6b5e990-9d52-4bc4-addd-e0d12a9e0545"/>
+				<reportElement x="321" y="175" width="80" height="15" uuid="e6b5e990-9d52-4bc4-addd-e0d12a9e0545"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Fax:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="115" width="80" height="15" uuid="e50f5e30-bc3e-48c6-a0cd-5fc2c4549f7a"/>
+				<reportElement x="321" y="130" width="80" height="15" uuid="e50f5e30-bc3e-48c6-a0cd-5fc2c4549f7a"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[District: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="130" width="80" height="15" uuid="41672a04-8b3f-4edb-9755-9ab38e5f5084"/>
+				<reportElement x="321" y="145" width="80" height="15" uuid="41672a04-8b3f-4edb-9755-9ab38e5f5084"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Zone:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="145" width="80" height="15" uuid="5d8a3b43-4b11-4b19-bf7d-9c6491fb978f"/>
+				<reportElement x="321" y="160" width="80" height="15" uuid="5d8a3b43-4b11-4b19-bf7d-9c6491fb978f"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Phone:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="40" width="80" height="15" uuid="102b0dd5-e20b-461b-9540-0eb0a71f38ce"/>
+				<reportElement x="321" y="55" width="80" height="15" uuid="102b0dd5-e20b-461b-9540-0eb0a71f38ce"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Consign to: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="70" width="80" height="15" uuid="62ee4443-5adc-4e23-964a-4059a379e61f"/>
+				<reportElement x="321" y="85" width="80" height="15" uuid="62ee4443-5adc-4e23-964a-4059a379e61f"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Facility Code: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="321" y="100" width="80" height="15" uuid="4f9ec696-9521-48b0-86da-e67131811da6"/>
+				<reportElement x="321" y="115" width="80" height="15" uuid="4f9ec696-9521-48b0-86da-e67131811da6"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Address: ]]></text>
 			</staticText>
@@ -125,7 +127,7 @@
 				<text><![CDATA[Order No.: ]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="40" width="145" height="15" uuid="e1f25574-b3f7-4455-bbe7-0a57f9ee9da4"/>
+				<reportElement key="" x="411" y="55" width="145" height="15" uuid="e1f25574-b3f7-4455-bbe7-0a57f9ee9da4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{order}.getFacility().getName()]]></textFieldExpression>
 			</textField>
@@ -143,37 +145,37 @@
 				<textFieldExpression><![CDATA[$P{order}.getOrderCode()]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="55" width="145" height="15" uuid="59b73e19-33f5-4605-8854-d58e0adc7283"/>
+				<reportElement key="" x="411" y="70" width="145" height="15" uuid="59b73e19-33f5-4605-8854-d58e0adc7283"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{order}.getFacility().getName()]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="70" width="145" height="15" uuid="eabc21b2-8e7f-4fef-be54-a403f55b14b9">
+				<reportElement key="" x="411" y="85" width="145" height="15" uuid="eabc21b2-8e7f-4fef-be54-a403f55b14b9">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{order}.getFacility().getCode()]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="115" width="145" height="15" uuid="6969131b-b903-4273-801e-b69945c2615b"/>
+				<reportElement key="" x="411" y="130" width="145" height="15" uuid="6969131b-b903-4273-801e-b69945c2615b"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{order}.getThirdLevelFacility().getName()]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="100" width="145" height="15" uuid="af46019f-41a6-46a6-af27-8e5f64882e46"/>
+				<reportElement key="" x="411" y="115" width="145" height="15" uuid="af46019f-41a6-46a6-af27-8e5f64882e46"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="145" width="145" height="15" uuid="a42100af-d8f4-4a4c-b005-394ea577797f"/>
+				<reportElement key="" x="411" y="160" width="145" height="15" uuid="a42100af-d8f4-4a4c-b005-394ea577797f"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="130" width="145" height="15" uuid="82a6e7bb-330c-4e2d-992e-3ed08974dfe2"/>
+				<reportElement key="" x="411" y="145" width="145" height="15" uuid="82a6e7bb-330c-4e2d-992e-3ed08974dfe2"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$P{order}.getSecondLevelFacility().getName()]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" x="411" y="160" width="145" height="15" uuid="abe3fdb1-aa3b-4233-ba3d-1353fa702441"/>
+				<reportElement key="" x="411" y="175" width="145" height="15" uuid="abe3fdb1-aa3b-4233-ba3d-1353fa702441"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -204,6 +206,16 @@
 Central Medical Stores Trust
 Private Bag 55
 Lilongwe]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement key="" x="411" y="40" width="145" height="15" uuid="ee76a710-99ba-4a9a-b778-dc67b2039c0e"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{orderingPeriod}.getName()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="310" y="40" width="91" height="15" uuid="8b8de386-5ec3-4926-b43a-12263e3746cd"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Ordering Period:]]></text>
 			</staticText>
 		</band>
 	</pageHeader>
