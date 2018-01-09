@@ -85,6 +85,7 @@ public class JasperReportsViewService {
   private static final String REQUISITION_LINE_REPORT_DIR =
           "/jasperTemplates/requisitionLines.jrxml";
   private static final String DATASOURCE = "datasource";
+  private static final String ITEM_DATA_SOURCE = "itemDataSource";
 
   @Autowired
   private DataSource replicationDataSource;
@@ -240,7 +241,7 @@ public class JasperReportsViewService {
     List<OrderLineItemDto> items = order.getOrderLineItems();
     items.sort(Comparator.comparing(c -> c.getOrderable().getProductCode()));
 
-    parameters.put(DATASOURCE, new JRBeanCollectionDataSource(items));
+    parameters.put(ITEM_DATA_SOURCE, new JRBeanCollectionDataSource(items));
     parameters.put("order", order);
 
     return new ModelAndView(jasperView, parameters);
