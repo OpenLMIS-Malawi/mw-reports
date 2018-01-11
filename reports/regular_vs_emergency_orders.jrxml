@@ -93,7 +93,7 @@ JOIN referencedata.processing_periods period ON
   o.processingperiodid = period.id
 JOIN referencedata.geographic_zones zone ON
   facility.geographiczoneid = zone.id
-LEFT JOIN fulfillment.status_changes status_change ON
+JOIN fulfillment.status_changes status_change ON
   o.id = status_change.orderid AND status_change.status = 'APPROVED'
 WHERE ($P{period}::varchar IS NULL OR period.name = $P{period}::varchar)
 AND ($P{program}::varchar IS NULL OR program.name = $P{program}::varchar)
@@ -234,10 +234,10 @@ ORDER BY zone, type, period.startdate]]>
                         </cellContents>
                     </crosstabTotalColumnHeader>
                 </columnGroup>
-                <measure name="regular_MEASURE" class="java.lang.Integer" calculation="Count">
+                <measure name="regular_MEASURE" class="java.lang.Integer">
                     <measureExpression><![CDATA[$F{regular}]]></measureExpression>
                 </measure>
-                <measure name="emergency_MEASURE" class="java.lang.Integer" calculation="Count">
+                <measure name="emergency_MEASURE" class="java.lang.Integer">
                     <measureExpression><![CDATA[$F{emergency}]]></measureExpression>
                 </measure>
                 <crosstabCell width="134" height="20">
@@ -248,11 +248,11 @@ ORDER BY zone, type, period.startdate]]>
                             <box>
                                 <rightPen lineWidth="0.5"/>
                             </box>
-                            <textFieldExpression><![CDATA[$V{regular_MEASURE}]]></textFieldExpression>
+                            <textFieldExpression><![CDATA[($V{regular_MEASURE} == null) ? 0 : $V{regular_MEASURE}]]></textFieldExpression>
                         </textField>
                         <textField>
                             <reportElement x="67" y="0" width="67" height="20" uuid="845f500e-cbeb-4a04-9037-3b8848f57d3b"/>
-                            <textFieldExpression><![CDATA[$V{emergency_MEASURE}]]></textFieldExpression>
+                            <textFieldExpression><![CDATA[($V{emergency_MEASURE} == null) ? 0 : $V{emergency_MEASURE}]]></textFieldExpression>
                         </textField>
                     </cellContents>
                 </crosstabCell>
@@ -401,10 +401,10 @@ ORDER BY zone, type, period.startdate]]>
                         </cellContents>
                     </crosstabTotalColumnHeader>
                 </columnGroup>
-                <measure name="regular_MEASURE" class="java.lang.Integer" calculation="Count">
+                <measure name="regular_MEASURE" class="java.lang.Integer">
                     <measureExpression><![CDATA[$F{regular}]]></measureExpression>
                 </measure>
-                <measure name="emergency_MEASURE" class="java.lang.Integer" calculation="Count">
+                <measure name="emergency_MEASURE" class="java.lang.Integer">
                     <measureExpression><![CDATA[$F{emergency}]]></measureExpression>
                 </measure>
                 <crosstabCell width="120" height="20">
@@ -412,11 +412,11 @@ ORDER BY zone, type, period.startdate]]>
                         <property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
                         <textField>
                             <reportElement x="0" y="0" width="60" height="20" uuid="d55fdfe9-6248-411a-9750-12d39e59e668"/>
-                            <textFieldExpression><![CDATA[$V{regular_MEASURE}]]></textFieldExpression>
+                            <textFieldExpression><![CDATA[($V{regular_MEASURE} == null) ? 0 : $V{regular_MEASURE}]]></textFieldExpression>
                         </textField>
                         <textField>
                             <reportElement x="60" y="0" width="60" height="20" uuid="f662bd5e-6c4e-4125-8827-5ee2223d32c4"/>
-                            <textFieldExpression><![CDATA[$V{emergency_MEASURE}]]></textFieldExpression>
+                            <textFieldExpression><![CDATA[($V{emergency_MEASURE} == null) ? 0 : $V{emergency_MEASURE}]]></textFieldExpression>
                         </textField>
                     </cellContents>
                 </crosstabCell>
