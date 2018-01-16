@@ -7,10 +7,13 @@ import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTI
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_PARAMETER_MISSING;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_TEMPLATE_EXIST;
 import static mw.gov.health.lmis.reports.service.JasperTemplateService.REPORT_TYPE_PROPERTY;
+import static mw.gov.health.lmis.reports.service.JasperTemplateService.SUPPORTED_FORMATS_PROPERTY;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -189,10 +192,13 @@ public class JasperTemplateServiceTest {
     JRPropertiesMap propertiesMap = mock(JRPropertiesMap.class);
     JRExpression jrExpression = mock(JRExpression.class);
 
-    String[] propertyNames = {DISPLAY_NAME};
-    when(report.getParameters()).thenReturn(new JRParameter[]{param1, param2});
     when(report.getProperty(REPORT_TYPE_PROPERTY)).thenReturn("test type");
+    when(report.getProperty(SUPPORTED_FORMATS_PROPERTY)).thenReturn("csv,xls");
+
+    when(report.getParameters()).thenReturn(new JRParameter[]{param1, param2});
     when(JasperCompileManager.compileReport(inputStream)).thenReturn(report);
+
+    String[] propertyNames = {DISPLAY_NAME};
     when(propertiesMap.getPropertyNames()).thenReturn(propertyNames);
     when(propertiesMap.getProperty(DISPLAY_NAME)).thenReturn(PARAM_DISPLAY_NAME);
     when(propertiesMap.getProperty(REQUIRED)).thenReturn("true");
@@ -228,6 +234,9 @@ public class JasperTemplateServiceTest {
     verify(jasperTemplateRepository).save(jasperTemplate);
 
     assertEquals("test type", jasperTemplate.getType());
+    assertThat(jasperTemplate.getSupportedFormats(), hasSize(2));
+    assertThat(jasperTemplate.getSupportedFormats(), hasItems("csv", "xls"));
+
     assertThat(jasperTemplate.getTemplateParameters().get(0).getDisplayName(),
         is(PARAM_DISPLAY_NAME));
     assertThat(jasperTemplate.getTemplateParameters().get(0).getDescription(), is("desc"));

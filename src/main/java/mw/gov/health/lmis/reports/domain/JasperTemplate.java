@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
@@ -55,6 +56,11 @@ public class JasperTemplate extends BaseEntity {
   @Setter
   private String description;
 
+  @ElementCollection
+  @Getter
+  @Setter
+  private List<String> supportedFormats;
+
   @OneToMany(
       mappedBy = "template",
       cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
@@ -80,6 +86,7 @@ public class JasperTemplate extends BaseEntity {
     jasperTemplate.setType(importer.getType());
     jasperTemplate.setDescription(importer.getDescription());
     jasperTemplate.setIsDisplayed(importer.getIsDisplayed());
+    jasperTemplate.setSupportedFormats(importer.getSupportedFormats());
     jasperTemplate.setTemplateParameters(new ArrayList<>());
 
     if (importer.getTemplateParameters() != null) {
@@ -122,6 +129,7 @@ public class JasperTemplate extends BaseEntity {
     exporter.setName(name);
     exporter.setType(type);
     exporter.setIsDisplayed(isDisplayed);
+    exporter.setSupportedFormats(supportedFormats);
   }
 
   private void forEachParameter(Consumer<JasperTemplateParameter> consumer) {
@@ -141,6 +149,8 @@ public class JasperTemplate extends BaseEntity {
     void setDescription(String description);
 
     void setIsDisplayed(Boolean isDisplayed);
+
+    void setSupportedFormats(List<String> formats);
   }
 
   public interface Importer {
@@ -157,5 +167,7 @@ public class JasperTemplate extends BaseEntity {
     List<JasperTemplateParameter.Importer> getTemplateParameters();
 
     Boolean getIsDisplayed();
+
+    List<String> getSupportedFormats();
   }
 }

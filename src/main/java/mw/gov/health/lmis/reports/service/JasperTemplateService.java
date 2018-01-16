@@ -49,6 +49,7 @@ import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
 public class JasperTemplateService {
   protected static final String REPORT_TYPE_PROPERTY = "reportType";
   protected static final String IS_DISPLAYED_PROPERTY = "isDisplayed";
+  protected static final String SUPPORTED_FORMATS_PROPERTY = "supportedFormats";
 
   @Autowired
   private JasperTemplateRepository jasperTemplateRepository;
@@ -122,6 +123,11 @@ public class JasperTemplateService {
       String isDisplayed = report.getProperty(IS_DISPLAYED_PROPERTY);
       if (isDisplayed != null) {
         jasperTemplate.setIsDisplayed(Boolean.valueOf(isDisplayed));
+      }
+
+      String formats = report.getProperty(SUPPORTED_FORMATS_PROPERTY);
+      if (formats != null) {
+        jasperTemplate.setSupportedFormats(extractListProperties(formats));
       }
 
       JRParameter[] jrParameters = report.getParameters();
@@ -289,12 +295,15 @@ public class JasperTemplateService {
   }
 
   private List<String> extractListProperties(JRParameter parameter, String property) {
-    String dependencyProperty = parameter.getPropertiesMap().getProperty(property);
+    return extractListProperties(
+        parameter.getPropertiesMap().getProperty(property));
+  }
 
-    if (dependencyProperty != null) {
+  private List<String> extractListProperties(String property) {
+    if (property != null) {
       // split by unescaped commas
       return Arrays
-          .stream(dependencyProperty.split("(?<!\\\\),"))
+          .stream(property.split("(?<!\\\\),"))
           .map(option -> option.replace("\\,", ","))
           .collect(Collectors.toList());
     }

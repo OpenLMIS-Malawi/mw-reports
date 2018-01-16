@@ -36,8 +36,15 @@
     "description": {
       "type": ["string", "null"],
       "title": "description"
+    },
+    "supportedFormats": {
+      "type": ["array", "null"],
+      "title": "supportedFormats",
+      "items": {
+        "type": "string"
+      }
     }
-  } ,
+  },
   "required": [
     "id",
     "name"
