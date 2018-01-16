@@ -23,6 +23,7 @@
     <property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value=""/>
     <property name="net.sf.jasperreports.export.xls.exclude.origin.band.4" value=""/>
     <property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value=""/>
+    <property name="supportedFormats" value="csv,xls"/>
     <style name="Crosstab_CD" mode="Opaque" backcolor="#FFFFFF">
         <box>
             <pen lineWidth="0.5" lineColor="#000000"/>
