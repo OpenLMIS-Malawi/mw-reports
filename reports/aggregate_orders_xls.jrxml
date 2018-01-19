@@ -7,6 +7,7 @@
     <property name="com.jaspersoft.studio.unit." value="pixel"/>
     <property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
     <property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+    <property name="reportType" value="Aggregate Orders Report"/>
     <property name="isDisplayed" value="false"/>
     <property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
     <property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>

@@ -7,6 +7,7 @@ import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
+import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 import static net.sf.jasperreports.engine.export.JRHtmlExporterParameter.IS_USING_IMAGES_TO_ALIGN;
 import static org.apache.commons.io.FileUtils.writeByteArrayToFile;
@@ -243,7 +244,7 @@ public class JasperReportsViewService {
     parameters.put(DATASOURCE, new JRBeanCollectionDataSource(items));
     parameters.put("order", order);
     parameters.put("orderingPeriod", order.getEmergency()
-        ? order.getProcessingPeriod() : findNextPeriod(order.getProcessingPeriod()));
+        ? order.getProcessingPeriod() : findNextPeriod(order.getProcessingPeriod(), null));
 
     return new ModelAndView(jasperView, parameters);
   }
@@ -285,23 +286,45 @@ public class JasperReportsViewService {
    */
   public String getFilename(JasperTemplate template, Map<String, Object> params) {
     String templateType = template.getType();
+    // start the filename with report's name
     StringBuilder fileName = new StringBuilder(template.getName());
-    Collection<Object> values = params.values();
+    // add all the params that report takes to the value list
+    List<Object> values = new ArrayList<>();
+    for (Map.Entry<String, Object> param : params.entrySet()) {
+      // if it's Aggregate Orders report, add ordering period instead of reporting period
+      if (param.getKey().equals("period") && AGGREGATE_ORDERS_REPORT.equals(templateType)) {
+        String periodName = (String) param.getValue();
+        if (periodName != null) {
+          // find the period by name
+          ProcessingPeriodDto nextPeriod = findNextPeriod(periodName);
+          if (nextPeriod != null) {
+            values.add(nextPeriod.getName());
+          }
+        }
+      } else {
+        values.add(param.getValue());
+      }
+    }
+    // if it's Order report, add filename parts manually
     if (ORDER_REPORT.equals(templateType)) {
       OrderDto order = orderService.findOne(
           UUID.fromString(params.get("order").toString())
       );
+      ProcessingPeriodDto period = order.getEmergency() ? order.getProcessingPeriod() :
+          findNextPeriod(order.getProcessingPeriod(), null);
       values = Arrays.asList(
           order.getProgram().getName(),
-          order.getProcessingPeriod().getName(),
+          (period != null) ? period.getName() : "",
           order.getFacility().getName()
       );
     }
+    // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
       fileName
           .append('_')
           .append(value.toString());
     }
+    // replace whitespaces with "_" and make the filename lowercase
     return fileName.toString()
         .replaceAll("\\s+", "_")
         .toLowerCase(Locale.ENGLISH);
@@ -391,11 +414,24 @@ public class JasperReportsViewService {
             .sorted(comparator).collect(Collectors.toList());
   }
 
-  private ProcessingPeriodDto findNextPeriod(ProcessingPeriodDto period) {
-    Collection<ProcessingPeriodDto> periods = periodReferenceDataService.search(
+  private ProcessingPeriodDto findNextPeriod(ProcessingPeriodDto period,
+                                             Collection<ProcessingPeriodDto> periods) {
+    periods = (periods != null) ? periods : periodReferenceDataService.search(
         period.getProcessingSchedule().getId(), null);
     return periods.stream()
         .filter(p -> p.getStartDate().isAfter(period.getEndDate()))
         .min(Comparator.comparing(ProcessingPeriodDto::getStartDate)).orElse(null);
+  }
+
+  private ProcessingPeriodDto findNextPeriod(String periodName) {
+    List<ProcessingPeriodDto> periods = periodReferenceDataService.findAll();
+    ProcessingPeriodDto period = periods.stream()
+        .filter(p -> p.getName().equals(periodName))
+        .findFirst().orElse(null);
+    if (period != null) {
+      ProcessingPeriodDto nextPeriod = findNextPeriod(period, periods);
+      return nextPeriod;
+    }
+    return null;
   }
 }
