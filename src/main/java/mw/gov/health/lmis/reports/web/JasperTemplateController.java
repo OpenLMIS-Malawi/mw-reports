@@ -5,7 +5,6 @@ import static mw.gov.health.lmis.reports.service.PermissionService.AGGREGATE_ORD
 import static mw.gov.health.lmis.reports.service.PermissionService.AGGREGATE_ORDERS_XLS_ID;
 import static mw.gov.health.lmis.reports.web.ReportTypes.CONSISTENCY_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
-import static mw.gov.health.lmis.reports.web.ReportTypes.TIMELINESS_REPORT;
 
 import mw.gov.health.lmis.reports.dto.external.UserDto;
 import mw.gov.health.lmis.utils.AuthenticationHelper;
@@ -216,9 +215,7 @@ public class JasperTemplateController extends BaseController {
         .setProperty(format, contentDisposition);
 
     String templateType = template.getType();
-    if (TIMELINESS_REPORT.equals(templateType)) {
-      return jasperReportsViewService.getTimelinessJasperReportView(jasperView, map);
-    } else if (ORDER_REPORT.equals(templateType)) {
+    if (ORDER_REPORT.equals(templateType)) {
       return jasperReportsViewService.getOrderJasperReportView(jasperView, map);
     } else {
       return new ModelAndView(jasperView, map);

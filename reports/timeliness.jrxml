@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
-<!-- 2017-05-16T17:26:21 -->
+<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="timeliness" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="341cf801-7355-4499-bd5c-182e5275caa1">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -31,87 +30,74 @@
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value="title"/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value="summary"/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3" value="columnHeader"/>
-	<import value="mw.gov.health.lmis.reports.dto.external.*"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<style name="Row" mode="Transparent">
 		<conditionalStyle>
 			<conditionExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></conditionExpression>
 			<style backcolor="#F3F3F3"/>
 		</conditionalStyle>
 	</style>
-	<parameter name="district" class="mw.gov.health.lmis.reports.dto.external.GeographicZoneDto">
+	<parameter name="district" class="java.lang.String">
 		<property name="displayName" value="District"/>
 		<property name="selectExpression" value="/api/reports/districts"/>
-		<property name="selectProperty" value="id"/>
+		<property name="selectProperty" value="name"/>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="false"/>
 	</parameter>
-	<parameter name="program" class="mw.gov.health.lmis.reports.dto.external.ProgramDto">
+	<parameter name="program" class="java.lang.String">
 		<property name="displayName" value="Program Name"/>
 		<property name="selectExpression" value="/api/reports/programs"/>
-		<property name="selectProperty" value="id"/>
+		<property name="selectProperty" value="name"/>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
-	<parameter name="period" class="mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto">
+	<parameter name="period" class="java.lang.String">
 		<property name="displayName" value="Period Name"/>
 		<property name="selectExpression" value="/api/reports/processingPeriods"/>
-		<property name="selectProperty" value="id"/>
+		<property name="selectProperty" value="name"/>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[]]>
+		<![CDATA[WITH RECURSIVE findChildZones AS (
+  SELECT * FROM referencedata.geographic_zones WHERE name = $P{district}::varchar
+  UNION ALL
+  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
+)
+SELECT
+  referencedata.processing_periods.name AS period,
+  referencedata.facilities.code AS code,
+  referencedata.facilities.name AS facility,
+  referencedata.facility_types.name AS type,
+  referencedata.geographic_zones.name AS zone
+FROM referencedata.facilities
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+   LEFT JOIN referencedata.facility_types ON
+   referencedata.facilities.typeid = referencedata.facility_types.id
+  LEFT JOIN referencedata.processing_periods ON
+   referencedata.processing_periods.name = $P{period}::varchar
+  LEFT JOIN requisition.requisitions ON
+    requisition.requisitions.facilityid = referencedata.facilities.id
+    AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
+    AND ($P{program}::varchar IS NULL OR requisition.requisitions.programid = (SELECT id from referencedata.programs WHERE name = $P{program}::varchar))
+    AND requisition.requisitions.emergency = false
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change
+   ON status_change.requisitionid = requisition.requisitions.id
+WHERE
+   referencedata.facilities.active = true
+   AND referencedata.facilities.enabled = true
+   AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND status_change IS NOT NULL
+   ORDER BY referencedata.facilities.code;]]>
 	</queryString>
-	<field name="openLmisAccessible" class="java.lang.Boolean">
-		<fieldDescription><![CDATA[openLmisAccessible]]></fieldDescription>
-	</field>
-	<field name="code" class="java.lang.String">
-		<fieldDescription><![CDATA[code]]></fieldDescription>
-	</field>
-	<field name="goDownDate" class="java.time.LocalDate">
-		<fieldDescription><![CDATA[goDownDate]]></fieldDescription>
-	</field>
-	<field name="active" class="java.lang.Boolean">
-		<fieldDescription><![CDATA[active]]></fieldDescription>
-	</field>
-	<field name="description" class="java.lang.String">
-		<fieldDescription><![CDATA[description]]></fieldDescription>
-	</field>
-	<field name="goLiveDate" class="java.time.LocalDate">
-		<fieldDescription><![CDATA[goLiveDate]]></fieldDescription>
-	</field>
-	<field name="type" class="mw.gov.health.lmis.reports.dto.external.FacilityTypeDto">
-		<fieldDescription><![CDATA[type]]></fieldDescription>
-	</field>
-	<field name="supportedPrograms" class="java.util.List">
-		<fieldDescription><![CDATA[supportedPrograms]]></fieldDescription>
-	</field>
-	<field name="enabled" class="java.lang.Boolean">
-		<fieldDescription><![CDATA[enabled]]></fieldDescription>
-	</field>
-	<field name="operator" class="mw.gov.health.lmis.reports.dto.external.FacilityOperatorDto">
-		<fieldDescription><![CDATA[operator]]></fieldDescription>
-	</field>
-	<field name="geographicZone" class="mw.gov.health.lmis.reports.dto.external.GeographicZoneDto">
-		<fieldDescription><![CDATA[geographicZone]]></fieldDescription>
-	</field>
-	<field name="name" class="java.lang.String">
-		<fieldDescription><![CDATA[name]]></fieldDescription>
-	</field>
-	<field name="comment" class="java.lang.String">
-		<fieldDescription><![CDATA[comment]]></fieldDescription>
-	</field>
-	<field name="id" class="java.util.UUID">
-		<fieldDescription><![CDATA[id]]></fieldDescription>
-	</field>
-	<field name="class" class="java.lang.Class">
-		<fieldDescription><![CDATA[class]]></fieldDescription>
-	</field>
-	<field name="thirdLevel" class="mw.gov.health.lmis.reports.dto.external.GeographicZoneDto">
-		<fieldDescription><![CDATA[thirdLevel]]></fieldDescription>
-	</field>
+	<field name="period" class="java.lang.String"/>
+	<field name="code" class="java.lang.String"/>
+	<field name="facility" class="java.lang.String"/>
+	<field name="type" class="java.lang.String"/>
+	<field name="zone" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -119,7 +105,7 @@
 		<band height="120">
 			<textField>
 				<reportElement x="0" y="100" width="200" height="20" uuid="fd6aed73-3a96-47f0-8e7f-b1e10f931071"/>
-				<textFieldExpression><![CDATA[($P{district} == null) ? "All" : $P{district}.getName()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($P{district} == null) ? "All" : $P{district}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement key="" x="640" y="80" width="160" height="20" uuid="b3b7899b-f638-4fc7-b92d-a4125eaf5ef1">
@@ -132,7 +118,7 @@
 			</staticText>
 			<textField>
 				<reportElement x="200" y="100" width="220" height="20" uuid="ff20b76b-fd6b-43be-9e70-de36953c315f"/>
-				<textFieldExpression><![CDATA[$P{program}.getName();]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{program}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="200" y="80" width="220" height="20" uuid="8a0a0c00-5ac1-462c-baba-e545cdae1d27"/>
@@ -182,7 +168,7 @@
 			</staticText>
 			<textField>
 				<reportElement x="420" y="100" width="220" height="20" uuid="18d2576a-f3a5-4ece-b37c-48987f063b55"/>
-				<textFieldExpression><![CDATA[$P{period}.getName();]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{period};]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="680" y="0" width="80" height="20" uuid="e99fbe7c-fec3-45ff-98ec-f108cebc3565"/>
@@ -254,7 +240,7 @@
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{facility}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement style="Row" mode="Opaque" x="300" y="0" width="175" height="25" uuid="5e3e13b2-3de1-4613-927b-3d352faaed85">
@@ -270,7 +256,7 @@
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{type}.getName()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{type}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement style="Row" mode="Opaque" x="0" y="0" width="40" height="25" uuid="28c1bf9c-6c13-4551-abf3-82481d555ab9"/>
@@ -316,7 +302,7 @@
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="12"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{thirdLevel}.getName()]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{zone}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

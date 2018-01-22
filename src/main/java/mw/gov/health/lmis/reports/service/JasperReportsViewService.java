@@ -1,7 +1,6 @@
 package mw.gov.health.lmis.reports.service;
 
 import static java.io.File.createTempFile;
-import static mw.gov.health.lmis.reports.dto.external.TimelinessReportFacilityDto.DISTRICT_LEVEL;
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FILE_CREATION;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
@@ -13,26 +12,16 @@ import static net.sf.jasperreports.engine.export.JRHtmlExporterParameter.IS_USIN
 import static org.apache.commons.io.FileUtils.writeByteArrayToFile;
 
 import mw.gov.health.lmis.reports.dto.RequisitionReportDto;
-import mw.gov.health.lmis.reports.dto.external.BasicRequisitionDto;
-import mw.gov.health.lmis.reports.dto.external.FacilityDto;
-import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderDto;
 import mw.gov.health.lmis.reports.dto.external.OrderLineItemDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
-import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
-import mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionTemplateColumnDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionTemplateDto;
-import mw.gov.health.lmis.reports.dto.external.TimelinessReportFacilityDto;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.BaseReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.FacilityReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
-import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
 import mw.gov.health.lmis.reports.web.RequisitionReportDtoBuilder;
 import mw.gov.health.lmis.utils.ReportUtils;
 import net.sf.jasperreports.engine.JRBand;
@@ -45,7 +34,6 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -69,9 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -91,19 +77,7 @@ public class JasperReportsViewService {
   private DataSource replicationDataSource;
 
   @Autowired
-  private FacilityReferenceDataService facilityReferenceDataService;
-
-  @Autowired
-  private ProgramReferenceDataService programReferenceDataService;
-
-  @Autowired
   private PeriodReferenceDataService periodReferenceDataService;
-
-  @Autowired
-  private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
-
-  @Autowired
-  private RequisitionService requisitionService;
 
   @Autowired
   private OrderService orderService;
@@ -189,37 +163,6 @@ public class JasperReportsViewService {
       throw new JasperReportViewException(
           exp, ERROR_REPORTING_CLASS_NOT_FOUND, JasperReport.class.getName());
     }
-  }
-
-  /**
-   * Get customized Jasper Report View for Timeliness Report.
-   *
-   * @param jasperView generic jasper report view
-   * @param parameters template parameters populated with values from the request
-   * @return customized jasper view.
-   */
-  public ModelAndView getTimelinessJasperReportView(JasperReportsMultiFormatView jasperView,
-                                                    Map<String, Object> parameters) {
-    ProgramDto program = programReferenceDataService.findOne(
-            UUID.fromString(parameters.get("program").toString())
-    );
-    ProcessingPeriodDto period = periodReferenceDataService.findOne(
-            UUID.fromString(parameters.get("period").toString())
-    );
-    GeographicZoneDto district = null;
-    Object districtId = parameters.get("district");
-    if (districtId != null && !districtId.toString().isEmpty()) {
-      district = geographicZoneReferenceDataService.findOne(
-              UUID.fromString(districtId.toString()));
-    }
-    List<FacilityDto> facilities = getFacilitiesForTimelinessReport(program, period, district);
-
-    parameters.put(DATASOURCE, new JRBeanCollectionDataSource(facilities));
-    parameters.put("program", program);
-    parameters.put("period", period);
-    parameters.put("district", district);
-
-    return new ModelAndView(jasperView, parameters);
   }
 
   /**
@@ -374,44 +317,6 @@ public class JasperReportsViewService {
 
   private <T> T getIfPresent(BaseReferenceDataService<T> service, UUID id) {
     return Optional.ofNullable(id).isPresent() ? service.findOne(id) : null;
-  }
-
-  private List<FacilityDto> getFacilitiesForTimelinessReport(
-          ProgramDto program, ProcessingPeriodDto processingPeriod, GeographicZoneDto district) {
-    Set<RequisitionStatusDto> validStatuses = Arrays.stream(RequisitionStatusDto.values())
-            .filter(RequisitionStatusDto::isApproved)
-            .collect(Collectors.toSet());
-
-    List<FacilityDto> facilities;
-    if (district != null) {
-      facilities = facilityReferenceDataService.search(null, null, district.getId(), true)
-              .getContent();
-    } else {
-      facilities = facilityReferenceDataService.findAll();
-    }
-
-    List<TimelinessReportFacilityDto> facilitiesMissingRnR = new ArrayList<>();
-    // find active facilities that are missing R&R
-    for (FacilityDto facility : facilities) {
-      if (facility.getActive()) {
-        Page<BasicRequisitionDto> requisitions = requisitionService.search(
-                facility.getId(), program.getId(), null, null, processingPeriod.getId(),
-                null, validStatuses, null);
-        if (requisitions.getTotalElements() == 0) {
-          TimelinessReportFacilityDto timelinessFacility = new TimelinessReportFacilityDto();
-          facility.export(timelinessFacility);
-          facilitiesMissingRnR.add(timelinessFacility);
-        }
-      }
-    }
-
-    // sort alphabetically by district and then facility name
-    Comparator<FacilityDto> comparator = Comparator.comparing(
-        facility -> facility.getZoneByLevelNumber(DISTRICT_LEVEL).getName());
-    comparator = comparator.thenComparing(Comparator.comparing(FacilityDto::getName));
-
-    return facilitiesMissingRnR.stream()
-            .sorted(comparator).collect(Collectors.toList());
   }
 
   private ProcessingPeriodDto findNextPeriod(ProcessingPeriodDto period,

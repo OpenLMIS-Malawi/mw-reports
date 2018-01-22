@@ -2,20 +2,14 @@ package mw.gov.health.lmis.reports.web;
 
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.dto.external.FacilityDto;
-import mw.gov.health.lmis.reports.dto.external.GeographicLevelDto;
-import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
-import mw.gov.health.lmis.reports.service.referencedata.FacilityReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
-import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,26 +17,18 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static mw.gov.health.lmis.reports.dto.external.FacilityDto.DISTRICT_LEVEL;
 import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("PMD.TooManyMethods")
@@ -57,15 +43,6 @@ public class JasperReportsViewServiceTest {
 
   @Mock
   private PeriodReferenceDataService periodReferenceDataService;
-
-  @Mock
-  private FacilityReferenceDataService facilityReferenceDataService;
-
-  @Mock
-  private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
-
-  @Mock
-  private RequisitionService requisitionService;
 
   @Mock
   private ProgramDto program;
@@ -122,137 +99,6 @@ public class JasperReportsViewServiceTest {
 
     reportParams.put("program", programId.toString());
     reportParams.put("period", periodId.toString());
-  }
-
-  @Test
-  public void shouldGetTimelinessReportViewWithActiveFacilitiesMissingRnR() {
-    // given
-    List<FacilityDto> facilitiesToReturn = new ArrayList<>();
-
-    // active facilities missing RnR
-    FacilityDto facility = mockFacility(true, true);
-    FacilityDto anotherFacility = mockFacility(true, true);
-    facilitiesToReturn.add(facility);
-    facilitiesToReturn.add(anotherFacility);
-
-    // "on time" active facility
-    facilitiesToReturn.add(mockFacility(true, false));
-
-    // inactive facilities
-    facilitiesToReturn.add(mockFacility(false, false));
-    facilitiesToReturn.add(mockFacility(false, true));
-
-    when(facilityReferenceDataService.findAll()).thenReturn(facilitiesToReturn);
-
-    // when
-    ModelAndView view = service.getTimelinessJasperReportView(
-        new JasperReportsMultiFormatView(), reportParams);
-    List<FacilityDto> facilities = extractFacilitiesFromOutputParams(view.getModel());
-
-    // then
-    Assert.assertEquals(2, facilities.size());
-    List<UUID> facilityIds = facilities.stream()
-        .map(FacilityDto::getId).collect(Collectors.toList());
-    Assert.assertTrue(facilityIds.contains(facility.getId()));
-    Assert.assertTrue(facilityIds.contains(anotherFacility.getId()));
-  }
-
-  @Test
-  public void shouldGetTimelinessReportViewWithFacilitiesFromSpecifiedDistrict() {
-    //given
-    UUID districtId = UUID.randomUUID();
-    reportParams.put("district", districtId.toString());
-
-    // active facilities missing RnR
-    FacilityDto facility = mockFacility(true, true, districtId, "parent-zone", "f1");
-    FacilityDto childFacility = mockFacility(true, true, UUID.randomUUID(), "child-zone", "f2");
-
-    GeographicLevelDto childLevel = mock(GeographicLevelDto.class);
-    when(childLevel.getLevelNumber()).thenReturn(DISTRICT_LEVEL);
-
-    GeographicZoneDto childZone = childFacility.getGeographicZone();
-    childZone.setParent(facility.getGeographicZone());
-    childZone.setLevel(childLevel);
-
-    // facility missing RnR from another district
-    mockFacility(true, true);
-
-    List<FacilityDto> result = Arrays.asList(facility, childFacility);
-    Page searchResult = mock(Page.class);
-    when(searchResult.getTotalElements()).thenReturn(Long.valueOf(result.size()));
-    when(searchResult.getContent()).thenReturn(result);
-
-    when(facilityReferenceDataService.search(any(), any(), eq(districtId), eq(true)))
-        .thenReturn(searchResult);
-
-    // when
-    ModelAndView view = service.getTimelinessJasperReportView(
-        new JasperReportsMultiFormatView(), reportParams);
-    List<FacilityDto> facilities = extractFacilitiesFromOutputParams(view.getModel());
-
-    // then
-    Assert.assertEquals(2, facilities.size());
-    List<UUID> facilityIds = facilities.stream()
-        .map(FacilityDto::getId).collect(Collectors.toList());
-    Assert.assertTrue(facilityIds.contains(facility.getId()));
-    Assert.assertTrue(facilityIds.contains(childFacility.getId()));
-  }
-
-  @Test
-  public void shouldGetTimelinessReportViewWithFacilitiesFromAllZonesIfDistrictNotSpecified() {
-    //given
-    UUID zone1Id = UUID.randomUUID();
-    UUID zone2Id = UUID.randomUUID();
-
-    List<FacilityDto> facilitiesToReturn = Arrays.asList(
-        // active facilities missing RnR from different zones
-        mockFacility(true, true, zone1Id, "district A", "f1"),
-        mockFacility(true, true, zone1Id, "district A", "f2"),
-        mockFacility(true, true, zone2Id, "district B", "f3"),
-        mockFacility(true, true, zone2Id, "district B", "f4")
-    );
-
-    when(facilityReferenceDataService.findAll()).thenReturn(facilitiesToReturn);
-
-    // when
-    ModelAndView view = service.getTimelinessJasperReportView(
-        new JasperReportsMultiFormatView(), reportParams);
-    List<FacilityDto> facilities = extractFacilitiesFromOutputParams(view.getModel());
-
-    // then
-    Assert.assertEquals(4, facilities.size());
-    List<UUID> facilityIds = facilities.stream()
-        .map(FacilityDto::getId).collect(Collectors.toList());
-    for (FacilityDto facility : facilitiesToReturn) {
-      Assert.assertTrue(facilityIds.contains(facility.getId()));
-    }
-  }
-
-  @Test
-  public void shouldSortFacilitiesReturnedWithTimelinessReportView() {
-    //given
-    UUID zone1Id = UUID.randomUUID();
-    UUID zone2Id = UUID.randomUUID();
-
-    FacilityDto facility1A = mockFacility(true, true, zone1Id, "zone1", "facilityA");
-    FacilityDto facility1B = mockFacility(true, true, zone1Id, "zone1", "facilityB");
-    FacilityDto facility2A = mockFacility(true, true, zone2Id, "zone2", "facilityA");
-    FacilityDto facility2B = mockFacility(true, true, zone2Id, "zone2", "facilityB");
-
-    when(facilityReferenceDataService.findAll()).thenReturn(Arrays.asList(
-        facility2B, facility2A, facility1A, facility1B));
-
-    // when
-    ModelAndView view = service.getTimelinessJasperReportView(
-        new JasperReportsMultiFormatView(), reportParams);
-    List<FacilityDto> facilities = extractFacilitiesFromOutputParams(view.getModel());
-
-    // then
-    Assert.assertEquals(4, facilities.size());
-    Assert.assertEquals(facility1A.getId(), facilities.get(0).getId());
-    Assert.assertEquals(facility1B.getId(), facilities.get(1).getId());
-    Assert.assertEquals(facility2A.getId(), facilities.get(2).getId());
-    Assert.assertEquals(facility2B.getId(), facilities.get(3).getId());
   }
 
   @Test
@@ -322,45 +168,5 @@ public class JasperReportsViewServiceTest {
 
     // then
     Assert.assertEquals("health_centre_orders_dec2017_chitipa_essential_meds", filename);
-  }
-
-  private List<FacilityDto> extractFacilitiesFromOutputParams(Map<String, Object> outputParams) {
-    JRBeanCollectionDataSource datasource =
-        (JRBeanCollectionDataSource) outputParams.get("datasource");
-    return (List<FacilityDto>) datasource.getData();
-  }
-
-  private FacilityDto mockFacility(boolean isActive, boolean isMissingRnR) {
-    return mockFacility(isActive, isMissingRnR, UUID.randomUUID(), "test", "test");
-  }
-
-  private FacilityDto mockFacility(boolean isActive, boolean isMissingRnR, UUID districtId,
-                                   String districtName, String facilityName) {
-    FacilityDto facility = new FacilityDto();
-
-    UUID facilityId = UUID.randomUUID();
-    facility.setId(facilityId);
-    facility.setActive(isActive);
-    facility.setName(facilityName);
-
-    GeographicZoneDto geographicZoneDto = mock(GeographicZoneDto.class);
-    when(geographicZoneDto.getId()).thenReturn(districtId);
-    when(geographicZoneDto.getName()).thenReturn(districtName);
-
-    GeographicLevelDto geographicLevelDto = mock(GeographicLevelDto.class);
-    when(geographicLevelDto.getLevelNumber()).thenReturn(DISTRICT_LEVEL);
-    when(geographicZoneDto.getLevel()).thenReturn(geographicLevelDto);
-    when(geographicZoneReferenceDataService.findOne(districtId)).thenReturn(geographicZoneDto);
-
-    facility.setGeographicZone(geographicZoneDto);
-
-    Page requisitionSearchResult = mock(Page.class);
-    when(requisitionSearchResult.getTotalElements()).thenReturn(
-        (isMissingRnR) ? 0L : 1L);
-
-    when(requisitionService.search(eq(facilityId), eq(programId), any(), any(),
-        eq(periodId), any(), any(), any()))
-        .thenReturn(requisitionSearchResult);
-    return facility;
   }
 }
