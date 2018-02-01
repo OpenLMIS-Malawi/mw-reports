@@ -90,7 +90,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-   AND status_change IS NOT NULL
+   AND status_change IS NULL
    ORDER BY referencedata.facilities.code;]]>
 	</queryString>
 	<field name="period" class="java.lang.String"/>
