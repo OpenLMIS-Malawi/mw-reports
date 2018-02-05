@@ -30,6 +30,7 @@
     <property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value=""/>
     <property name="net.sf.jasperreports.export.xls.exclude.origin.band.4" value=""/>
     <property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value=""/>
+    <property name="supportedFormats" value="csv,xls"/>
     <style name="Crosstab_CD" mode="Opaque" backcolor="#FFFFFF">
         <box>
             <pen lineWidth="0.5" lineColor="#000000"/>
@@ -81,7 +82,10 @@
         <property name="required" value="false"/>
     </parameter>
     <queryString>
-        <![CDATA[SELECT
+        <![CDATA[WITH findLastPeriods AS (
+  SELECT * FROM referencedata.processing_periods WHERE startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar) ORDER BY startdate DESC LIMIT 3
+)
+SELECT
   zone.name AS zone,
   facility_type.name AS type,
   period.name AS period,
@@ -102,7 +106,7 @@ JOIN referencedata.geographic_zones zone ON
   facility.geographiczoneid = zone.id
 JOIN fulfillment.status_changes status_change ON
   o.id = status_change.orderid AND status_change.status = 'APPROVED'
-WHERE ($P{period}::varchar IS NULL OR period.name = $P{period}::varchar)
+WHERE ($P{period}::varchar IS NULL OR period.id IN (SELECT id FROM findLastPeriods))
 AND ($P{program}::varchar IS NULL OR program.name = $P{program}::varchar)
 GROUP BY period.startdate, period.name, zone.name, facility_type.name
 ORDER BY zone, type, period.startdate]]>
