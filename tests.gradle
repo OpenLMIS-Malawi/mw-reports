@@ -37,7 +37,3 @@ task integrationTest(type: Test) {
     mustRunAfter test
     environment 'BASE_URL', "http://localhost"
 }
-
-integrationTest {
-    dependsOn ramlToSwagger
-}
