@@ -60,8 +60,8 @@ idea {
 }
 
 processResources {
-    // we want the generated swagger spec file included in the output jar
-    finalizedBy ramlToSwagger
+    // we want the generated HTML spec file included in the output jar
+    finalizedBy ramlToHtml
     // update version information in build
     filesMatching('**/version.properties') {
         expand(project.properties)
