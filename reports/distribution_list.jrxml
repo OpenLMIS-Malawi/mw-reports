@@ -107,12 +107,20 @@ SELECT
 FROM referencedata.facilities
   JOIN referencedata.geographic_zones ON
    referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+   JOIN referencedata.programs program ON
+   $P{Program}::varchar IS NULL OR program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.name = $P{Period}::varchar
   LEFT JOIN requisition.requisitions ON
     requisition.requisitions.facilityid = referencedata.facilities.id
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
-    AND ($P{Program}::varchar IS NULL OR requisition.requisitions.programid = (SELECT id from referencedata.programs WHERE name = $P{Program}::varchar))
+    AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change 
    ON status_change.requisitionid = requisition.requisitions.id

@@ -3,7 +3,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="adjustments_summary_district" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Sample DB"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -98,12 +98,20 @@ SELECT
 FROM referencedata.facilities
   JOIN referencedata.geographic_zones ON
    referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+   JOIN referencedata.programs program ON
+   $P{Program}::varchar IS NULL OR program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.name = $P{Period}::varchar
   LEFT JOIN requisition.requisitions ON
     requisition.requisitions.facilityid = referencedata.facilities.id
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
-    AND ($P{Program}::varchar IS NULL OR requisition.requisitions.programid = (SELECT id from referencedata.programs WHERE name = $P{Program}::varchar))
+    AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change 
    ON status_change.requisitionid = requisition.requisitions.id
@@ -111,8 +119,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-GROUP BY periodname
-]]>
+GROUP BY periodname]]>
 		</queryString>
 		<field name="periodname" class="java.lang.String"/>
 		<field name="completed" class="java.lang.Integer"/>
