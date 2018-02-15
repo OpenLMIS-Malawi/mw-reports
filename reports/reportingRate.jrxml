@@ -2,7 +2,8 @@
 <!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportingRate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="4e1d9a97-c93a-4ad3-87e1-e305d6e7da2e">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-	<property name="com.jaspersoft.studio.data.sql.tables" value=""/><property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
 	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
@@ -54,8 +55,8 @@
 	</style>
 	<subDataset name="ByMonth" uuid="a6da25d7-01b4-4f6b-870d-bbe46b496479">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
-		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="327"/>
-		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="669"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="22"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="972"/>
 		<parameter name="Program" class="java.lang.String">
 			<property name="displayName" value="Program"/>
 			<property name="selectExpression" value="/api/reports/programs"/>
@@ -101,14 +102,22 @@ SELECT
 FROM referencedata.facilities
   JOIN referencedata.geographic_zones ON
    referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.programs program ON
+   program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
   LEFT JOIN requisition.requisitions ON
     requisition.requisitions.facilityid = referencedata.facilities.id
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
-    AND requisition.requisitions.programid = (SELECT id from referencedata.programs WHERE name = $P{Program}::varchar)
+    AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
-  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change 
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change
    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
@@ -176,12 +185,20 @@ SELECT
 FROM referencedata.facilities
   JOIN referencedata.geographic_zones ON
    referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.programs program ON
+   program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
   LEFT JOIN requisition.requisitions ON
     requisition.requisitions.facilityid = referencedata.facilities.id
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
-    AND requisition.requisitions.programid = (SELECT id from referencedata.programs WHERE name = $P{Program}::varchar)
+    AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change 
    ON status_change.requisitionid = requisition.requisitions.id
