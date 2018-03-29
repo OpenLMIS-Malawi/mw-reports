@@ -1,5 +1,6 @@
 package mw.gov.health.lmis.reports.service.referencedata;
 
+import java.util.List;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.utils.RequestParameters;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,15 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
   }
 
   /**
+   * Retrieves all periods.
+   *
+   * @return A list of periods
+   */
+  public List<ProcessingPeriodDto> findAll() {
+    return getPage("", RequestParameters.init()).getContent();
+  }
+
+  /**
    * Retrieves periods from the reference data service by program ID and facility ID.
    *
    * @param programId  UUID of the program
@@ -55,7 +65,7 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
         .init()
         .set("programId", programId)
         .set("facilityId", facilityId);
-    
+
     return findAll("search", parameters);
   }
 }
