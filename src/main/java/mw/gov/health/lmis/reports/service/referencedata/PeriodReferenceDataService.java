@@ -40,7 +40,7 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
         .set("processingScheduleId", processingScheduleId)
         .set("startDate", startDate);
 
-    return findAll("searchByScheduleAndDate", parameters);
+    return getPage("", parameters).getContent();
   }
 
   /**
@@ -50,22 +50,5 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
    */
   public List<ProcessingPeriodDto> findAll() {
     return getPage("", RequestParameters.init()).getContent();
-  }
-
-  /**
-   * Retrieves periods from the reference data service by program ID and facility ID.
-   *
-   * @param programId  UUID of the program
-   * @param facilityId UUID of the facility
-   * @return A list of periods matching search criteria
-   */
-  public Collection<ProcessingPeriodDto> searchByProgramAndFacility(UUID programId,
-                                                                    UUID facilityId) {
-    RequestParameters parameters = RequestParameters
-        .init()
-        .set("programId", programId)
-        .set("facilityId", facilityId);
-
-    return findAll("search", parameters);
   }
 }
