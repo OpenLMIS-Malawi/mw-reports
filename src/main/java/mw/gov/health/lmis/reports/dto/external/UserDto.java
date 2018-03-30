@@ -17,10 +17,10 @@ public class UserDto {
   private String lastName;
   private String email;
   private boolean verified;
-  private FacilityDto homeFacility;
-  private Set<RoleAssignmentDto> roleAssignments;
-  private Boolean allowNotify;
   private boolean active;
+  private boolean loginRestricted;
+  private UUID homeFacilityId;
+  private Set<RoleAssignmentDto> roleAssignments;
 
   /**
    * Prints the name of the user for display purposes.

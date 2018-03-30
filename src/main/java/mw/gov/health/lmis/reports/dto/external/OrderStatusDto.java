@@ -2,9 +2,7 @@ package mw.gov.health.lmis.reports.dto.external;
 
 public enum OrderStatusDto {
   ORDERED,
-  IN_TRANSIT,
-  PICKING,
-  PICKED,
+  FULFILLING,
   SHIPPED,
   RECEIVED,
   TRANSFER_FAILED,

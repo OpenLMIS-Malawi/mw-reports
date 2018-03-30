@@ -13,7 +13,5 @@ public class OrderLineItemDto {
   private UUID id;
   private OrderableDto orderable;
   private Long orderedQuantity;
-  private Long filledQuantity;
-  private Long approvedQuantity;
-  private Long packsToShip;
+  private Long totalDispensingUnits;
 }

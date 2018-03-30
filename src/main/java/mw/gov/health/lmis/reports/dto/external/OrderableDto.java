@@ -1,6 +1,9 @@
 package mw.gov.health.lmis.reports.dto.external;
 
+import static java.lang.Boolean.parseBoolean;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +14,8 @@ import java.util.UUID;
 @Setter
 public class OrderableDto {
   private UUID id;
+  private static final String USE_VVM = "useVVM";
+
   private String productCode;
   private String fullProductName;
   private long netContent;
@@ -18,6 +23,12 @@ public class OrderableDto {
   private boolean roundToZero;
   private Set<ProgramOrderableDto> programs;
   private DispensableDto dispensable;
+  private Map<String, String> extraData;
+
+  @JsonIgnore
+  public boolean useVvm() {
+    return null != extraData && parseBoolean(extraData.get(USE_VVM));
+  }
 
   /**
    * Get program orderable for given order
