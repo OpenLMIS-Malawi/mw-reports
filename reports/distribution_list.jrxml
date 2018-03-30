@@ -3,7 +3,7 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="distribution_list" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -179,7 +179,7 @@ SELECT
 	facilities.name AS facilityname,
 	facilities.code AS facilitycode,
 	productcategories.displayname AS productcategory,
-	products.dispensingunit AS dispensingunit,
+	dispensingunit.value AS dispensingunit,
 	products.fullproductname AS productname,
 	products.code AS productcode,
 	zones.name AS zonename,
@@ -204,6 +204,7 @@ FROM
 	JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid
 	JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id
 	JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
+    LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE
 	programs.name = $P{program}::varchar
@@ -364,7 +365,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<text><![CDATA[Product Name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement x="505" y="0" width="45" height="25" uuid="7d376f74-fe26-4821-8801-abca6a18385f">
+					<reportElement x="515" y="0" width="35" height="25" uuid="7d376f74-fe26-4821-8801-abca6a18385f">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
@@ -433,10 +434,9 @@ ORDER BY facilitycode, productcategory, productcode]]>
 		<groupExpression><![CDATA[$F{productcode}]]></groupExpression>
 		<groupFooter>
 			<band height="15">
-				<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement x="225" y="0" width="265" height="15" uuid="ab1b8c7f-242a-46ae-9653-cde39128ce71"/>
-					<box rightPadding="0">
+					<reportElement stretchType="RelativeToTallestObject" x="225" y="0" width="270" height="15" uuid="ab1b8c7f-242a-46ae-9653-cde39128ce71"/>
+					<box rightPadding="5">
 						<pen lineColor="#CCCCCC"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -446,7 +446,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$F{productname} != null ? $F{productname} + " " + $F{dispensingunit} : null]]></textFieldExpression>
 				</textField>
 				<textField isBlankWhenNull="true">
-					<reportElement x="150" y="0" width="65" height="15" uuid="463ded2c-72f8-4378-ad69-f513ede91e9f"/>
+					<reportElement stretchType="RelativeToTallestObject" x="150" y="0" width="65" height="15" uuid="463ded2c-72f8-4378-ad69-f513ede91e9f"/>
 					<box>
 						<pen lineWidth="1.0" lineColor="#CCCCCC"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -457,7 +457,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
-					<reportElement x="550" y="0" width="65" height="15" uuid="f875ee85-3b20-46fe-a422-7bb10d811e06">
+					<reportElement stretchType="RelativeToTallestObject" x="550" y="0" width="65" height="15" uuid="f875ee85-3b20-46fe-a422-7bb10d811e06">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					</reportElement>
 					<box rightPadding="9">
@@ -471,7 +471,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$V{Consumption Period 1} / $V{Consumption Period 1 Count}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
-					<reportElement x="615" y="0" width="65" height="15" uuid="fafcbb95-2fac-4ebd-bb63-0ce5135cad56"/>
+					<reportElement stretchType="RelativeToTallestObject" x="615" y="0" width="65" height="15" uuid="fafcbb95-2fac-4ebd-bb63-0ce5135cad56"/>
 					<box rightPadding="9">
 						<pen lineColor="#CCCCCC"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -483,7 +483,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$V{Consumption Period 2} / $V{Consumption Period 2 Count}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
-					<reportElement x="680" y="0" width="65" height="15" uuid="e2739dbc-7a66-42b0-9a17-e7f8e4b93cb4">
+					<reportElement stretchType="RelativeToTallestObject" x="680" y="0" width="65" height="15" uuid="e2739dbc-7a66-42b0-9a17-e7f8e4b93cb4">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -498,7 +498,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$V{Consumption Period 3} / $V{Consumption Period 3 Count}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
-					<reportElement x="745" y="0" width="57" height="15" uuid="f827ab65-0195-461a-9d5c-ae6ecad6df26">
+					<reportElement stretchType="RelativeToTallestObject" x="745" y="0" width="57" height="15" uuid="f827ab65-0195-461a-9d5c-ae6ecad6df26">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -513,7 +513,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 					<textFieldExpression><![CDATA[$V{Total Consumption} / $V{Product Code_COUNT}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
-					<reportElement x="485" y="0" width="65" height="15" uuid="41ea6fb2-2b00-4e84-8ffb-e89185f96a9d"/>
+					<reportElement stretchType="RelativeToTallestObject" x="495" y="0" width="55" height="15" uuid="41ea6fb2-2b00-4e84-8ffb-e89185f96a9d"/>
 					<box>
 						<pen lineColor="#CCCCCC"/>
 						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -878,7 +878,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 				<text><![CDATA[Product Code]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="225" y="0" width="245" height="25" uuid="28218e91-dd35-44cd-85e4-c741b496f2fe">
+				<reportElement x="225" y="0" width="270" height="25" uuid="28218e91-dd35-44cd-85e4-c741b496f2fe">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Center" verticalAlignment="Middle"/>
@@ -900,7 +900,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 				<text><![CDATA[Facility]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="490" y="0" width="60" height="25" uuid="4705ff38-5302-46e8-b1fe-9aa7990fc521">
+				<reportElement x="500" y="0" width="50" height="25" uuid="4705ff38-5302-46e8-b1fe-9aa7990fc521">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
+<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="district_lmis_summary" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="03f89d37-6dd5-4a05-a39e-8088f6a884a6">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="313"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="683"/>
@@ -198,7 +198,7 @@ SELECT referencedata.facilities.name AS facilityname,
   referencedata.orderable_display_categories.displayname AS category,
   referencedata.orderables.code AS productcode,
   referencedata.orderables.fullproductname AS productname,
-  referencedata.orderables.dispensingunit AS unitofissue,
+  dispensingunit.value AS unitofissue,
   requisition.requisition_line_items.stockonhand AS balanceonhand,
   requisition.requisition_line_items.totalconsumedquantity AS quantityused,
   requisition.requisition_line_items.totalreceivedquantity AS quantityreceived,
@@ -212,6 +212,7 @@ FROM requisition.requisition_line_items
    referencedata.orderables.id = referencedata.program_orderables.orderableid
   JOIN referencedata.orderable_display_categories ON
    referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
+  LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
   JOIN requisition.requisitions ON
    requisition.requisition_line_items.requisitionid = requisition.requisitions.id
   JOIN referencedata.programs ON
@@ -764,57 +765,57 @@ ORDER BY referencedata.facilities.name DESC,
 		<band height="15" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-			<textField pattern="">
-				<reportElement x="255" y="0" width="60" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement stretchType="RelativeToTallestObject" x="255" y="0" width="60" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="105" y="0" width="150" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="105" y="0" width="150" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.###;(#,##0.###-)">
-				<reportElement x="315" y="0" width="60" height="15" uuid="2180998a-bb86-470f-b078-84e24c1d8312"/>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="315" y="0" width="60" height="15" uuid="2180998a-bb86-470f-b078-84e24c1d8312"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.###;(#,##0.###-)">
-				<reportElement x="435" y="0" width="60" height="15" uuid="8087e8ff-3bb4-4fba-bf70-33d48f601427"/>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="435" y="0" width="60" height="15" uuid="8087e8ff-3bb4-4fba-bf70-33d48f601427"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.###;(#,##0.###-)">
-				<reportElement x="375" y="0" width="60" height="15" uuid="45c414cf-2e2f-436b-b1b4-8dee782ea31e"/>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="375" y="0" width="60" height="15" uuid="45c414cf-2e2f-436b-b1b4-8dee782ea31e"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.###;(#,##0.###-)">
-				<reportElement x="495" y="0" width="60" height="15" uuid="9bafa0da-3f3e-40ac-9527-44626f78005e">
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="495" y="0" width="60" height="15" uuid="9bafa0da-3f3e-40ac-9527-44626f78005e">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<box rightPadding="2"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{approvedquantity} == null) ? "-" : $F{approvedquantity}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="50" y="0" width="55" height="15" uuid="e551397e-cb09-466d-8082-28298fe9a398">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="50" y="0" width="55" height="15" uuid="e551397e-cb09-466d-8082-28298fe9a398">
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
 				<box leftPadding="2" rightPadding="0"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="0" y="0" width="50" height="15" uuid="790bc7ec-8ac7-4e37-bbf8-637803eaaccd">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="50" height="15" uuid="790bc7ec-8ac7-4e37-bbf8-637803eaaccd">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<box leftPadding="10" rightPadding="0"/>

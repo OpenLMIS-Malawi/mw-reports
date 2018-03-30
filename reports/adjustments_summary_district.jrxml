@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
+<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="adjustments_summary_district" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Sample DB"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -170,7 +170,7 @@ GROUP BY periodname]]>
 SELECT
 	programs.name AS programname,
 	products.fullproductname AS productname,
-	products.dispensingunit AS dispensingunit,
+	dispensingunit.value AS dispensingunit,
 	facilities.name AS facilityname,
 	zones.name AS zonename,
 	stock_card_line_item_reasons.name AS adjustmenttype,
@@ -185,6 +185,7 @@ FROM
 	JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
 	JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
 	JOIN referencedata.orderables AS products ON products.id = requisition_line_items.orderableid
+	LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE
 	programs.name = $P{program}::varchar
@@ -354,23 +355,23 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 			<band height="20">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[$V{Line Count} > 0 && Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-				<textField>
-					<reportElement x="0" y="0" width="40" height="20" uuid="3910b3d3-af42-4f84-86a3-5970c2e05580">
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="40" height="20" uuid="3910b3d3-af42-4f84-86a3-5970c2e05580">
 						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<textFieldExpression><![CDATA[$V{Line Count}]]></textFieldExpression>
 				</textField>
-				<textField>
-					<reportElement x="40" y="0" width="200" height="20" uuid="05b80422-e817-4738-ade5-8224822385fb"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="40" y="0" width="200" height="20" uuid="05b80422-e817-4738-ade5-8224822385fb"/>
 					<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
-					<reportElement x="240" y="0" width="140" height="20" uuid="8cc6afbe-f92c-41d3-b6de-2569c774463b"/>
+					<reportElement stretchType="RelativeToTallestObject" x="240" y="0" width="140" height="20" uuid="8cc6afbe-f92c-41d3-b6de-2569c774463b"/>
 					<textFieldExpression><![CDATA[$F{adjustmenttype}]]></textFieldExpression>
 				</textField>
-				<textField>
-					<reportElement x="381" y="0" width="110" height="20" uuid="0114aeb0-fcbd-4d52-b328-614352384632"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="381" y="0" width="110" height="20" uuid="0114aeb0-fcbd-4d52-b328-614352384632"/>
 					<box leftPadding="2"/>
 					<textFieldExpression><![CDATA[$V{Adjustment Quantity total for Facility}]]></textFieldExpression>
 				</textField>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="adjustments_summary_district" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
+<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="adjustments_summary_central" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -170,7 +170,7 @@ GROUP BY periodname]]>
 SELECT
 	programs.name AS programname,
 	products.fullproductname AS productname,
-	products.dispensingunit AS dispensingunit,
+	dispensingunit.value AS dispensingunit,
 	zones.name AS zonename,
 	stock_card_line_item_reasons.name AS adjustmenttype,
 	stock_adjustments.quantity AS adjustmentquantity,
@@ -184,6 +184,7 @@ FROM
 	JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
 	JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
 	JOIN referencedata.orderables AS products ON products.id = requisition_line_items.orderableid
+	LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE
 	programs.name = $P{program}::varchar
@@ -314,21 +315,21 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 			<band height="20">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[$V{Line Count} > 0 && Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-				<textField>
-					<reportElement x="40" y="0" width="200" height="20" uuid="05b80422-e817-4738-ade5-8224822385fb"/>
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="40" y="0" width="200" height="20" uuid="05b80422-e817-4738-ade5-8224822385fb"/>
 					<textFieldExpression><![CDATA[$F{zonename}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
-					<reportElement x="240" y="0" width="140" height="20" uuid="8cc6afbe-f92c-41d3-b6de-2569c774463b"/>
+					<reportElement stretchType="RelativeToTallestObject" x="240" y="0" width="140" height="20" uuid="8cc6afbe-f92c-41d3-b6de-2569c774463b"/>
 					<textFieldExpression><![CDATA[$F{adjustmenttype}]]></textFieldExpression>
 				</textField>
-				<textField evaluationTime="Group" evaluationGroup="Adjustment Type Group">
-					<reportElement x="440" y="0" width="110" height="20" uuid="0114aeb0-fcbd-4d52-b328-614352384632"/>
+				<textField isStretchWithOverflow="true" evaluationTime="Group" evaluationGroup="Adjustment Type Group">
+					<reportElement stretchType="RelativeToTallestObject" x="440" y="0" width="110" height="20" uuid="0114aeb0-fcbd-4d52-b328-614352384632"/>
 					<textElement textAlignment="Center"/>
 					<textFieldExpression><![CDATA[$V{Adjustment Quantity total for District}]]></textFieldExpression>
 				</textField>
-				<textField>
-					<reportElement x="0" y="0" width="34" height="20" uuid="3910b3d3-af42-4f84-86a3-5970c2e05580">
+				<textField isStretchWithOverflow="true">
+					<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="34" height="20" uuid="3910b3d3-af42-4f84-86a3-5970c2e05580">
 						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -477,13 +478,14 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
 			</image>
 			<componentElement>
-				<reportElement positionType="FixRelativeToBottom" stretchType="ElementGroupHeight" x="435" y="39" width="120" height="18" uuid="8f9593b4-c3f5-41f2-808b-15b03963acfd">
+				<reportElement positionType="FixRelativeToBottom" stretchType="ElementGroupHeight" x="435" y="39" width="135" height="18" uuid="8f9593b4-c3f5-41f2-808b-15b03963acfd">
 					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
 					<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
 					<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
 					<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ReportingRate" uuid="8decacb4-776f-419d-a20a-80ceeb996423">
