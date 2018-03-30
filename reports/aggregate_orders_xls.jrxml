@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="aggregate_orders" pageWidth="600" pageHeight="800" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="600" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
@@ -103,7 +103,7 @@
 )
 SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   fulfillment.order_line_items.id AS LineItemId,
-  fulfillment.order_line_items.packstoship AS PacksToShip,
+  fulfillment.order_line_items.orderedquantity AS PacksToShip,
   fulfillment.orders.ordercode AS OrderCode,
   fulfillment.orders.id,
   referencedata.facilities.name AS FacilityName,
@@ -146,7 +146,7 @@ WHERE
    AND ($P{program}::varchar IS NULL OR referencedata.programs.name = $P{program}::varchar)
    AND referencedata.processing_periods.name = $P{period}::varchar
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-   AND fulfillment.order_line_items.packstoship > 0
+   AND fulfillment.order_line_items.orderedquantity > 0
    AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
         AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital'] ) OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
