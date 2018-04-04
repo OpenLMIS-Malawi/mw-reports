@@ -210,7 +210,7 @@ WHERE
 	programs.name = $P{program}::varchar
 	AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
 	AND periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 3)
-  	AND (requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisitions.status = 'RELEASED')
+  	AND (requisitions.status = 'SUBMITTED' OR requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisitions.status = 'RELEASED')
 	AND facilities.active = TRUE
     AND (lineitems.stockonhand > 0 OR lineitems.approvedquantity > 0 OR lineitems.totalconsumedquantity > 0)
 ORDER BY facilitycode, productcategory, productcode]]>

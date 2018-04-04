@@ -178,7 +178,7 @@ WHERE
    referencedata.programs.name = $P{program}::varchar
    AND referencedata.processing_periods.name = $P{period}::varchar
   AND referencedata.facilities.active = true
-  AND (requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
+  AND (requisition.requisitions.status = 'SUBMITTED' OR requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
 GROUP BY category, productcode, productname, unitofissue, orderable_display_categories.displayorder, program_orderables.displayorder
 ORDER BY orderable_display_categories.displayorder ASC,
   program_orderables.displayorder ASC,

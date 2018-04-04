@@ -188,7 +188,7 @@ FROM
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE
 	programs.name = $P{program}::varchar
-  	AND (requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisitions.status = 'RELEASED')
+  	AND (requisitions.status = 'SUBMITTED' OR requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisitions.status = 'RELEASED')
 	AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
 	AND periods.name = $P{period}::varchar
 	AND ($P{adjustmentType}::varchar IS NULL OR stock_card_line_item_reasons.name = $P{adjustmentType}::varchar)
