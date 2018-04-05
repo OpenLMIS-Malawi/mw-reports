@@ -434,6 +434,7 @@ ORDER BY facilitycode, productcategory, productcode]]>
 		<groupExpression><![CDATA[$F{productcode}]]></groupExpression>
 		<groupFooter>
 			<band height="15">
+				<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement stretchType="RelativeToTallestObject" x="225" y="0" width="270" height="15" uuid="ab1b8c7f-242a-46ae-9653-cde39128ce71"/>
 					<box rightPadding="5">
