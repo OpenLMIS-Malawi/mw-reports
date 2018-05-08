@@ -140,6 +140,8 @@ FROM referencedata.facilities
     rgm.requisitiongroupid = rg.id
   JOIN referencedata.requisition_group_program_schedules rgps ON
     rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.name = $P{Period}::varchar
   LEFT JOIN requisition.requisitions ON
@@ -153,6 +155,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
 GROUP BY periodname]]>
 		</queryString>
 		<field name="periodname" class="java.lang.String"/>

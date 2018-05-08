@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
+<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportingRate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="4e1d9a97-c93a-4ad3-87e1-e305d6e7da2e">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -110,6 +110,8 @@ FROM referencedata.facilities
     rgm.requisitiongroupid = rg.id
   JOIN referencedata.requisition_group_program_schedules rgps ON
     rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
   LEFT JOIN requisition.requisitions ON
@@ -123,6 +125,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate]]>
 		</queryString>
@@ -193,6 +196,8 @@ FROM referencedata.facilities
     rgm.requisitiongroupid = rg.id
   JOIN referencedata.requisition_group_program_schedules rgps ON
     rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
   LEFT JOIN referencedata.processing_periods ON
    referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
   LEFT JOIN requisition.requisitions ON
@@ -206,6 +211,7 @@ WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
 GROUP BY geographiczonename]]>
 		</queryString>
 		<field name="geographiczonename" class="java.lang.String"/>
