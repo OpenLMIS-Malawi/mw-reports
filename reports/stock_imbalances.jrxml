@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="open_lmis"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -168,15 +168,15 @@ SELECT referencedata.facilities.name AS facilityname,
   referencedata.processing_periods.name AS periodname,
   requisition.requisition_line_items.stockonhand AS soh,
   requisition.requisition_line_items.averageconsumption AS amc,
-    referencedata.orderables.code AS productcode,
-  referencedata.orderables.fullproductname AS productname,
+    orderable.code AS productcode,
+  orderable.fullproductname AS productname,
   referencedata.geographic_zones.name AS geographiczonename,
-  referencedata.programs.name AS programname,
+  program.name AS programname,
   rli.MonthsOfStock as mos,
   CASE
       WHEN rli.MonthsOfStock = 0 THEN 'Stocked out'
-      WHEN rli.MonthsOfStock < 3.00 THEN 'Understocked'
-      WHEN rli.MonthsOfStock >= 6.00 THEN 'Overstocked'
+      WHEN rli.MonthsOfStock < ftap.minperiodsofstock THEN 'Understocked'
+      WHEN rli.MonthsOfStock >= ftap.maxperiodsofstock THEN 'Overstocked'
       ELSE 'OK'
   END AS stockstatus
 FROM requisition.requisition_line_items
@@ -184,14 +184,18 @@ FROM requisition.requisition_line_items
   CASE WHEN averageconsumption = 0 THEN NULL ELSE stockonhand::float / averageconsumption
   END AS MonthsOfStock
   FROM requisition.requisition_line_items) AS rli ON requisition.requisition_line_items.id=rli.id
-  JOIN referencedata.orderables ON
-   requisition.requisition_line_items.orderableid = referencedata.orderables.id
+  JOIN referencedata.orderables AS orderable ON
+   requisition.requisition_line_items.orderableid = orderable.id
   JOIN requisition.requisitions ON
    requisition.requisition_line_items.requisitionid = requisition.requisitions.id
-  JOIN referencedata.programs ON
-   requisition.requisitions.programid = referencedata.programs.id
+  JOIN referencedata.programs AS program ON
+   requisition.requisitions.programid = program.id
   JOIN referencedata.facilities ON
    requisition.requisitions.facilityid = referencedata.facilities.id
+  JOIN referencedata.facility_types ON
+   referencedata.facilities.typeid = referencedata.facility_types.id
+  JOIN referencedata.facility_type_approved_products AS ftap ON
+   referencedata.facility_types.id = ftap.facilitytypeid AND orderable.id = ftap.orderableid AND program.id = ftap.programid
   JOIN referencedata.processing_periods ON
    requisition.requisitions.processingperiodid = referencedata.processing_periods.id
   JOIN referencedata.geographic_zones ON
@@ -199,13 +203,13 @@ FROM requisition.requisition_line_items
   JOIN referencedata.geographic_levels ON
   referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
-   referencedata.programs.name = $P{program}::varchar
+   program.name = $P{program}::varchar
    AND referencedata.processing_periods.name = $P{period}::varchar
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
   AND referencedata.facilities.active = true
   AND (requisition.requisitions.status = 'SUBMITTED' OR requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
 ORDER BY referencedata.facilities.name DESC,
-  referencedata.orderables.fullproductname DESC]]>
+  orderable.fullproductname DESC]]>
 	</queryString>
 	<field name="facilityname" class="java.lang.String"/>
 	<field name="periodname" class="java.lang.String"/>
