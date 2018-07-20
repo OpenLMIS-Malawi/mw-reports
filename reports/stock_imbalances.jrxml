@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -236,7 +236,7 @@ ORDER BY referencedata.facilities.name DESC,
 						<pen lineWidth="0.0" lineColor="#B3B3B3"/>
 						<topPen lineWidth="1.0" lineColor="#D4D4D4"/>
 					</box>
-					<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$F{facilityname} + "(" + $F{geographiczonename} + ")"]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupHeader>
@@ -430,7 +430,7 @@ ORDER BY referencedata.facilities.name DESC,
 				<text><![CDATA[AMC]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="110" y="0" width="150" height="40" uuid="d2d776af-5894-469d-9b37-32c4e64ffa43"/>
+				<reportElement x="160" y="0" width="100" height="40" uuid="d2d776af-5894-469d-9b37-32c4e64ffa43"/>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -456,7 +456,7 @@ ORDER BY referencedata.facilities.name DESC,
 				<text><![CDATA[Months of Stock]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="0" width="110" height="40" uuid="12930b5c-5676-459b-9483-091c64f3fcd6"/>
+				<reportElement x="80" y="0" width="80" height="40" uuid="12930b5c-5676-459b-9483-091c64f3fcd6"/>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -482,6 +482,19 @@ ORDER BY referencedata.facilities.name DESC,
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="80" height="40" uuid="61bc00b4-5458-4432-b19f-ef618ed78ace"/>
+				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+				</textElement>
+				<text><![CDATA[District]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
@@ -516,11 +529,11 @@ ORDER BY referencedata.facilities.name DESC,
 				<textFieldExpression><![CDATA[$F{stockstatus}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="110" y="0" width="150" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+				<reportElement x="160" y="0" width="100" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
 				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="0" y="0" width="110" height="15" uuid="01759b9d-1ae8-46bd-a967-ea77c85c498f">
+				<reportElement x="80" y="0" width="80" height="15" uuid="01759b9d-1ae8-46bd-a967-ea77c85c498f">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<printWhenExpression><![CDATA[Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				</reportElement>
@@ -529,6 +542,17 @@ ORDER BY referencedata.facilities.name DESC,
 					<topPen lineWidth="1.0" lineColor="#D4D4D4"/>
 				</box>
 				<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="80" height="15" uuid="2b994ffa-2bef-4054-accc-bef53103be84">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<printWhenExpression><![CDATA[Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="2">
+					<pen lineWidth="0.0" lineColor="#B3B3B3"/>
+					<topPen lineWidth="1.0" lineColor="#D4D4D4"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{geographiczonename}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
