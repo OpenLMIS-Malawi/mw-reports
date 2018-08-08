@@ -1,6 +1,7 @@
 package mw.gov.health.lmis.reports.web;
 
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
+import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
@@ -10,6 +11,7 @@ import mw.gov.health.lmis.reports.i18n.MessageKeys;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.PermissionService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
@@ -45,6 +47,9 @@ public class ReportsController extends BaseController {
 
   @Autowired
   private ProgramReferenceDataService programReferenceDataService;
+
+  @Autowired
+  private OrderableReferenceDataService orderableReferenceDataService;
 
   @Autowired
   private PermissionService permissionService;
@@ -116,5 +121,23 @@ public class ReportsController extends BaseController {
   public Collection<ProgramDto> getPrograms() {
     permissionService.canViewReportsOrOrders();
     return programReferenceDataService.findAll();
+  }
+
+  /**
+   * Get all orderables for stock out rate report.
+   *
+   * @return programs.
+   */
+  @RequestMapping(value = "/orderables/stockout", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public Collection<OrderableDto> getOrderables() {
+    permissionService.canViewReportsOrOrders();
+
+    List<OrderableDto> list = orderableReferenceDataService.findAll();
+    list.add(new OrderableDto("ALL_LA", "All malaria formulations"));
+    list.add(new OrderableDto("ALL_IC", "All implantable contraceptives"));
+
+    return list;
   }
 }

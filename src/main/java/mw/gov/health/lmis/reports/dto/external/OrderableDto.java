@@ -4,6 +4,8 @@ import static java.lang.Boolean.parseBoolean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Map;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,6 +14,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class OrderableDto {
   private UUID id;
   private static final String USE_VVM = "useVVM";
@@ -24,6 +27,10 @@ public class OrderableDto {
   private Set<ProgramOrderableDto> programs;
   private DispensableDto dispensable;
   private Map<String, String> extraData;
+
+  public OrderableDto(String productCode, String fullProductName) {
+    this(null, productCode, fullProductName, 0L, 0L, false, null, null, null);
+  }
 
   @JsonIgnore
   public boolean useVvm() {
