@@ -55,119 +55,119 @@
     <parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
     <queryString language="plsql">
         <![CDATA[WITH RECURSIVE findChildZones AS (
-	SELECT
-		id
-	FROM
-		referencedata.geographic_zones
-	WHERE
-		name = $P{GeographicZone}
-	UNION ALL
-	SELECT
-		z.id
-	FROM
-		referencedata.geographic_zones AS z
-		INNER JOIN findChildZones AS c ON c.id = z.parentId
+    SELECT
+        id
+    FROM
+        referencedata.geographic_zones
+    WHERE
+        name = $P{GeographicZone}
+    UNION ALL
+    SELECT
+        z.id
+    FROM
+        referencedata.geographic_zones AS z
+        INNER JOIN findChildZones AS c ON c.id = z.parentId
 ), allMalaria AS (
-	SELECT
-		id,
-		code
-	FROM
-		referencedata.orderables
-	WHERE
-		code IN ('AA040200', 'AA039900', 'AA040500', 'AA039600')
+    SELECT
+        id,
+        code
+    FROM
+        referencedata.orderables
+    WHERE
+        code IN ('AA040200', 'AA039900', 'AA040500', 'AA039600')
 ), allRh AS (
-	SELECT
-		id,
-		code
-	FROM
-		referencedata.orderables
-	WHERE
-		code IN ('FP004100', 'FP003700')
+    SELECT
+        id,
+        code
+    FROM
+        referencedata.orderables
+    WHERE
+        code IN ('FP004100', 'FP003700')
 ), allComboProducts AS (
-	SELECT
-		code
-	FROM
-		referencedata.orderables
-	WHERE
-		code IN (SELECT code FROM allMalaria)
-		OR code IN (SELECT code FROM allRh)
+    SELECT
+        code
+    FROM
+        referencedata.orderables
+    WHERE
+        code IN (SELECT code FROM allMalaria)
+        OR code IN (SELECT code FROM allRh)
 ), records AS (
-	SELECT
-		o.fullProductName AS productName,
-		o.code AS productCode,
-		r.id AS requisitionId,
-		rli.stockOnHand AS closingBalance
-	FROM
-		requisition.requisitions AS r
-		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{Program}::varchar IS NULL OR p.name = $P{Program}::varchar)
-		INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
-		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
-		INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
-		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{Period}::varchar IS NULL OR pp.name = $P{Period}::varchar)
-		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
-		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId
-	WHERE
-		r.emergency IS FALSE
-		AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
+    SELECT
+        o.fullProductName AS productName,
+        o.code AS productCode,
+        r.id AS requisitionId,
+        rli.stockOnHand AS closingBalance
+    FROM
+        requisition.requisitions AS r
+        INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{Program}::varchar IS NULL OR p.name = $P{Program}::varchar)
+        INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
+        INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
+        INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
+        INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{Period}::varchar IS NULL OR pp.name = $P{Period}::varchar)
+        INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
+        INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId
+    WHERE
+        r.emergency IS FALSE
+        AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
 )
 SELECT
-	r.productName AS productName,
-	to_char((sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float * 100), '990D00%') AS rate,
-	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
-	count(*) AS reported
+    r.productName AS productName,
+    to_char((sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float * 100), '990D00%') AS rate,
+    sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
+    count(*) AS reported
 FROM
-	records AS r
+    records AS r
 WHERE
-	($P{Product}::varchar IS NULL AND r.productCode NOT IN (SELECT code FROM allComboProducts))
-	OR ($P{Product}::varchar <> 'ALL_LA' AND $P{Product}::varchar <> 'ALL_IC' AND $P{Product}::varchar = r.productCode)
+    ($P{Product}::varchar IS NULL AND r.productCode NOT IN (SELECT code FROM allComboProducts))
+    OR ($P{Product}::varchar <> 'ALL_LA' AND $P{Product}::varchar <> 'ALL_IC' AND $P{Product}::varchar = r.productCode)
 GROUP BY
-	productName
+    productName
 UNION ALL
 SELECT
-	'All malaria formulations' AS productName,
-	to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
-	sum(stockedOut) AS stockedOut,
-	sum(reported) AS reported
+    'All malaria formulations' AS productName,
+    to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
+    sum(stockedOut) AS stockedOut,
+    sum(reported) AS reported
 FROM (
-	SELECT
-		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allMalaria) THEN 1 ELSE 0 END AS stockedOut,
-		count(*) / (SELECT count(*) FROM allMalaria) AS reported
-	FROM
-		records AS r
-	WHERE
-		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
+    SELECT
+        CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allMalaria) THEN 1 ELSE 0 END AS stockedOut,
+        count(*) / (SELECT count(*) FROM allMalaria) AS reported
+    FROM
+        records AS r
+    WHERE
+        ($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
     AND r.productCode IN (SELECT code FROM allMalaria)
-	GROUP BY
-		r.requisitionId
-	HAVING
-		count(r.requisitionId) = (SELECT count(*) FROM allMalaria)
+    GROUP BY
+        r.requisitionId
+    HAVING
+        count(r.requisitionId) = (SELECT count(*) FROM allMalaria)
 ) AS t
 HAVING
-	count(*) > 0
+    count(*) > 0
 UNION ALL
 SELECT
-	'All implantable contraceptives' AS productName,
-	to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
-	sum(stockedOut) AS stockedOut,
-	sum(reported) AS reported
+    'All implantable contraceptives' AS productName,
+    to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
+    sum(stockedOut) AS stockedOut,
+    sum(reported) AS reported
 FROM (
-	SELECT
-		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allRh) THEN 1 ELSE 0 END AS stockedOut,
-		count(*) / (SELECT count(*) FROM allRh) AS reported
-	FROM
-		records AS r
-	WHERE
-		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
+    SELECT
+        CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allRh) THEN 1 ELSE 0 END AS stockedOut,
+        count(*) / (SELECT count(*) FROM allRh) AS reported
+    FROM
+        records AS r
+    WHERE
+        ($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
     AND r.productCode IN (SELECT code FROM allRh)
-	GROUP BY
-		r.requisitionId
-	HAVING
-		count(r.requisitionId) = (SELECT count(*) FROM allRh)
+    GROUP BY
+        r.requisitionId
+    HAVING
+        count(r.requisitionId) = (SELECT count(*) FROM allRh)
 ) AS t
 HAVING
-	count(*) > 0
+    count(*) > 0
 ORDER BY
-	productName]]>
+    productName]]>
     </queryString>
     <field name="productName" class="java.lang.String"/>
     <field name="rate" class="java.lang.String"/>
