@@ -11,4 +11,4 @@ INSERT INTO template_parameters(id, datatype, defaultvalue, description, display
 VALUES ('03e883b7-f76b-479e-af71-b476d23ed1dc', 'java.lang.String', NULL, NULL, 'District', 'GeographicZone', '/api/reports/districts', 'name', 'name', false, '9ecb36c7-bd33-41d4-9d2c-d839ad5417bc');
 
 INSERT INTO template_parameters(id, datatype, defaultvalue, description, displayname, name, selectExpression, selectProperty, displayProperty, required, templateid)
-VALUES ('8573b61f-301f-4241-acd7-ef17582bfaf9', 'java.lang.String', NULL, NULL, 'Product', 'Product', '/api/reports/orderables/stockout', 'code', 'fullProductName', false, '9ecb36c7-bd33-41d4-9d2c-d839ad5417bc');
+VALUES ('8573b61f-301f-4241-acd7-ef17582bfaf9', 'java.lang.String', NULL, NULL, 'Product', 'Product', '/api/reports/orderables/stockout', 'productCode', 'fullProductName', false, '9ecb36c7-bd33-41d4-9d2c-d839ad5417bc');
