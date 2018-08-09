@@ -1,6 +1,8 @@
 package mw.gov.health.lmis.reports.service.referencedata;
 
+import java.util.List;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
+import mw.gov.health.lmis.utils.RequestParameters;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +21,10 @@ public class OrderableReferenceDataService extends BaseReferenceDataService<Orde
   @Override
   protected Class<OrderableDto[]> getArrayResultClass() {
     return OrderableDto[].class;
+  }
+
+  public List<OrderableDto> findAll() {
+    return getPage("", RequestParameters.init()).getContent();
   }
 
 }

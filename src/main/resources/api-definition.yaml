@@ -50,6 +50,14 @@ schemas:
           "items": { "type": "object", "$ref":"schemas/program.json" }
       }
 
+  - orderable: !include schemas/orderable.json
+
+  - orderableArray: |
+      {
+          "type": "array",
+          "items": { "type": "object", "$ref":"schemas/orderable.json" }
+      }
+
 traits:
     - secured:
           queryParameters:
@@ -180,6 +188,24 @@ resourceTypes:
                       body:
                         application/json:
                           schema: localizedErrorResponse
+      /orderables:
+          /stockout:
+              displayName: Stock out orderables
+              get:
+                is: [ secured ]
+                description: >
+                  Get all products for stock out rate report. The result list will also contain
+                  two combo orderables: ALL_LA - All malaria formulations and ALL_IC - All
+                  implantable contraceptive.
+                responses:
+                  "200":
+                    body:
+                      application/json:
+                        schema: orderableArray
+                  "403":
+                    body:
+                      application/json:
+                        schema: localizedErrorResponse
       /templates/malawi:
           displayName: Report Template
           post:

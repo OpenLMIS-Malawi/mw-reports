@@ -1,28 +1,36 @@
 package mw.gov.health.lmis.reports.web;
 
-import guru.nidi.ramltester.junit.RamlMatchers;
-import mw.gov.health.lmis.reports.dto.external.GeographicLevelDto;
-import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
-import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
-import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
-import mw.gov.health.lmis.reports.dto.external.ProgramDto;
-import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.UUID;
-
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
+
+import guru.nidi.ramltester.junit.RamlMatchers;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import mw.gov.health.lmis.reports.dto.external.GeographicLevelDto;
+import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
+import mw.gov.health.lmis.reports.dto.external.OrderableDto;
+import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
+import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
+import mw.gov.health.lmis.reports.dto.external.ProgramDto;
+import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 
 @SuppressWarnings("PMD.TooManyMethods")
 public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
@@ -39,6 +47,9 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
 
   @MockBean
   private ProgramReferenceDataService programReferenceDataService;
+
+  @MockBean
+  private OrderableReferenceDataService orderableReferenceDataService;
 
   @Before
   public void setUp() {
@@ -117,6 +128,35 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
   }
 
+  // GET /api/reports/orderables/stockout
+
+  @Test
+  public void shouldGetAllOrderablesForStockOutRateReport() {
+    // given
+    OrderableDto[] orderables = {generateOrderable(), generateOrderable()};
+    given(orderableReferenceDataService.findAll()).willReturn(Lists.newArrayList(orderables));
+
+    // when
+    OrderableDto[] result = restAssured.given()
+        .queryParam(ACCESS_TOKEN, getToken())
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+        .get(RESOURCE_URL + "/orderables/stockout")
+        .then()
+        .statusCode(200)
+        .extract().as(OrderableDto[].class);
+
+    // then
+    List<OrderableDto> list = Lists.newArrayList(result);
+
+    assertThat(list, is(notNullValue()));
+    assertThat(list, hasSize(4));
+    assertThat(list, hasItem(hasProperty("productCode", is("ALL_LA"))));
+    assertThat(list, hasItem(hasProperty("productCode", is("ALL_IC"))));
+
+    assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
+  }
+
   private GeographicZoneDto generateGeographicZone() {
     GeographicZoneDto zone = new GeographicZoneDto();
     zone.setId(UUID.randomUUID());
@@ -164,5 +204,14 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     program.setShowNonFullSupplyTab(true);
 
     return program;
+  }
+
+  private OrderableDto generateOrderable() {
+    OrderableDto dto = new OrderableDto();
+    dto.setId(UUID.randomUUID());
+    dto.setProductCode(CODE);
+    dto.setFullProductName(NAME);
+
+    return dto;
   }
 }
