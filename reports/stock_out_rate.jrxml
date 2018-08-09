@@ -135,8 +135,8 @@ FROM (
 	FROM
 		records AS r
 	WHERE
-		($P{Product}::varchar IS NULL AND r.productCode IN (SELECT code FROM allMalaria))
-		OR $P{Product}::varchar = 'ALL_LA'
+		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
+    AND r.productCode IN (SELECT code FROM allMalaria)
 	GROUP BY
 		r.requisitionId
 	HAVING
@@ -157,8 +157,8 @@ FROM (
 	FROM
 		records AS r
 	WHERE
-		($P{Product}::varchar IS NULL AND r.productCode IN (SELECT code FROM allRh))
-		OR $P{Product}::varchar = 'ALL_IC'
+		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
+    AND r.productCode IN (SELECT code FROM allRh)
 	GROUP BY
 		r.requisitionId
 	HAVING
