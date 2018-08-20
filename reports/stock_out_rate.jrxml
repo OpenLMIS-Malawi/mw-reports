@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_out_rat" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_out_rate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
     <property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi-dev.xml"/>
     <property name="com.jaspersoft.studio.data.sql.tables" value=""/>
     <property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
@@ -23,6 +23,7 @@
     <property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3" value="columnHeader"/>
     <property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1" value="columnHeader"/>
     <property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.1" value="columnHeader"/>
+    <property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
     <parameter name="Program" class="java.lang.String">
         <property name="displayName" value="Program Name"/>
         <property name="selectExpression" value="/api/reports/programs"/>
@@ -55,122 +56,116 @@
     <parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
     <queryString language="plsql">
         <![CDATA[WITH RECURSIVE findChildZones AS (
-    SELECT
-        id
-    FROM
-        referencedata.geographic_zones
-    WHERE
-        name = $P{GeographicZone}
-    UNION ALL
-    SELECT
-        z.id
-    FROM
-        referencedata.geographic_zones AS z
-        INNER JOIN findChildZones AS c ON c.id = z.parentId
+	SELECT
+		id
+	FROM
+		referencedata.geographic_zones
+	WHERE
+		name = $P{GeographicZone}
+	UNION ALL
+	SELECT
+		z.id
+	FROM
+		referencedata.geographic_zones AS z
+		INNER JOIN findChildZones AS c ON c.id = z.parentId
 ), allMalaria AS (
-    SELECT
-        id,
-        code
-    FROM
-        referencedata.orderables
-    WHERE
-        code IN ('AA040200', 'AA039900', 'AA040500', 'AA039600')
+	SELECT
+		id,
+		code
+	FROM
+		referencedata.orderables
+	WHERE
+		code IN ('AA040200', 'AA039900', 'AA040500', 'AA039600')
 ), allRh AS (
-    SELECT
-        id,
-        code
-    FROM
-        referencedata.orderables
-    WHERE
-        code IN ('FP004100', 'FP003700')
-), allComboProducts AS (
-    SELECT
-        code
-    FROM
-        referencedata.orderables
-    WHERE
-        code IN (SELECT code FROM allMalaria)
-        OR code IN (SELECT code FROM allRh)
+	SELECT
+		id,
+		code
+	FROM
+		referencedata.orderables
+	WHERE
+		code IN ('FP004100', 'FP003700')
 ), records AS (
-    SELECT
-        o.fullProductName AS productName,
-        o.code AS productCode,
-        r.id AS requisitionId,
-        rli.stockOnHand AS closingBalance
-    FROM
-        requisition.requisitions AS r
-        INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{Program}::varchar IS NULL OR p.name = $P{Program}::varchar)
-        INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
-        INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
-        INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
-        INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{Period}::varchar IS NULL OR pp.name = $P{Period}::varchar)
-        INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
-        INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId
-    WHERE
-        r.emergency IS FALSE
-        AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
+	SELECT
+		o.fullProductName AS productName,
+		o.code AS productCode,
+		r.id AS requisitionId,
+		rli.stockOnHand AS closingBalance
+	FROM
+		requisition.requisitions AS r
+		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{Program}::varchar IS NULL OR p.name = $P{Program}::varchar)
+		INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
+		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
+		INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
+		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{Period}::varchar IS NULL OR pp.name = $P{Period}::varchar)
+		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
+		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId
+	WHERE
+		r.emergency IS FALSE
+		AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
 )
 SELECT
-    r.productName AS productName,
-    to_char((sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float * 100), '990D00%') AS rate,
-    sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
-    count(*) AS reported
+	r.productName AS productName,
+	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float AS rate,
+	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
+	count(*) AS reported
 FROM
-    records AS r
+	records AS r
 WHERE
-    ($P{Product}::varchar IS NULL AND r.productCode NOT IN (SELECT code FROM allComboProducts))
-    OR ($P{Product}::varchar <> 'ALL_LA' AND $P{Product}::varchar <> 'ALL_IC' AND $P{Product}::varchar = r.productCode)
+	($P{Product}::varchar IS NULL)
+	OR ($P{Product}::varchar = 'ALL_LA' AND r.productCode IN (SELECT code FROM allMalaria))
+	OR ($P{Product}::varchar = 'ALL_IC' AND r.productCode IN (SELECT code FROM allRh))
+	OR ($P{Product}::varchar = r.productCode)
 GROUP BY
-    productName
+	productName
 UNION ALL
 SELECT
-    'All malaria formulations' AS productName,
-    to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
-    sum(stockedOut) AS stockedOut,
-    sum(reported) AS reported
+	'All malaria formulations' AS productName,
+	sum(stockedOut) / sum(reported)::float AS rate,
+	sum(stockedOut) AS stockedOut,
+	sum(reported) AS reported
 FROM (
-    SELECT
-        CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allMalaria) THEN 1 ELSE 0 END AS stockedOut,
-        count(*) / (SELECT count(*) FROM allMalaria) AS reported
-    FROM
-        records AS r
-    WHERE
-        ($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
+	SELECT
+		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allMalaria) THEN 1 ELSE 0 END AS stockedOut,
+		count(*) / (SELECT count(*) FROM allMalaria) AS reported
+	FROM
+		records AS r
+	WHERE
+		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
     AND r.productCode IN (SELECT code FROM allMalaria)
-    GROUP BY
-        r.requisitionId
-    HAVING
-        count(r.requisitionId) = (SELECT count(*) FROM allMalaria)
+	GROUP BY
+		r.requisitionId
+	HAVING
+		count(r.requisitionId) = (SELECT count(*) FROM allMalaria)
 ) AS t
 HAVING
-    count(*) > 0
+	count(*) > 0
 UNION ALL
 SELECT
-    'All implantable contraceptives' AS productName,
-    to_char((sum(stockedOut) / sum(reported)::float * 100), '990D00%') AS rate,
-    sum(stockedOut) AS stockedOut,
-    sum(reported) AS reported
+	'All implantable contraceptives' AS productName,
+	sum(stockedOut) / sum(reported)::float AS rate,
+	sum(stockedOut) AS stockedOut,
+	sum(reported) AS reported
 FROM (
-    SELECT
-        CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allRh) THEN 1 ELSE 0 END AS stockedOut,
-        count(*) / (SELECT count(*) FROM allRh) AS reported
-    FROM
-        records AS r
-    WHERE
-        ($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
+	SELECT
+		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allRh) THEN 1 ELSE 0 END AS stockedOut,
+		count(*) / (SELECT count(*) FROM allRh) AS reported
+	FROM
+		records AS r
+	WHERE
+		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
     AND r.productCode IN (SELECT code FROM allRh)
-    GROUP BY
-        r.requisitionId
-    HAVING
-        count(r.requisitionId) = (SELECT count(*) FROM allRh)
+	GROUP BY
+		r.requisitionId
+	HAVING
+		count(r.requisitionId) = (SELECT count(*) FROM allRh)
 ) AS t
 HAVING
-    count(*) > 0
+	count(*) > 0
 ORDER BY
-    productName]]>
+	productName]]>
     </queryString>
     <field name="productName" class="java.lang.String"/>
-    <field name="rate" class="java.lang.String"/>
+    <field name="rate" class="java.lang.Double"/>
     <field name="stockedOut" class="java.lang.Integer"/>
     <field name="reported" class="java.lang.Integer"/>
     <group name="Group1" isStartNewPage="true" isReprintHeaderOnEachPage="true"/>
@@ -196,7 +191,7 @@ ORDER BY
                 <textElement textAlignment="Center">
                     <font size="15" isBold="true"/>
                 </textElement>
-                <text><![CDATA[Stock out rate]]></text>
+                <text><![CDATA[Stockout rate by product]]></text>
             </staticText>
             <textField>
                 <reportElement x="140" y="100" width="140" height="20" uuid="2d8d85cb-2583-4a58-9cce-efc84578b732"/>
@@ -334,7 +329,7 @@ ORDER BY
                 <reportElement x="0" y="0" width="254" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
                 <textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
             </textField>
-            <textField isStretchWithOverflow="true">
+            <textField isStretchWithOverflow="true" pattern="#,##0.00%" isBlankWhenNull="true">
                 <reportElement x="254" y="0" width="100" height="15" uuid="cc856392-d0be-499c-97fb-26727d074942"/>
                 <box rightPadding="20"/>
                 <textElement textAlignment="Right"/>
@@ -359,7 +354,10 @@ ORDER BY
                 <textFieldExpression><![CDATA["Page: " + $V{PAGE_NUMBER}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="0" y="0" width="554" height="38" uuid="15b8c817-64da-48f4-9e9c-4861a355da7c"/>
+                <reportElement x="0" y="18" width="554" height="20" uuid="15b8c817-64da-48f4-9e9c-4861a355da7c"/>
+                <textElement>
+                    <font size="7"/>
+                </textElement>
                 <textFieldExpression><![CDATA["Please note that the stock out rates reflected here may potentially vary from that displayed in previously circulated LMIS reports; this is because OpenLMIS allows facilities to report even beyond the deadline of the last day of the month, a time that the LMIS report is generated"]]></textFieldExpression>
             </textField>
         </band>
