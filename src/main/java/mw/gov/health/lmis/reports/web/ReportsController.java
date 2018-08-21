@@ -1,5 +1,10 @@
 package mw.gov.health.lmis.reports.web;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
@@ -23,15 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 @Controller
 @Transactional
@@ -131,12 +131,32 @@ public class ReportsController extends BaseController {
   @RequestMapping(value = "/orderables/stockout", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
-  public Collection<OrderableDto> getOrderables() {
+  public Collection<OrderableDto> getOrderables(
+      @RequestParam(value = "program", required = false) String programName) {
     permissionService.canViewReportsOrOrders();
 
-    List<OrderableDto> list = orderableReferenceDataService.findAll();
-    list.add(new OrderableDto("ALL_LA", "All malaria formulations"));
-    list.add(new OrderableDto("ALL_IC", "All implantable contraceptives"));
+    List<OrderableDto> list = null;
+
+    if (null != programName) {
+      Collection<ProgramDto> programs = programReferenceDataService.search(programName);
+
+      if (!programs.isEmpty()) {
+        list = orderableReferenceDataService
+            .findByProgramCode(programs.iterator().next().getCode());
+      }
+    }
+
+    if (null == list) {
+      list = orderableReferenceDataService.findAll();
+    }
+
+    if (null == programName || "malaria".equalsIgnoreCase(programName)) {
+      list.add(new OrderableDto("ALL_LA", "All malaria formulations"));
+    }
+
+    if (null == programName || "rh".equalsIgnoreCase(programName)) {
+      list.add(new OrderableDto("ALL_IC", "All implantable contraceptives"));
+    }
 
     return list;
   }

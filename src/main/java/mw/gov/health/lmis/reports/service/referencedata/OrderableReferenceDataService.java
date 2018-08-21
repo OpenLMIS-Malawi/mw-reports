@@ -27,4 +27,8 @@ public class OrderableReferenceDataService extends BaseReferenceDataService<Orde
     return getPage("", RequestParameters.init()).getContent();
   }
 
+  public List<OrderableDto> findByProgramCode(String programCode) {
+    return getPage("", RequestParameters.init().set("program", programCode)).getContent();
+  }
+
 }

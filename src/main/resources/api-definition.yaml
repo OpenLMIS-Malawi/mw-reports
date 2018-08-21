@@ -197,6 +197,12 @@ resourceTypes:
                   Get all products for stock out rate report. The result list will also contain
                   two combo orderables: ALL_LA - All malaria formulations and ALL_IC - All
                   implantable contraceptive.
+                queryParameters:
+                  program:
+                    displayName: Program name
+                    type: string
+                    required: false
+                    repeat: false
                 responses:
                   "200":
                     body:
