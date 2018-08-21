@@ -24,28 +24,28 @@
     <property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.1" value="columnHeader"/>
     <property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.1" value="columnHeader"/>
     <property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
-    <parameter name="Program" class="java.lang.String">
+    <parameter name="program" class="java.lang.String">
         <property name="displayName" value="Program Name"/>
         <property name="selectExpression" value="/api/reports/programs"/>
         <property name="selectProperty" value="name"/>
         <property name="displayProperty" value="name"/>
         <property name="required" value="true"/>
     </parameter>
-    <parameter name="Period" class="java.lang.String">
+    <parameter name="period" class="java.lang.String">
         <property name="displayName" value="Period Name"/>
         <property name="selectExpression" value="/api/reports/processingPeriods"/>
         <property name="selectProperty" value="name"/>
         <property name="displayProperty" value="name"/>
         <property name="required" value="true"/>
     </parameter>
-    <parameter name="GeographicZone" class="java.lang.String">
+    <parameter name="geographicZone" class="java.lang.String">
         <property name="displayName" value="District"/>
         <property name="selectExpression" value="/api/reports/districts"/>
         <property name="selectProperty" value="name"/>
         <property name="displayProperty" value="name"/>
         <property name="required" value="false"/>
     </parameter>
-    <parameter name="Product" class="java.lang.String">
+    <parameter name="product" class="java.lang.String">
         <property name="displayName" value="Product"/>
         <property name="selectExpression" value="/api/reports/orderables/stockout"/>
         <property name="selectProperty" value="code"/>
@@ -61,7 +61,7 @@
 	FROM
 		referencedata.geographic_zones
 	WHERE
-		name = $P{GeographicZone}
+		name = $P{geographicZone}
 	UNION ALL
 	SELECT
 		z.id
@@ -92,11 +92,11 @@
 		rli.stockOnHand AS closingBalance
 	FROM
 		requisition.requisitions AS r
-		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{Program}::varchar IS NULL OR p.name = $P{Program}::varchar)
+		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{program}::varchar IS NULL OR p.name = $P{program}::varchar)
 		INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
-		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
+		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{geographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
 		INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
-		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{Period}::varchar IS NULL OR pp.name = $P{Period}::varchar)
+		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{period}::varchar IS NULL OR pp.name = $P{period}::varchar)
 		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
 		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId
 	WHERE
@@ -111,10 +111,10 @@ SELECT
 FROM
 	records AS r
 WHERE
-	($P{Product}::varchar IS NULL)
-	OR ($P{Product}::varchar = 'ALL_LA' AND r.productCode IN (SELECT code FROM allMalaria))
-	OR ($P{Product}::varchar = 'ALL_IC' AND r.productCode IN (SELECT code FROM allRh))
-	OR ($P{Product}::varchar = r.productCode)
+	($P{product}::varchar IS NULL)
+	OR ($P{product}::varchar = 'ALL_LA' AND r.productCode IN (SELECT code FROM allMalaria))
+	OR ($P{product}::varchar = 'ALL_IC' AND r.productCode IN (SELECT code FROM allRh))
+	OR ($P{product}::varchar = r.productCode)
 GROUP BY
 	productName
 UNION ALL
@@ -130,7 +130,7 @@ FROM (
 	FROM
 		records AS r
 	WHERE
-		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_LA')
+		($P{product}::varchar IS NULL OR $P{product}::varchar = 'ALL_LA')
     AND r.productCode IN (SELECT code FROM allMalaria)
 	GROUP BY
 		r.requisitionId
@@ -152,7 +152,7 @@ FROM (
 	FROM
 		records AS r
 	WHERE
-		($P{Product}::varchar IS NULL OR $P{Product}::varchar = 'ALL_IC')
+		($P{product}::varchar IS NULL OR $P{product}::varchar = 'ALL_IC')
     AND r.productCode IN (SELECT code FROM allRh)
 	GROUP BY
 		r.requisitionId
@@ -177,7 +177,7 @@ ORDER BY
             <property name="com.jaspersoft.studio.unit.height" value="pixel"/>
             <textField>
                 <reportElement x="280" y="100" width="140" height="20" uuid="c7e6d724-faf3-45d5-8119-6c4c0410e4a2"/>
-                <textFieldExpression><![CDATA[$P{Period}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{period}]]></textFieldExpression>
             </textField>
             <textField>
                 <reportElement key="" x="420" y="100" width="134" height="20" uuid="ee95017e-34fb-47fb-8003-8128ed51bd37"/>
@@ -195,11 +195,11 @@ ORDER BY
             </staticText>
             <textField>
                 <reportElement x="140" y="100" width="140" height="20" uuid="2d8d85cb-2583-4a58-9cce-efc84578b732"/>
-                <textFieldExpression><![CDATA[$P{Program}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$P{program}]]></textFieldExpression>
             </textField>
             <textField>
                 <reportElement x="0" y="100" width="140" height="20" uuid="bcbebeb1-9779-44a1-85c6-e6ace61cda27"/>
-                <textFieldExpression><![CDATA[($P{GeographicZone} == null) ? "All" : $P{GeographicZone}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[($P{geographicZone} == null) ? "All" : $P{geographicZone}]]></textFieldExpression>
             </textField>
             <staticText>
                 <reportElement x="0" y="80" width="140" height="20" uuid="ef29af37-a2a5-4f68-b2ee-c6440393385d"/>
