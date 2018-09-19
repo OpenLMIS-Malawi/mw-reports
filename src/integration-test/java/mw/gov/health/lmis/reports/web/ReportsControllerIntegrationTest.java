@@ -1,12 +1,12 @@
 package mw.gov.health.lmis.reports.web;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.collection.IsArrayContainingInAnyOrder.arrayContainingInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -185,7 +185,8 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     // then
     assertNotNull(result);
     assertEquals(2, result.length);
-    assertThat(result, arrayContaining(reasons.get(0).getReason(), reasons.get(1).getReason()));
+    assertThat(result, arrayContainingInAnyOrder(
+        reasons.get(0).getReason(), reasons.get(1).getReason()));
     assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
   }
 
