@@ -1,5 +1,7 @@
 package mw.gov.health.lmis.reports.web;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
@@ -13,7 +15,6 @@ import static org.mockito.BDDMockito.given;
 import guru.nidi.ramltester.junit.RamlMatchers;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import mw.gov.health.lmis.reports.dto.external.GeographicLevelDto;
@@ -26,6 +27,10 @@ import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceD
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
+import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
+import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonAssignmentDto;
+import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
+import mw.gov.health.lmis.testutils.ValidReasonAssignmentDtoDataBuilder;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +54,9 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   private ProgramReferenceDataService programReferenceDataService;
 
   @MockBean
+  private ValidReasonStockmanagementService validReasonStockmanagementService;
+
+  @MockBean
   private OrderableReferenceDataService orderableReferenceDataService;
 
   @Before
@@ -62,7 +70,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   public void shouldGetAllDistricts() {
     // given
     GeographicZoneDto[] zones = { generateGeographicZone(), generateGeographicZone() };
-    given(geographicZoneReferenceDataService.search(3, null)).willReturn(Arrays.asList(zones));
+    given(geographicZoneReferenceDataService.search(3, null)).willReturn(asList(zones));
 
     // when
     GeographicZoneDto[] result = restAssured.given()
@@ -86,7 +94,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   public void shouldGetAllProcessingPeriods() {
     // given
     ProcessingPeriodDto[] periods = { generateProcessingPeriod(), generateProcessingPeriod() };
-    given(periodReferenceDataService.findAll()).willReturn(Arrays.asList(periods));
+    given(periodReferenceDataService.findAll()).willReturn(asList(periods));
 
     // when
     ProcessingPeriodDto[] result = restAssured.given()
@@ -110,7 +118,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   public void shouldGetAllPrograms() {
     // given
     ProgramDto[] programs = { generateProgram(), generateProgram() };
-    given(programReferenceDataService.findAll()).willReturn(Arrays.asList(programs));
+    given(programReferenceDataService.findAll()).willReturn(asList(programs));
 
     // when
     ProgramDto[] result = restAssured.given()
@@ -154,6 +162,30 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     assertThat(list, hasItem(hasProperty("productCode", is("ALL_LA"))));
     assertThat(list, hasItem(hasProperty("productCode", is("ALL_IC"))));
 
+    assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
+  }
+
+  @Test
+  public void shouldGetAllValidReasons() {
+    List<ValidReasonAssignmentDto> reasons = asList(
+        new ValidReasonAssignmentDtoDataBuilder().build(),
+        new ValidReasonAssignmentDtoDataBuilder().build(),
+        new ValidReasonAssignmentDtoDataBuilder().withHidden(true).build());
+    given(validReasonStockmanagementService.findAll()).willReturn(reasons);
+
+    StockCardLineItemReasonDto[] result = restAssured.given()
+        .queryParam(ACCESS_TOKEN, getToken())
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+        .get(RESOURCE_URL + "/validReasons")
+        .then()
+        .statusCode(200)
+        .extract().as(StockCardLineItemReasonDto[].class);
+
+    // then
+    assertNotNull(result);
+    assertEquals(2, result.length);
+    assertThat(result, arrayContaining(reasons.get(0).getReason(), reasons.get(1).getReason()));
     assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
   }
 

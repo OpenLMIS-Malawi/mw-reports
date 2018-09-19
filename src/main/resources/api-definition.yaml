@@ -58,6 +58,14 @@ schemas:
           "items": { "type": "object", "$ref":"schemas/orderable.json" }
       }
 
+  - validReason: !include schemas/validReasonAssignment.json
+
+  - validReasonArray: |
+      {
+          "type": "array",
+          "items": { "type": "object", "$ref":"schemas/validReasonAssignment.json" }
+      }
+
 traits:
     - secured:
           queryParameters:
@@ -188,6 +196,20 @@ resourceTypes:
                       body:
                         application/json:
                           schema: localizedErrorResponse
+      /validReasons:
+          displayName: Valid reasons
+          get:
+              is: [ secured ]
+              description: Get not hidden valid reasons.
+              responses:
+                  "200":
+                      body:
+                          application/json:
+                              schema: validReasonArray
+                  "403":
+                      body:
+                          application/json:
+                              schema: localizedErrorResponse
       /orderables:
           /stockout:
               displayName: Stock out orderables

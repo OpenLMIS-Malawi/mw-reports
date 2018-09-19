@@ -3,7 +3,9 @@ package mw.gov.health.lmis.reports.web;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
@@ -20,6 +22,9 @@ import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataSe
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
+import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
+import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonAssignmentDto;
+import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +52,9 @@ public class ReportsController extends BaseController {
 
   @Autowired
   private ProgramReferenceDataService programReferenceDataService;
+
+  @Autowired
+  private ValidReasonStockmanagementService validReasonStockmanagementService;
 
   @Autowired
   private OrderableReferenceDataService orderableReferenceDataService;
@@ -121,6 +129,22 @@ public class ReportsController extends BaseController {
   public Collection<ProgramDto> getPrograms() {
     permissionService.canViewReportsOrOrders();
     return programReferenceDataService.findAll();
+  }
+
+  /**
+   * Get all visible valid reasons.
+   *
+   * @return reasons.
+   */
+  @RequestMapping(value = "/validReasons", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public Set<StockCardLineItemReasonDto> getValidReasons() {
+    permissionService.canViewReportsOrOrders();
+    return validReasonStockmanagementService.findAll().stream()
+        .filter(reason -> !reason.getHidden())
+        .map(ValidReasonAssignmentDto::getReason)
+        .collect(Collectors.toSet());
   }
 
   /**
