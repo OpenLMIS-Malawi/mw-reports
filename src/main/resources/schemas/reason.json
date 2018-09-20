@@ -19,20 +19,10 @@
       ]
     },
     "reasonType": {
-      "type": "string",
-      "enum": [
-        "CREDIT",
-        "DEBIT",
-        "BALANCE_ADJUSTMENT"
-      ]
+      "type": "string"
     },
     "reasonCategory": {
-      "type": "string",
-      "enum": [
-        "TRANSFER",
-        "ADJUSTMENT",
-        "PHYSICAL_INVENTORY"
-      ]
+      "type": "string"
     },
     "tags": {
       "type": ["array", "null"],

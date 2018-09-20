@@ -3,8 +3,6 @@ package mw.gov.health.lmis.testutils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import mw.gov.health.lmis.reports.service.stockmanagement.ReasonCategory;
-import mw.gov.health.lmis.reports.service.stockmanagement.ReasonType;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
 
 public class StockCardLineItemReasonDtoDataBuilder {
@@ -14,8 +12,8 @@ public class StockCardLineItemReasonDtoDataBuilder {
   private UUID id;
   private String name;
   private String description;
-  private ReasonType reasonType;
-  private ReasonCategory reasonCategory;
+  private String reasonType;
+  private String reasonCategory;
   private Boolean isFreeTextAllowed;
   private List<String> tags;
 
@@ -28,8 +26,8 @@ public class StockCardLineItemReasonDtoDataBuilder {
     id = UUID.randomUUID();
     name = "Stock " + instanceNumber;
     description = "Stock Line Item Reason " + instanceNumber;
-    reasonType = ReasonType.CREDIT;
-    reasonCategory = ReasonCategory.ADJUSTMENT;
+    reasonType = "CREDIT";
+    reasonCategory = "ADJUSTMENT";
     isFreeTextAllowed = true;
     tags = new ArrayList<>();
   }

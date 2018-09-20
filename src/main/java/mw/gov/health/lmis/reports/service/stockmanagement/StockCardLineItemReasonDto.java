@@ -34,8 +34,8 @@ public class StockCardLineItemReasonDto {
   private UUID id;
   private String name;
   private String description;
-  private ReasonType reasonType;
-  private ReasonCategory reasonCategory;
+  private String reasonType;
+  private String reasonCategory;
   private Boolean isFreeTextAllowed;
   private List<String> tags;
 }
