@@ -28,9 +28,8 @@ import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataSe
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
-import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonAssignmentDto;
 import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
-import mw.gov.health.lmis.testutils.ValidReasonAssignmentDtoDataBuilder;
+import mw.gov.health.lmis.testutils.StockCardLineItemReasonDtoDataBuilder;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -167,10 +166,17 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
 
   @Test
   public void shouldGetAllValidReasons() {
-    List<ValidReasonAssignmentDto> reasons = asList(
-        new ValidReasonAssignmentDtoDataBuilder().build(),
-        new ValidReasonAssignmentDtoDataBuilder().build(),
-        new ValidReasonAssignmentDtoDataBuilder().withHidden(true).build());
+    List<StockCardLineItemReasonDto> reasons = asList(
+        new StockCardLineItemReasonDtoDataBuilder().build(),
+        new StockCardLineItemReasonDtoDataBuilder().build(),
+        new StockCardLineItemReasonDtoDataBuilder()
+            .withId(UUID.fromString("b5c27da7-bdda-4790-925a-9484c5dfb594")).build(),
+        new StockCardLineItemReasonDtoDataBuilder()
+            .withId(UUID.fromString("313f2f5f-0c22-4626-8c49-3554ef763de3")).build(),
+        new StockCardLineItemReasonDtoDataBuilder()
+            .withId(UUID.fromString("84eb13c3-3e54-4687-8a5f-a9f20dcd0dac")).build(),
+        new StockCardLineItemReasonDtoDataBuilder()
+            .withId(UUID.fromString("f8bb41e2-ab43-4781-ae7a-7bf3b5116b82")).build());
     given(validReasonStockmanagementService.findAll()).willReturn(reasons);
 
     StockCardLineItemReasonDto[] result = restAssured.given()
@@ -185,8 +191,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     // then
     assertNotNull(result);
     assertEquals(2, result.length);
-    assertThat(result, arrayContainingInAnyOrder(
-        reasons.get(0).getReason(), reasons.get(1).getReason()));
+    assertThat(result, arrayContainingInAnyOrder(reasons.get(0), reasons.get(1)));
     assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
   }
 

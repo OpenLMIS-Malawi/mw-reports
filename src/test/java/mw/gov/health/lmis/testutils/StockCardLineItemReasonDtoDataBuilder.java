@@ -38,4 +38,9 @@ public class StockCardLineItemReasonDtoDataBuilder {
     return new StockCardLineItemReasonDto(id, name, description, reasonType, reasonCategory,
         isFreeTextAllowed, tags);
   }
+
+  public StockCardLineItemReasonDtoDataBuilder withId(UUID id) {
+    this.id = id;
+    return this;
+  }
 }

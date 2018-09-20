@@ -1,5 +1,7 @@
 package mw.gov.health.lmis.reports.web;
 
+import static java.util.Arrays.asList;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +25,6 @@ import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataServi
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
-import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonAssignmentDto;
 import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,9 +142,15 @@ public class ReportsController extends BaseController {
   @ResponseBody
   public Set<StockCardLineItemReasonDto> getValidReasons() {
     permissionService.canViewReportsOrOrders();
+
+    List<UUID> disabledReasons = asList(
+        UUID.fromString("b5c27da7-bdda-4790-925a-9484c5dfb594"), // Consumed
+        UUID.fromString("313f2f5f-0c22-4626-8c49-3554ef763de3"), // Receipts
+        UUID.fromString("84eb13c3-3e54-4687-8a5f-a9f20dcd0dac"), // Beginning Balance Excess
+        UUID.fromString("f8bb41e2-ab43-4781-ae7a-7bf3b5116b82")); // Beginning Balance Insufficiency
+
     return validReasonStockmanagementService.findAll().stream()
-        .filter(reason -> !reason.getHidden())
-        .map(ValidReasonAssignmentDto::getReason)
+        .filter(reason -> !disabledReasons.contains(reason.getId()))
         .collect(Collectors.toSet());
   }
 
