@@ -25,7 +25,7 @@ import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataServi
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
-import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
+import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,7 @@ public class ReportsController extends BaseController {
   private ProgramReferenceDataService programReferenceDataService;
 
   @Autowired
-  private ValidReasonStockmanagementService validReasonStockmanagementService;
+  private StockCardLineItemReasonStockmanagementService reasonStockmanagementService;
 
   @Autowired
   private OrderableReferenceDataService orderableReferenceDataService;
@@ -149,7 +149,7 @@ public class ReportsController extends BaseController {
         UUID.fromString("84eb13c3-3e54-4687-8a5f-a9f20dcd0dac"), // Beginning Balance Excess
         UUID.fromString("f8bb41e2-ab43-4781-ae7a-7bf3b5116b82")); // Beginning Balance Insufficiency
 
-    return validReasonStockmanagementService.findAll().stream()
+    return reasonStockmanagementService.findAll().stream()
         .filter(reason -> !disabledReasons.contains(reason.getId()))
         .collect(Collectors.toSet());
   }

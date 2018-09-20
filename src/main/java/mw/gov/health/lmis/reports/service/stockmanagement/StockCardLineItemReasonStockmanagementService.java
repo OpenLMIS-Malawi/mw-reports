@@ -4,7 +4,7 @@ import mw.gov.health.lmis.reports.service.referencedata.BaseReferenceDataService
 import org.springframework.stereotype.Service;
 
 @Service
-public class ValidReasonStockmanagementService
+public class StockCardLineItemReasonStockmanagementService
     extends BaseReferenceDataService<StockCardLineItemReasonDto> {
 
   @Override

@@ -58,12 +58,12 @@ schemas:
           "items": { "type": "object", "$ref":"schemas/orderable.json" }
       }
 
-  - validReason: !include schemas/validReasonAssignment.json
+  - reason: !include schemas/reason.json
 
-  - validReasonArray: |
+  - reasonArray: |
       {
           "type": "array",
-          "items": { "type": "object", "$ref":"schemas/validReasonAssignment.json" }
+          "items": { "type": "object", "$ref":"schemas/reason.json" }
       }
 
 traits:
@@ -205,7 +205,7 @@ resourceTypes:
                   "200":
                       body:
                           application/json:
-                              schema: validReasonArray
+                              schema: reasonArray
                   "403":
                       body:
                           application/json:

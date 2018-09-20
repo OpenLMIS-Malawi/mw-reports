@@ -28,7 +28,7 @@ import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataSe
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
-import mw.gov.health.lmis.reports.service.stockmanagement.ValidReasonStockmanagementService;
+import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.testutils.StockCardLineItemReasonDtoDataBuilder;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   private ProgramReferenceDataService programReferenceDataService;
 
   @MockBean
-  private ValidReasonStockmanagementService validReasonStockmanagementService;
+  private StockCardLineItemReasonStockmanagementService reasonStockmanagementService;
 
   @MockBean
   private OrderableReferenceDataService orderableReferenceDataService;
@@ -177,7 +177,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
             .withId(UUID.fromString("84eb13c3-3e54-4687-8a5f-a9f20dcd0dac")).build(),
         new StockCardLineItemReasonDtoDataBuilder()
             .withId(UUID.fromString("f8bb41e2-ab43-4781-ae7a-7bf3b5116b82")).build());
-    given(validReasonStockmanagementService.findAll()).willReturn(reasons);
+    given(reasonStockmanagementService.findAll()).willReturn(reasons);
 
     StockCardLineItemReasonDto[] result = restAssured.given()
         .queryParam(ACCESS_TOKEN, getToken())
