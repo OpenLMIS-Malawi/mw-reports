@@ -233,7 +233,7 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 						<pen lineWidth="0.0"/>
 					</graphicElement>
 				</rectangle>
-				<textField isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 					<reportElement x="20" y="0" width="120" height="20" uuid="eb5409f1-cdfe-481f-a56f-17a78f1d2b6f">
 						<printWhenExpression><![CDATA[$F{productname} != null]]></printWhenExpression>
 					</reportElement>
