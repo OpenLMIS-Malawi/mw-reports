@@ -230,13 +230,13 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<rectangle>
-					<reportElement x="0" y="0" width="555" height="20" backcolor="#C0C0C0" uuid="5fc73509-f27b-4051-9b0d-0430e9585241"/>
+					<reportElement stretchType="ElementGroupHeight" x="0" y="0" width="555" height="20" backcolor="#C0C0C0" uuid="5fc73509-f27b-4051-9b0d-0430e9585241"/>
 					<graphicElement>
 						<pen lineWidth="0.0"/>
 					</graphicElement>
 				</rectangle>
-				<textField isBlankWhenNull="false">
-					<reportElement x="20" y="0" width="100" height="20" uuid="eb5409f1-cdfe-481f-a56f-17a78f1d2b6f">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement stretchType="RelativeToBandHeight" x="20" y="0" width="100" height="20" uuid="eb5409f1-cdfe-481f-a56f-17a78f1d2b6f">
 						<printWhenExpression><![CDATA[$F{productname} != null]]></printWhenExpression>
 					</reportElement>
 					<textElement>
