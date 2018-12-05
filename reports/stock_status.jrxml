@@ -523,7 +523,7 @@ ORDER BY referencedata.facilities.name DESC,
 				<textFieldExpression><![CDATA[($F{MOS} != null) ? String.format("%.2f", Double.valueOf($F{MOS})) : "-"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement positionType="FixRelativeToBottom" isPrintRepeatedValues="false" x="60" y="0" width="140" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+				<reportElement stretchType="RelativeToBandHeight" x="60" y="0" width="140" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
 				<textFieldExpression><![CDATA[$F{ProductName}]]></textFieldExpression>
 			</textField>
 			<textField>
