@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="order" pageWidth="595" pageHeight="842" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="6e843fe2-ce72-4257-a4c3-1df03728dc95">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Sample DB"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
@@ -70,7 +70,8 @@
 		<queryString>
 			<![CDATA[]]>
 		</queryString>
-		<field name="statusChange" class="mw.gov.health.lmis.reports.dto.external.StatusChangeDto"/>
+		<field name="author" class="mw.gov.health.lmis.reports.dto.external.UserDto"/>
+		<field name="date" class="java.util.Date"/>
 	</subDataset>
 	<parameter name="order" class="mw.gov.health.lmis.reports.dto.external.OrderDto">
 		<property name="displayName" value="Order"/>
@@ -911,7 +912,7 @@ Lilongwe]]></text>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ApproveStatusChangeDataSet" uuid="fe198077-251e-482b-81a2-5096f0d8eff7">
-						<dataSourceExpression><![CDATA[$P{order}.getApprovedStatusChanges()]]></dataSourceExpression>
+						<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{order}.getApprovedStatusChanges())]]></dataSourceExpression>
 					</datasetRun>
 					<jr:column width="128" uuid="a7324018-a626-4416-ad6b-f5564a88af75">
 						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
@@ -930,7 +931,7 @@ Lilongwe]]></text>
 						<jr:detailCell style="Table_TD" height="30">
 							<textField>
 								<reportElement x="0" y="0" width="226" height="30" uuid="c3a7b99b-4b2f-4641-8453-7f5272d4aa8e"/>
-								<textFieldExpression><![CDATA[$F{statusChange}.getAuthor().printName()]]></textFieldExpression>
+								<textFieldExpression><![CDATA[$F{author}.printName()]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
 					</jr:column>
@@ -951,7 +952,7 @@ Lilongwe]]></text>
 						<jr:detailCell style="Table_TD" height="30">
 							<textField>
 								<reportElement x="0" y="0" width="122" height="30" uuid="c728d8c9-dd78-4ac9-a28d-2659ba5d4a96"/>
-								<textFieldExpression><![CDATA[$F{statusChange}.printDate($P{timeZone});]]></textFieldExpression>
+								<textFieldExpression><![CDATA[$F{date}]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
 					</jr:column>

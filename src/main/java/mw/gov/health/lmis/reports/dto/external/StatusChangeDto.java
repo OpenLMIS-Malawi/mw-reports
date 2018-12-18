@@ -2,6 +2,7 @@ package mw.gov.health.lmis.reports.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Date;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -64,5 +65,10 @@ public class StatusChangeDto implements Comparable<StatusChangeDto> {
   @Override
   public int compareTo(StatusChangeDto statusChange) {
     return this.createdDate.compareTo(statusChange.createdDate);
+  }
+
+  @JsonIgnore
+  public Date getDate() {
+    return Date.from(createdDate.toInstant());
   }
 }
