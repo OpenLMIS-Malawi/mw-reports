@@ -2,6 +2,8 @@ package mw.gov.health.lmis.reports.dto.external;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -137,6 +139,18 @@ public class OrderDto {
   public StatusChangeDto getApprovedStatusChange() {
     return Optional.ofNullable(getStatusChangeByStatus(RequisitionStatusDto.APPROVED))
             .orElse(new StatusChangeDto());
+  }
+
+  /**
+   * Get status changes that are APPROVED.
+   * @return approved status change.
+   */
+  @JsonIgnore
+  public Set<StatusChangeDto> getApprovedStatusChanges() {
+    return Optional.of(statusChanges).orElse(new ArrayList<>()).stream()
+        .filter(statusChange -> RequisitionStatusDto.APPROVED.equals(statusChange.getStatus()))
+        .sorted()
+        .collect(Collectors.toSet());
   }
 
   /**
