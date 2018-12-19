@@ -1,17 +1,6 @@
 package mw.gov.health.lmis.reports.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import java.util.Date;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.springframework.context.i18n.LocaleContextHolder;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.chrono.Chronology;
@@ -20,6 +9,13 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 import java.util.Locale;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -68,7 +64,7 @@ public class StatusChangeDto implements Comparable<StatusChangeDto> {
   }
 
   @JsonIgnore
-  public Date getDate() {
-    return Date.from(createdDate.toInstant());
+  public PrintableZonedDateTime getDate() {
+    return new PrintableZonedDateTime(this.createdDate);
   }
 }

@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -156,11 +156,12 @@ public class OrderDto {
         .reduce((first, second) -> second);
 
     if (lastAuthorization.isPresent()) {
+      ZonedDateTime lastAuthorizationDate = lastAuthorization.get().getCreatedDate();
       return Optional.of(statusChanges).orElse(new ArrayList<>()).stream()
           .filter(statusChange -> RequisitionStatusDto.APPROVED.equals(statusChange.getStatus())
               || RequisitionStatusDto.IN_APPROVAL.equals(statusChange.getStatus()))
-          .sorted()
-          .collect(Collectors.toSet());
+          .filter(statusChange -> statusChange.getCreatedDate().isAfter(lastAuthorizationDate))
+          .collect(Collectors.toCollection(TreeSet::new));
     }
     return emptySet();
   }
