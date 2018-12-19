@@ -1,20 +1,20 @@
 package mw.gov.health.lmis.reports.dto.external;
 
+import static java.util.Collections.emptySet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @AllArgsConstructor
@@ -142,15 +142,27 @@ public class OrderDto {
   }
 
   /**
-   * Get status changes that are APPROVED.
+   * Get status changes that have APPROVED or IN_APPROVAL status
+   * and were done after last AUTHORIZE change.
+   *
    * @return approved status change.
    */
   @JsonIgnore
   public Set<StatusChangeDto> getApprovedStatusChanges() {
-    return Optional.of(statusChanges).orElse(new ArrayList<>()).stream()
-        .filter(statusChange -> RequisitionStatusDto.APPROVED.equals(statusChange.getStatus()))
+    Optional<StatusChangeDto> lastAuthorization = Optional.of(statusChanges)
+        .orElse(new ArrayList<>()).stream()
+        .filter(statusChange -> RequisitionStatusDto.AUTHORIZED.equals(statusChange.getStatus()))
         .sorted()
-        .collect(Collectors.toSet());
+        .reduce((first, second) -> second);
+
+    if (lastAuthorization.isPresent()) {
+      return Optional.of(statusChanges).orElse(new ArrayList<>()).stream()
+          .filter(statusChange -> RequisitionStatusDto.APPROVED.equals(statusChange.getStatus())
+              || RequisitionStatusDto.IN_APPROVAL.equals(statusChange.getStatus()))
+          .sorted()
+          .collect(Collectors.toSet());
+    }
+    return emptySet();
   }
 
   /**
