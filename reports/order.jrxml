@@ -495,17 +495,17 @@ Lilongwe]]></text>
 		</band>
 	</detail>
 	<summary>
-		<band height="315">
+		<band height="362">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="115" width="100" height="20" uuid="9fa486a9-4156-4ddf-bb90-01fcfc403ad4"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="135" width="100" height="20" uuid="9fa486a9-4156-4ddf-bb90-01fcfc403ad4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Reviewed By (CMST): ]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="110" y="115" width="100" height="20" uuid="8547d29e-6e35-453e-8a2a-375ea27f57c7"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="110" y="135" width="100" height="20" uuid="8547d29e-6e35-453e-8a2a-375ea27f57c7"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -518,14 +518,14 @@ Lilongwe]]></text>
 				<textFieldExpression><![CDATA[$P{order}.getReleasedStatusChange().getAuthor().printName()]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="135" width="100" height="20" uuid="67c89e91-ab18-4969-8717-5787b78b787c"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="155" width="100" height="20" uuid="67c89e91-ab18-4969-8717-5787b78b787c"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Printed By: ]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="110" y="135" width="100" height="20" uuid="965ee62a-0b9d-41d8-917c-7b59abfa8324"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="110" y="155" width="100" height="20" uuid="965ee62a-0b9d-41d8-917c-7b59abfa8324"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -538,7 +538,7 @@ Lilongwe]]></text>
 				<textFieldExpression><![CDATA[$P{user}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="290" y="135" width="80" height="20" uuid="1bf18c7f-35a2-4b7c-b8a5-5b9bacf1183d"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="290" y="155" width="80" height="20" uuid="1bf18c7f-35a2-4b7c-b8a5-5b9bacf1183d"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -550,21 +550,21 @@ Lilongwe]]></text>
 				</textElement>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="220" y="135" width="60" height="20" uuid="753ab777-4b4c-48e9-9ea8-7a06a4ea55df"/>
+				<reportElement positionType="FixRelativeToBottom" x="220" y="155" width="60" height="20" uuid="753ab777-4b4c-48e9-9ea8-7a06a4ea55df"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Signature: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="380" y="115" width="40" height="20" uuid="992fcd9b-f17f-4ee8-8aee-cf95482ae224"/>
+				<reportElement positionType="FixRelativeToBottom" x="380" y="135" width="40" height="20" uuid="992fcd9b-f17f-4ee8-8aee-cf95482ae224"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Date: ]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="115" width="122" height="20" uuid="e8582379-9cd9-4274-ae51-f8b1fcdf323f"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="135" width="122" height="20" uuid="e8582379-9cd9-4274-ae51-f8b1fcdf323f"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -577,7 +577,7 @@ Lilongwe]]></text>
 				<textFieldExpression><![CDATA[$P{order}.getReleasedStatusChange().printDate($P{timeZone});]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="135" width="122" height="20" uuid="2308393b-b536-4676-a4f7-8bd83528b662"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="155" width="122" height="20" uuid="2308393b-b536-4676-a4f7-8bd83528b662"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -590,21 +590,21 @@ Lilongwe]]></text>
 				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy h:mm:ss a").format(java.time.ZonedDateTime.now(java.time.ZoneId.of($P{timeZone})));]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="380" y="135" width="40" height="20" uuid="a64dde3f-b081-496c-a33d-521309f2407e"/>
+				<reportElement positionType="FixRelativeToBottom" x="380" y="155" width="40" height="20" uuid="a64dde3f-b081-496c-a33d-521309f2407e"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Date: ]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="185" width="80" height="20" uuid="5505c65d-a2b8-4266-abc8-3c15e28f445b"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="205" width="80" height="20" uuid="5505c65d-a2b8-4266-abc8-3c15e28f445b"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Ordered By]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="205" width="556" height="20" uuid="a93a18f3-12a5-40b7-8064-1d67c8c58e95"/>
+				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="225" width="556" height="20" uuid="a93a18f3-12a5-40b7-8064-1d67c8c58e95"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -616,7 +616,7 @@ Lilongwe]]></text>
 				</textElement>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="80" y="185" width="80" height="20" uuid="ccf32a7a-df10-44db-bf8c-4ccca84ad7c3">
+				<reportElement positionType="FixRelativeToBottom" x="80" y="205" width="80" height="20" uuid="ccf32a7a-df10-44db-bf8c-4ccca84ad7c3">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -625,7 +625,7 @@ Lilongwe]]></text>
 				<text><![CDATA[Office Held]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="160" y="185" width="70" height="20" uuid="65b419e0-d728-4f93-9e73-7b2c06620f84">
+				<reportElement positionType="FixRelativeToBottom" x="160" y="205" width="70" height="20" uuid="65b419e0-d728-4f93-9e73-7b2c06620f84">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -634,14 +634,14 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="230" y="185" width="120" height="20" uuid="e0df4c1f-fab4-44c5-9dd8-c239c6afdf5c"/>
+				<reportElement positionType="FixRelativeToBottom" x="230" y="205" width="120" height="20" uuid="e0df4c1f-fab4-44c5-9dd8-c239c6afdf5c"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Verified at CMST by]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="350" y="185" width="60" height="20" uuid="44fa5267-64bf-4bc2-93af-bde86de23011">
+				<reportElement positionType="FixRelativeToBottom" x="350" y="205" width="60" height="20" uuid="44fa5267-64bf-4bc2-93af-bde86de23011">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -650,7 +650,7 @@ Lilongwe]]></text>
 				<text><![CDATA[Office Held]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="410" y="185" width="70" height="20" uuid="756ab584-c4d6-49ad-9f21-9732979a75a2">
+				<reportElement positionType="FixRelativeToBottom" x="410" y="205" width="70" height="20" uuid="756ab584-c4d6-49ad-9f21-9732979a75a2">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -659,14 +659,14 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="481" y="185" width="74" height="20" uuid="f3f63bb8-8520-43e8-a1d3-abc2bfb395ce"/>
+				<reportElement positionType="FixRelativeToBottom" x="481" y="205" width="74" height="20" uuid="f3f63bb8-8520-43e8-a1d3-abc2bfb395ce"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Date]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="250" width="556" height="20" uuid="b35b613f-b92d-4830-86df-60367d38b8a0">
+				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="270" width="556" height="20" uuid="b35b613f-b92d-4830-86df-60367d38b8a0">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box>
@@ -680,7 +680,7 @@ Lilongwe]]></text>
 				</textElement>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="80" y="230" width="80" height="20" uuid="09dc92b4-28dd-4863-86ac-407201a6f2fd">
+				<reportElement positionType="FixRelativeToBottom" x="80" y="250" width="80" height="20" uuid="09dc92b4-28dd-4863-86ac-407201a6f2fd">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -689,14 +689,14 @@ Lilongwe]]></text>
 				<text><![CDATA[Office Held]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="230" width="80" height="20" uuid="71e70c1a-f8d5-45ba-88b2-89e4fda9293a"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="250" width="80" height="20" uuid="71e70c1a-f8d5-45ba-88b2-89e4fda9293a"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Approved by]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="160" y="230" width="70" height="20" uuid="de581761-4639-4916-82a6-75b80506a5ef">
+				<reportElement positionType="FixRelativeToBottom" x="160" y="250" width="70" height="20" uuid="de581761-4639-4916-82a6-75b80506a5ef">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -705,7 +705,7 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="410" y="230" width="70" height="20" uuid="a63fe923-4e39-4665-8114-e5f661215a51">
+				<reportElement positionType="FixRelativeToBottom" x="410" y="250" width="70" height="20" uuid="a63fe923-4e39-4665-8114-e5f661215a51">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -714,21 +714,21 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="481" y="230" width="74" height="20" uuid="21c4e99a-3c6f-4bca-a256-4f7d2522859d"/>
+				<reportElement positionType="FixRelativeToBottom" x="481" y="250" width="74" height="20" uuid="21c4e99a-3c6f-4bca-a256-4f7d2522859d"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="230" y="230" width="120" height="20" uuid="bedeadcd-8346-49c8-ad42-d9c8eb2021c7"/>
+				<reportElement positionType="FixRelativeToBottom" x="230" y="250" width="120" height="20" uuid="bedeadcd-8346-49c8-ad42-d9c8eb2021c7"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Authorised at CMST by]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="350" y="230" width="60" height="20" uuid="39526957-bf73-46b5-b64d-43cc17d5a579">
+				<reportElement positionType="FixRelativeToBottom" x="350" y="250" width="60" height="20" uuid="39526957-bf73-46b5-b64d-43cc17d5a579">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -737,7 +737,7 @@ Lilongwe]]></text>
 				<text><![CDATA[Office Held]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="295" width="556" height="20" uuid="4d4edf87-02ac-45cb-803d-2ef1220fc1d4">
+				<reportElement key="" positionType="FixRelativeToBottom" x="0" y="315" width="556" height="20" uuid="4d4edf87-02ac-45cb-803d-2ef1220fc1d4">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box>
@@ -751,7 +751,7 @@ Lilongwe]]></text>
 				</textElement>
 			</textField>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="80" y="275" width="80" height="20" uuid="6a2b6ff8-e956-48ad-8e8e-8e6d9c652fb5">
+				<reportElement positionType="FixRelativeToBottom" x="80" y="295" width="80" height="20" uuid="6a2b6ff8-e956-48ad-8e8e-8e6d9c652fb5">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -760,14 +760,14 @@ Lilongwe]]></text>
 				<text><![CDATA[Office Held]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="0" y="275" width="80" height="20" uuid="03aabc16-a5a9-4208-b19c-13a24eacde46"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="295" width="80" height="20" uuid="03aabc16-a5a9-4208-b19c-13a24eacde46"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Assembled by]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="160" y="275" width="70" height="20" uuid="0b7a44d6-ca52-4a4f-b768-88ff5eef8c33">
+				<reportElement positionType="FixRelativeToBottom" x="160" y="295" width="70" height="20" uuid="0b7a44d6-ca52-4a4f-b768-88ff5eef8c33">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -776,7 +776,7 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="410" y="275" width="70" height="20" uuid="f86c1d94-dfe4-4621-b842-b07804f6a903">
+				<reportElement positionType="FixRelativeToBottom" x="410" y="295" width="70" height="20" uuid="f86c1d94-dfe4-4621-b842-b07804f6a903">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -785,21 +785,21 @@ Lilongwe]]></text>
 				<text><![CDATA[Signature]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="481" y="275" width="74" height="20" uuid="f7de0e66-bd2c-42c2-959d-7d66577c8aea"/>
+				<reportElement positionType="FixRelativeToBottom" x="481" y="295" width="74" height="20" uuid="f7de0e66-bd2c-42c2-959d-7d66577c8aea"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="230" y="275" width="120" height="20" uuid="98ce849f-20e8-417e-ad4b-b0875c1bc636"/>
+				<reportElement positionType="FixRelativeToBottom" x="230" y="295" width="120" height="20" uuid="98ce849f-20e8-417e-ad4b-b0875c1bc636"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
 				<text><![CDATA[Checked By]]></text>
 			</staticText>
 			<staticText>
-				<reportElement positionType="FixRelativeToBottom" x="350" y="275" width="60" height="20" uuid="d1de2b5d-60de-499c-b46e-8e1fd4a2ffa3">
+				<reportElement positionType="FixRelativeToBottom" x="350" y="295" width="60" height="20" uuid="d1de2b5d-60de-499c-b46e-8e1fd4a2ffa3">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -818,7 +818,7 @@ Lilongwe]]></text>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ApproveStatusChangeDataSet" uuid="fe198077-251e-482b-81a2-5096f0d8eff7">
-						<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{order}.getApprovedStatusChanges())]]></dataSourceExpression>
+						<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{order}.getInApprovalStatusChanges())]]></dataSourceExpression>
 					</datasetRun>
 					<jr:column width="100" uuid="a7324018-a626-4416-ad6b-f5564a88af75">
 						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
@@ -834,7 +834,7 @@ Lilongwe]]></text>
 								<textElement textAlignment="Right" verticalAlignment="Middle">
 									<font size="10"/>
 								</textElement>
-								<text><![CDATA[Approved By (Dist): ]]></text>
+								<text><![CDATA[Approved By: ]]></text>
 							</staticText>
 						</jr:detailCell>
 					</jr:column>
@@ -958,7 +958,7 @@ Lilongwe]]></text>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
-				<text><![CDATA[Authorized by: ]]></text>
+				<text><![CDATA[Authorized By: ]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement key="" x="110" y="75" width="100" height="20" uuid="8886edad-567d-4be0-9789-84f4588bbe33"/>
@@ -982,6 +982,49 @@ Lilongwe]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement key="" x="430" y="75" width="122" height="20" uuid="f76d2dd7-8927-41db-a38d-6a8b43807d84">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{order}.getAuthorizedStatusChange().printDate($P{timeZone});]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="115" width="100" height="20" uuid="2b9ca485-09d0-4e43-9197-3459a73d2819"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Approved By (Dist): ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement key="" positionType="FixRelativeToBottom" x="110" y="115" width="260" height="20" uuid="a30a811f-79e6-42c8-bcd2-347a8967ab87"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{order}.getApprovedStatusChange().getAuthor().printName()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="380" y="115" width="40" height="20" uuid="e23a11bc-90ca-42ca-bf37-61ad92a8b84d"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Date: ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="115" width="122" height="20" uuid="d3d60f38-c781-4bbc-9635-febf9a1f3366">
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>

@@ -22,10 +22,12 @@ public class OrderDtoTest {
   public void shouldReturnEmptySetIfThereIsNoAuthorizeStatusChange() {
     OrderDto order = new OrderDtoDataBuilder()
         .withStatusChanges(singletonList(
-            new StatusChangeDtoDataBuilder().build()))
+            new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
+                .build()))
         .build();
 
-    assertEquals(0, order.getApprovedStatusChanges().size());
+    assertEquals(0, order.getInApprovalStatusChanges().size());
   }
 
   @Test
@@ -40,24 +42,28 @@ public class OrderDtoTest {
                     ZoneId.systemDefault()))
                 .build(),
             new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 10), localTime,
                     ZoneId.systemDefault()))
                 .build(),
             new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 9), localTime,
                     ZoneId.systemDefault()))
                 .build(),
             new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 12), localTime,
                     ZoneId.systemDefault()))
                 .build(),
             new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 11), localTime,
                     ZoneId.systemDefault()))
                 .build()))
         .build();
 
-    assertTrue(Ordering.natural().isOrdered(order.getApprovedStatusChanges()));
+    assertTrue(Ordering.natural().isOrdered(order.getInApprovalStatusChanges()));
 
   }
 
@@ -66,10 +72,12 @@ public class OrderDtoTest {
     LocalTime localTime = LocalTime.now();
 
     StatusChangeDto statusChange1 = new StatusChangeDtoDataBuilder()
+        .withStatus(RequisitionStatusDto.IN_APPROVAL)
         .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 11), localTime,
             ZoneId.systemDefault()))
         .build();
     StatusChangeDto statusChange2 = new StatusChangeDtoDataBuilder()
+        .withStatus(RequisitionStatusDto.IN_APPROVAL)
         .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 12), localTime,
             ZoneId.systemDefault()))
         .build();
@@ -82,6 +90,7 @@ public class OrderDtoTest {
                     ZoneId.systemDefault()))
                 .build(),
             new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.IN_APPROVAL)
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 2), localTime,
                     ZoneId.systemDefault()))
                 .build(),
@@ -94,21 +103,16 @@ public class OrderDtoTest {
             statusChange2))
         .build();
 
-    assertThat(order.getApprovedStatusChanges(), hasItems(statusChange1, statusChange2));
+    assertThat(order.getInApprovalStatusChanges(), hasItems(statusChange1, statusChange2));
   }
 
   @Test
-  public void shouldReturnApprovedAndInApprovalStatusChanges() {
+  public void shouldReturnOnlyInApprovalStatusChanges() {
     LocalTime localTime = LocalTime.now();
 
-    StatusChangeDto statusChange1 = new StatusChangeDtoDataBuilder()
+    StatusChangeDto statusChange = new StatusChangeDtoDataBuilder()
         .withStatus(RequisitionStatusDto.IN_APPROVAL)
         .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 11), localTime,
-            ZoneId.systemDefault()))
-        .build();
-    StatusChangeDto statusChange2 = new StatusChangeDtoDataBuilder()
-        .withStatus(RequisitionStatusDto.APPROVED)
-        .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 12), localTime,
             ZoneId.systemDefault()))
         .build();
 
@@ -119,10 +123,14 @@ public class OrderDtoTest {
                 .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 1), localTime,
                     ZoneId.systemDefault()))
                 .build(),
-            statusChange1,
-            statusChange2))
+            statusChange,
+            new StatusChangeDtoDataBuilder()
+                .withStatus(RequisitionStatusDto.APPROVED)
+                .withCreatedDate(ZonedDateTime.of(LocalDate.of(2018, 10, 12), localTime,
+                    ZoneId.systemDefault()))
+                .build()))
         .build();
 
-    assertThat(order.getApprovedStatusChanges(), hasItems(statusChange1, statusChange2));
+    assertThat(order.getInApprovalStatusChanges(), hasItems(statusChange));
   }
 }

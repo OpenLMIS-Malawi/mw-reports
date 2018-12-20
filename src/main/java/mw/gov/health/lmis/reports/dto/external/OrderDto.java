@@ -148,7 +148,7 @@ public class OrderDto {
    * @return approved status change.
    */
   @JsonIgnore
-  public Set<StatusChangeDto> getApprovedStatusChanges() {
+  public Set<StatusChangeDto> getInApprovalStatusChanges() {
     Optional<StatusChangeDto> lastAuthorization = Optional.of(statusChanges)
         .orElse(new ArrayList<>()).stream()
         .filter(statusChange -> RequisitionStatusDto.AUTHORIZED.equals(statusChange.getStatus()))
@@ -158,8 +158,7 @@ public class OrderDto {
     if (lastAuthorization.isPresent()) {
       ZonedDateTime lastAuthorizationDate = lastAuthorization.get().getCreatedDate();
       return Optional.of(statusChanges).orElse(new ArrayList<>()).stream()
-          .filter(statusChange -> RequisitionStatusDto.APPROVED.equals(statusChange.getStatus())
-              || RequisitionStatusDto.IN_APPROVAL.equals(statusChange.getStatus()))
+          .filter(statusChange -> RequisitionStatusDto.IN_APPROVAL.equals(statusChange.getStatus()))
           .filter(statusChange -> statusChange.getCreatedDate().isAfter(lastAuthorizationDate))
           .collect(Collectors.toCollection(TreeSet::new));
     }
