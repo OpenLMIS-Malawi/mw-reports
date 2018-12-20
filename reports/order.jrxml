@@ -66,7 +66,9 @@
 		</box>
 	</style>
 	<subDataset name="ApproveStatusChangeDataSet" uuid="76094343-23b0-4040-82df-b57b61280f52">
-		<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
+		<parameter name="timeZone" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA[$P{timeZone}]]></defaultValueExpression>
+		</parameter>
 		<queryString>
 			<![CDATA[]]>
 		</queryString>
@@ -495,7 +497,7 @@ Lilongwe]]></text>
 		</band>
 	</detail>
 	<summary>
-		<band height="362">
+		<band height="335">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
 				<reportElement positionType="FixRelativeToBottom" x="0" y="135" width="100" height="20" uuid="9fa486a9-4156-4ddf-bb90-01fcfc403ad4"/>
