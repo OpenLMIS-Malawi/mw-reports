@@ -1042,7 +1042,7 @@ Lilongwe]]></text>
 				<textElement verticalAlignment="Middle">
 					<font size="10"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{order}.getAuthorizedStatusChange().printDate($P{timeZone});]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{order}.getApprovedStatusChange().printDate($P{timeZone})]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>
