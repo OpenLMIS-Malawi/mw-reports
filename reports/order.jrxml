@@ -66,8 +66,8 @@
 		</box>
 	</style>
 	<subDataset name="ApproveStatusChangeDataSet" uuid="76094343-23b0-4040-82df-b57b61280f52">
-		<parameter name="timeZone" class="java.lang.String" isForPrompting="false">
-			<defaultValueExpression><![CDATA[$P{timeZone}]]></defaultValueExpression>
+		<parameter name="timeZoneId" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}.get("timeZone")]]></defaultValueExpression>
 		</parameter>
 		<queryString>
 			<![CDATA[]]>
@@ -565,7 +565,7 @@ Lilongwe]]></text>
 				</textElement>
 				<text><![CDATA[Date: ]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField isBlankWhenNull="true">
 				<reportElement key="" positionType="FixRelativeToBottom" x="430" y="135" width="122" height="20" uuid="e8582379-9cd9-4274-ae51-f8b1fcdf323f"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -819,7 +819,10 @@ Lilongwe]]></text>
 					<property name="com.jaspersoft.studio.components.autoresize.proportional" value="true"/>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-					<datasetRun subDataset="ApproveStatusChangeDataSet" uuid="fe198077-251e-482b-81a2-5096f0d8eff7">
+					<datasetRun subDataset="ApproveStatusChangeDataSet" uuid="cd1e37a1-f6bb-49b4-a924-d4502aba89dc">
+						<datasetParameter name="timeZoneId">
+							<datasetParameterExpression><![CDATA[$P{timeZone}]]></datasetParameterExpression>
+						</datasetParameter>
 						<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($P{order}.getInApprovalStatusChanges())]]></dataSourceExpression>
 					</datasetRun>
 					<jr:column width="100" uuid="a7324018-a626-4416-ad6b-f5564a88af75">
@@ -861,7 +864,7 @@ Lilongwe]]></text>
 							<box>
 								<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 								<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								<bottomPen lineWidth="1.25" lineStyle="Solid" lineColor="#000000"/>
+								<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 								<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 							</box>
 							<textField>
@@ -931,7 +934,7 @@ Lilongwe]]></text>
 							<box>
 								<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 								<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								<bottomPen lineWidth="1.25" lineStyle="Solid" lineColor="#000000"/>
+								<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 								<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 							</box>
 							<textField>
@@ -943,7 +946,7 @@ Lilongwe]]></text>
 									<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 								</box>
 								<textElement verticalAlignment="Middle"/>
-								<textFieldExpression><![CDATA[$F{date}.printDate($P{timeZone})]]></textFieldExpression>
+								<textFieldExpression><![CDATA[$F{date}.printDate($P{timeZoneId})]]></textFieldExpression>
 							</textField>
 						</jr:detailCell>
 					</jr:column>
