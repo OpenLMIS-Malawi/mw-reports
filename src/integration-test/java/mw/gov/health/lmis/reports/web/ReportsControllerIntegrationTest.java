@@ -90,10 +90,10 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   // GET /api/reports/processingPeriods
 
   @Test
-  public void shouldGetAllProcessingPeriods() {
+  public void shouldGetNonFutureProcessingPeriods() {
     // given
     ProcessingPeriodDto[] periods = { generateProcessingPeriod(), generateProcessingPeriod() };
-    given(periodReferenceDataService.findAll()).willReturn(asList(periods));
+    given(periodReferenceDataService.getNonFuturePeriods()).willReturn(asList(periods));
 
     // when
     ProcessingPeriodDto[] result = restAssured.given()

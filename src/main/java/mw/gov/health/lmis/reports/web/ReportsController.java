@@ -3,7 +3,6 @@ package mw.gov.health.lmis.reports.web;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -114,9 +113,7 @@ public class ReportsController extends BaseController {
   @ResponseBody
   public Collection<ProcessingPeriodDto> getProcessingPeriods() {
     permissionService.canViewReportsOrOrders();
-    List<ProcessingPeriodDto> periods = periodReferenceDataService.findAll();
-    Collections.reverse(periods);
-    return periods;
+    return periodReferenceDataService.getNonFuturePeriods();
   }
 
   /**

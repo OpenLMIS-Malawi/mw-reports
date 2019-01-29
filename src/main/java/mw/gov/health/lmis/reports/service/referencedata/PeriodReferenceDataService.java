@@ -1,13 +1,16 @@
 package mw.gov.health.lmis.reports.service.referencedata;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.utils.RequestParameters;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.UUID;
 
 @Service
 public class PeriodReferenceDataService extends BaseReferenceDataService<ProcessingPeriodDto> {
@@ -27,6 +30,9 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
     return ProcessingPeriodDto[].class;
   }
 
+  @Value("${time.zoneId}")
+  private String timeZoneId;
+
   /**
    * Retrieves periods from the reference data service by schedule ID and start date.
    *
@@ -44,11 +50,21 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
   }
 
   /**
-   * Retrieves all periods.
+   * Retrieves non-future periods.
    *
-   * @return A list of periods
+   * @return A list of periods.
    */
-  public List<ProcessingPeriodDto> findAll() {
-    return getPage("", RequestParameters.init()).getContent();
+  public List<ProcessingPeriodDto> getNonFuturePeriods() {
+    String lastDayOfMonth = LocalDate
+        .now(ZoneId.of(timeZoneId))
+        .with(TemporalAdjusters.lastDayOfMonth())
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    RequestParameters parameters = RequestParameters
+        .init()
+        .set("endDate", lastDayOfMonth)
+        .set("sort", "startDate,desc");
+
+    return getPage("", parameters).getContent();
   }
 }
