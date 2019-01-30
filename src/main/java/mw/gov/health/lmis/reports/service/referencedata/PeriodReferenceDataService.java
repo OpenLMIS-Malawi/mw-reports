@@ -50,6 +50,15 @@ public class PeriodReferenceDataService extends BaseReferenceDataService<Process
   }
 
   /**
+   * Retrieves all periods.
+   *
+   * @return A list of periods
+   */
+  public List<ProcessingPeriodDto> findAll() {
+    return getPage("", RequestParameters.init()).getContent();
+  }
+
+  /**
    * Retrieves non-future periods.
    *
    * @return A list of periods.
