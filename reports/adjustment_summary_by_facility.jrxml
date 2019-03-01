@@ -461,7 +461,7 @@ $F{adjustmentquantity}.intValue() : -1 * $F{adjustmentquantity}.intValue()]]></v
 				<textElement textAlignment="Center">
 					<font size="15" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Adjustments Summary]]></text>
+				<text><![CDATA[Adjustment summary by Facility]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="230" y="100" width="110" height="20" uuid="b9f82e73-78bb-40d2-ba66-fd3608a549e4"/>
