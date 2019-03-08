@@ -856,7 +856,7 @@ ORDER BY
 				</reportElement>
 				<box leftPadding="2" rightPadding="0"/>
 				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[IF($F{ordertype},"Emergency","Normal")]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
 		</band>
 		<band height="15">
@@ -944,7 +944,7 @@ ORDER BY
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
-				<textFieldExpression><![CDATA[IF($F{ordertype},"Emergency","Normal")]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
