@@ -476,7 +476,7 @@ ORDER BY
 				<textElement textAlignment="Center">
 					<font size="15" isBold="true"/>
 				</textElement>
-				<text><![CDATA[District LMIS Summary]]></text>
+				<text><![CDATA[LMIS Summary by facility]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="310" y="100" width="120" height="20" uuid="2d8d85cb-2583-4a58-9cce-efc84578b732"/>
