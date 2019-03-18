@@ -177,6 +177,8 @@ allMalaria AS (
     JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
     JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
     JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
+  WHERE
+    requisition.requisition_line_items.nonFullSupply IS FALSE
   GROUP BY
     referencedata.orderables.fullproductname,
     referencedata.orderables.code
@@ -222,8 +224,8 @@ ORDER BY
   ProductName]]>
   </queryString>
   <field name="ProductName" class="java.lang.String"/>
-  <field name="SOH" class="java.lang.Number"/>
-  <field name="AMC" class="java.lang.Number"/>
+  <field name="SOH" class="java.lang.Double"/>
+  <field name="AMC" class="java.lang.Double"/>
   <background>
     <band splitType="Stretch"/>
   </background>
@@ -365,10 +367,10 @@ ORDER BY
     </band>
   </pageHeader>
   <columnHeader>
-    <band height="65">
+    <band height="70">
       <property name="com.jaspersoft.studio.unit.height" value="pixel"/>
       <staticText>
-        <reportElement x="345" y="0" width="100" height="65" uuid="7e80a2e6-7cac-4110-80a7-1f69a11f750f"/>
+        <reportElement x="295" y="0" width="100" height="65" uuid="7e80a2e6-7cac-4110-80a7-1f69a11f750f"/>
         <box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
           <topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
           <leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -394,7 +396,7 @@ ORDER BY
         <text><![CDATA[Line #]]></text>
       </staticText>
       <staticText>
-        <reportElement x="445" y="0" width="110" height="65" uuid="a1d70b38-1b5f-4c33-8226-7c4d24adab9c">
+        <reportElement x="395" y="0" width="110" height="65" uuid="a1d70b38-1b5f-4c33-8226-7c4d24adab9c">
           <property name="com.jaspersoft.studio.unit.y" value="pixel"/>
         </reportElement>
         <box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
@@ -410,7 +412,7 @@ ORDER BY
 (Based on past 3 months consumption)]]></text>
       </staticText>
       <staticText>
-        <reportElement x="50" y="0" width="295" height="65" uuid="d2d776af-5894-469d-9b37-32c4e64ffa43"/>
+        <reportElement x="50" y="0" width="245" height="65" uuid="d2d776af-5894-469d-9b37-32c4e64ffa43"/>
         <box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
           <topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
           <leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -422,23 +424,36 @@ ORDER BY
         </textElement>
         <text><![CDATA[Product Name]]></text>
       </staticText>
+      <staticText>
+        <reportElement x="505" y="0" width="50" height="65" uuid="8f988714-487f-43a2-b03e-c27d2b7fba5c"/>
+        <box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
+          <topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+          <leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+          <bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+          <rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+        </box>
+        <textElement textAlignment="Center" verticalAlignment="Bottom">
+          <paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+        </textElement>
+        <text><![CDATA[MOS]]></text>
+      </staticText>
     </band>
   </columnHeader>
   <detail>
     <band height="20" splitType="Stretch">
       <property name="com.jaspersoft.studio.unit.height" value="pixel"/>
       <textField isStretchWithOverflow="true">
-        <reportElement stretchType="RelativeToBandHeight" x="50" y="0" width="295" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+        <reportElement stretchType="RelativeToBandHeight" x="50" y="0" width="245" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
         <textFieldExpression><![CDATA[$F{ProductName}]]></textFieldExpression>
       </textField>
       <textField pattern="#,##0">
-        <reportElement x="345" y="0" width="100" height="15" uuid="cc856392-d0be-499c-97fb-26727d074942"/>
+        <reportElement x="295" y="0" width="100" height="15" uuid="cc856392-d0be-499c-97fb-26727d074942"/>
         <box rightPadding="20"/>
         <textElement textAlignment="Right"/>
         <textFieldExpression><![CDATA[($F{SOH} == null) ? "-" : $F{SOH}]]></textFieldExpression>
       </textField>
       <textField pattern="#,##0">
-        <reportElement x="445" y="0" width="110" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
+        <reportElement x="395" y="0" width="110" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
         <box rightPadding="20"/>
         <textElement textAlignment="Right"/>
         <textFieldExpression><![CDATA[($F{AMC} == null) ? "-" : $F{AMC}]]></textFieldExpression>
@@ -447,6 +462,12 @@ ORDER BY
         <reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="50" height="15" uuid="cf21a23b-ccaf-4c2d-b2e4-d9d17864c1e7"/>
         <textElement textAlignment="Left"/>
         <textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+      </textField>
+      <textField pattern="#,##0.#">
+        <reportElement x="505" y="0" width="50" height="15" uuid="b4a70318-cb20-4070-ab79-2d886bbb8cc1"/>
+        <box rightPadding="20"/>
+        <textElement textAlignment="Right"/>
+        <textFieldExpression><![CDATA[($F{AMC}.intValue() == 0) ? "-" : $F{SOH}/$F{AMC}]]></textFieldExpression>
       </textField>
     </band>
   </detail>
