@@ -571,7 +571,15 @@ ORDER BY referencedata.facilities.name DESC,
 				<textFieldExpression><![CDATA[$F{stockstatus}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true">
-				<reportElement x="80" y="0" width="100" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+				<reportElement x="80" y="0" width="100" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
+					<printWhenExpression><![CDATA[!Arrays.asList("csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="80" y="0" width="100" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
+					<printWhenExpression><![CDATA[Arrays.asList("csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				</reportElement>
 				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
