@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.8.0.final using JasperReports Library version 6.8.0-2ed8dfabb690ff337a5797129f2cd92902b0c87b  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="district_lmis_summary" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="03f89d37-6dd5-4a05-a39e-8088f6a884a6">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi-dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -98,11 +98,19 @@
 			<property name="required" value="true"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
-		<parameter name="Period" class="java.lang.String">
-			<property name="displayName" value="Period"/>
+		<parameter name="StartPeriod" class="java.lang.String">
+			<property name="displayName" value="Start Period"/>
 			<property name="selectExpression" value="/api/reports/processingPeriods"/>
 			<property name="displayProperty" value="name"/>
-			<property name="selectProperty" value="name"/>
+			<property name="selectProperty" value="startDate"/>
+			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="EndPeriod" class="java.lang.String">
+			<property name="displayName" value="End Period"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="selectProperty" value="endDate"/>
+			<property name="displayProperty" value="name"/>
 			<property name="required" value="true"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
@@ -126,7 +134,7 @@
 SELECT
   referencedata.processing_periods.name AS periodname,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
-  COUNT(CASE WHEN referencedata.processing_periods.enddate + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate THEN 1 END) AS ontime,
+  COUNT(CASE WHEN $P{EndPeriod}::date + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate THEN 1 END) AS ontime,
   COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
   COUNT(*) as total
 FROM referencedata.facilities
@@ -143,7 +151,8 @@ FROM referencedata.facilities
   JOIN referencedata.supported_programs sp ON
     sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
   LEFT JOIN referencedata.processing_periods ON
-   referencedata.processing_periods.name = $P{Period}::varchar
+   	referencedata.processing_periods.startdate >= $P{StartPeriod}::date
+   	AND referencedata.processing_periods.enddate <= $P{EndPeriod}::date
   LEFT JOIN requisition.requisitions ON
     requisition.requisitions.facilityid = referencedata.facilities.id
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
@@ -175,10 +184,17 @@ GROUP BY periodname]]>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
-	<parameter name="period" class="java.lang.String">
-		<property name="displayName" value="Period Name"/>
+	<parameter name="startPeriod" class="java.lang.String">
+		<property name="displayName" value="Start Period"/>
 		<property name="selectExpression" value="/api/reports/processingPeriods"/>
-		<property name="selectProperty" value="name"/>
+		<property name="selectProperty" value="startDate"/>
+		<property name="displayProperty" value="name"/>
+		<property name="required" value="true"/>
+	</parameter>
+	<parameter name="endPeriod" class="java.lang.String">
+		<property name="displayName" value="End Period"/>
+		<property name="selectExpression" value="/api/reports/processingPeriods"/>
+		<property name="selectProperty" value="endDate"/>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
@@ -203,11 +219,11 @@ SELECT
   referencedata.orderables.code AS productcode,
   referencedata.orderables.fullproductname AS productname,
   dispensingunit.value AS unitofissue,
-  requisition.requisition_line_items.stockonhand AS balanceonhand,
-  requisition.requisition_line_items.totalconsumedquantity AS quantityused,
-  requisition.requisition_line_items.totalreceivedquantity AS quantityreceived,
-  requisition.requisition_line_items.requestedquantity AS quantityrequired,
-  requisition.requisition_line_items.approvedquantity AS approvedquantity,
+  SUM(requisition.requisition_line_items.stockonhand) AS balanceonhand,
+  SUM(requisition.requisition_line_items.totalconsumedquantity) AS quantityused,
+  SUM(requisition.requisition_line_items.totalreceivedquantity) AS quantityreceived,
+  SUM(requisition.requisition_line_items.requestedquantity) AS quantityrequired,
+  SUM(requisition.requisition_line_items.approvedquantity) AS approvedquantity,
   referencedata.geographic_zones.name AS geographiczone,
   requisition.requisitions.emergency AS ordertype
 FROM
@@ -219,11 +235,23 @@ FROM
   LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
   JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id and referencedata.programs.name = $P{program}::varchar
   JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id AND referencedata.facilities.active = true
-  JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
+  JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id
+  AND referencedata.processing_periods.startdate >= $P{startPeriod}::date
+  AND referencedata.processing_periods.enddate <= $P{endPeriod}::date
   JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
   JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
   (stockonhand > 0 OR totalconsumedquantity > 0 OR totalreceivedquantity > 0 OR requestedquantity > 0 OR approvedquantity > 0)
+GROUP BY
+	referencedata.facilities.name,
+  referencedata.orderable_display_categories.displayname,
+  referencedata.orderable_display_categories.displayorder,
+  referencedata.program_orderables.displayorder,
+  referencedata.orderables.code,
+  referencedata.orderables.fullproductname,
+  dispensingunit.value,
+  referencedata.geographic_zones.name,
+  requisition.requisitions.emergency
 ORDER BY
   referencedata.facilities.name DESC,
   referencedata.orderable_display_categories.displayorder ASC,
@@ -461,8 +489,8 @@ ORDER BY
 		<band height="130" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField>
-				<reportElement x="140" y="100" width="120" height="20" uuid="c7e6d724-faf3-45d5-8119-6c4c0410e4a2"/>
-				<textFieldExpression><![CDATA[$P{period}]]></textFieldExpression>
+				<reportElement x="140" y="100" width="160" height="20" uuid="c7e6d724-faf3-45d5-8119-6c4c0410e4a2"/>
+				<textFieldExpression><![CDATA[$P{startPeriod} + " - " + $P{endPeriod}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement key="" x="450" y="100" width="105" height="20" uuid="ee95017e-34fb-47fb-8003-8128ed51bd37"/>
@@ -510,11 +538,11 @@ ORDER BY
 				<text><![CDATA[Report Run Date:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="140" y="80" width="120" height="20" uuid="50858ab7-17d9-444e-98cb-81fe4102a4c7"/>
+				<reportElement x="140" y="80" width="160" height="20" uuid="50858ab7-17d9-444e-98cb-81fe4102a4c7"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Reporting Period:]]></text>
+				<text><![CDATA[Reporting Periods:]]></text>
 			</staticText>
 			<textField evaluationTime="Report">
 				<reportElement x="510" y="0" width="45" height="20" uuid="ebc06d42-8529-4c39-9d2f-1c1488e6a088"/>
@@ -554,8 +582,11 @@ ORDER BY
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{district}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{period}]]></datasetParameterExpression>
+						<datasetParameter name="StartPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="EndPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{program}]]></datasetParameterExpression>
