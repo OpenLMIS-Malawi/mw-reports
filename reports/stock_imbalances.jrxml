@@ -187,7 +187,7 @@ FROM requisition.requisition_line_items
   END AS MonthsOfStock
   FROM requisition.requisition_line_items) AS rli ON requisition.requisition_line_items.id=rli.id
   JOIN referencedata.orderables AS orderable ON
-   requisition.requisition_line_items.orderableid = orderable.id
+   requisition.requisition_line_items.orderableid = orderable.id AND requisition.requisition_line_items.orderableversionnumber = orderable.versionnumber
   JOIN requisition.requisitions ON
    requisition.requisition_line_items.requisitionid = requisition.requisitions.id
   JOIN referencedata.programs AS program ON
@@ -197,7 +197,7 @@ FROM requisition.requisition_line_items
   JOIN referencedata.facility_types ON
    referencedata.facilities.typeid = referencedata.facility_types.id
   JOIN referencedata.facility_type_approved_products AS ftap ON
-   referencedata.facility_types.id = ftap.facilitytypeid AND orderable.id = ftap.orderableid AND program.id = ftap.programid
+   requisition.requisition_line_items.facilitytypeapprovedproductid = ftap.id AND requisition.requisition_line_items.facilitytypeapprovedproductversionnumber = ftap.versionnuber
   JOIN referencedata.processing_periods ON
    requisition.requisitions.processingperiodid = referencedata.processing_periods.id
   JOIN referencedata.geographic_zones ON

@@ -207,8 +207,8 @@ FROM
 	JOIN referencedata.facility_types AS facility_types ON facility_types.id = facilities.typeid
 	LEFT JOIN referencedata.facility_operators AS facility_operators ON facility_operators.id = facilities.operatedbyid
 	JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
-	JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid
-	JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id
+	JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid AND products.versionnumber = lineitems.orderableversionnumber
+	JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id AND programproducts.orderableversionnumber = products.versionnumber
 	JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
     LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid

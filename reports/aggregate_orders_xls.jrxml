@@ -121,11 +121,12 @@ FROM fulfillment.order_line_items
   JOIN fulfillment.orders ON
    fulfillment.order_line_items.orderid = fulfillment.orders.id
   JOIN referencedata.orderables ON
-   fulfillment.order_line_items.orderableid = referencedata.orderables.id
+   fulfillment.order_line_items.orderableid = referencedata.orderables.id AND fulfillment.order_line_items.orderableversionnumber = referencedata.orderables.versionnumber
   JOIN referencedata.programs ON
     fulfillment.orders.programid = referencedata.programs.id
   JOIN referencedata.program_orderables ON
-    referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.programs.id = referencedata.program_orderables.programid
+    referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber
+    AND referencedata.programs.id = referencedata.program_orderables.programid
   JOIN referencedata.facilities ON
     fulfillment.orders.facilityid = referencedata.facilities.id
   JOIN referencedata.facility_types ON

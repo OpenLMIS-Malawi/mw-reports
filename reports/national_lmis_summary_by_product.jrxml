@@ -159,9 +159,9 @@ GROUP BY periodname]]>
   SUM(requisition.requisition_line_items.approvedquantity) AS quantityrequired
 FROM requisition.requisition_line_items
   JOIN referencedata.orderables ON
-   requisition.requisition_line_items.orderableid = referencedata.orderables.id
+   requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
   JOIN referencedata.program_orderables ON
-   referencedata.orderables.id = referencedata.program_orderables.orderableid
+   referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber
   JOIN referencedata.orderable_display_categories ON
    referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
   LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid

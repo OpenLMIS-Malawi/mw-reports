@@ -170,7 +170,7 @@ allMalaria AS (
     sum(requisition.requisition_line_items.averageconsumption) AS AMC
   FROM requisition.requisition_line_items
     JOIN (SELECT id, CASE WHEN averageconsumption = 0 THEN NULL ELSE stockonhand::float / averageconsumption END AS MonthsOfStock FROM requisition.requisition_line_items) AS rli ON requisition.requisition_line_items.id=rli.id
-    JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id
+    JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
     JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status = 'SUBMITTED' OR requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
     JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id AND referencedata.programs.name = $P{program}::varchar
     JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id AND referencedata.facilities.active = true

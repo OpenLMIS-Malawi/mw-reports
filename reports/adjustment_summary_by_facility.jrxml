@@ -187,7 +187,7 @@ FROM
 	JOIN referencedata.processing_periods AS periods ON periods.id = requisitions.processingperiodid
 	JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
 	JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
-	JOIN referencedata.orderables AS products ON products.id = requisition_line_items.orderableid
+	JOIN referencedata.orderables AS products ON products.id = requisition_line_items.orderableid AND products.versionnumber = requisition_line_items.orderableversionnumber
 	LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
 	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE

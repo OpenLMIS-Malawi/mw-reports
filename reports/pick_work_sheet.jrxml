@@ -108,7 +108,7 @@ SELECT referencedata.facilities.name AS FacilityName,
   calculatedorderquantity % NULLIF(netcontent, 0) AS RemainderQuantity
 FROM requisition.requisition_line_items
   JOIN referencedata.orderables ON
-   requisition.requisition_line_items.orderableid = referencedata.orderables.id
+   requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
   JOIN requisition.requisitions ON
    requisition.requisition_line_items.requisitionid = requisition.requisitions.id
   JOIN referencedata.programs ON
