@@ -197,7 +197,7 @@ FROM requisition.requisition_line_items
   JOIN referencedata.facility_types ON
    referencedata.facilities.typeid = referencedata.facility_types.id
   JOIN referencedata.facility_type_approved_products AS ftap ON
-   requisition.requisition_line_items.facilitytypeapprovedproductid = ftap.id AND requisition.requisition_line_items.facilitytypeapprovedproductversionnumber = ftap.versionnuber
+   requisition.requisition_line_items.facilitytypeapprovedproductid = ftap.id AND requisition.requisition_line_items.facilitytypeapprovedproductversionnumber = ftap.versionnumber
   JOIN referencedata.processing_periods ON
    requisition.requisitions.processingperiodid = referencedata.processing_periods.id
   JOIN referencedata.geographic_zones ON
