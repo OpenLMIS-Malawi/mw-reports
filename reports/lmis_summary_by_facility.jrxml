@@ -1055,7 +1055,7 @@ ORDER BY
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField pattern="#,##0.###;#,-##0.###">
 				<reportElement x="518" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -1064,7 +1064,7 @@ ORDER BY
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{totallossesandadjustments} == null) ? "-" : $F{totallossesandadjustments}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField pattern="#,##0.###;#,-##0.###">
 				<reportElement x="370" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -1073,7 +1073,7 @@ ORDER BY
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{averageconsumption} == null) ? "-" : $F{averageconsumption}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField pattern="#,##0.###;#,-##0.###">
 				<reportElement x="481" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
