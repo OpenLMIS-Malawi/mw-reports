@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.0.final using JasperReports Library version 6.4.1  -->
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3    -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="regular_vs_emergency_orders" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="c8f584b3-5b49-4d2e-8068-f6d49901e05b">
     <property name="com.jaspersoft.studio.unit." value="pixel"/>
     <property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -83,33 +83,39 @@
     </parameter>
     <queryString>
         <![CDATA[WITH findLastPeriods AS (
-  SELECT * FROM referencedata.processing_periods WHERE startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar) ORDER BY startdate DESC LIMIT 3
+    SELECT *
+    FROM referencedata.processing_periods
+    WHERE startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+    ORDER BY startdate DESC LIMIT 3
 )
 SELECT
-  zone.name AS zone,
-  facility_type.name AS type,
-  period.name AS period,
-  period.startdate AS startdate,
-  COUNT(CASE WHEN NOT o.emergency THEN 1 END) AS regular,
-  COUNT(CASE WHEN o.emergency THEN 1 END) AS emergency
+    zone.name AS zone,
+    facility_type.name AS type,
+    period.name AS period,
+    period.startdate AS startdate,
+    COUNT(CASE WHEN NOT o.emergency THEN 1 END) AS regular,
+    COUNT(CASE WHEN o.emergency THEN 1 END) AS emergency
 FROM
-  fulfillment.orders o
-JOIN referencedata.programs program ON
-  o.programid = program.id
-JOIN referencedata.facilities facility ON
-  o.facilityid = facility.id
-JOIN referencedata.facility_types facility_type ON
-  facility.typeid = facility_type.id
-JOIN referencedata.processing_periods period ON
-  o.processingperiodid = period.id
-JOIN referencedata.geographic_zones zone ON
-  facility.geographiczoneid = zone.id
-JOIN fulfillment.status_changes status_change ON
-  o.id = status_change.orderid AND status_change.status = 'APPROVED'
-WHERE ($P{period}::varchar IS NULL OR period.id IN (SELECT id FROM findLastPeriods))
-AND ($P{program}::varchar IS NULL OR program.name = $P{program}::varchar)
-GROUP BY period.startdate, period.name, zone.name, facility_type.name
-ORDER BY zone, type, period.startdate]]>
+    fulfillment.orders o
+    INNER JOIN (SELECT orderId, SUM(orderedQuantity) AS sumOrderedQuantity FROM fulfillment.order_line_items GROUP BY orderId) oli ON o.id = oli.orderid AND oli.sumOrderedQuantity > 0
+    INNER JOIN referencedata.programs program ON o.programid = program.id
+    INNER JOIN referencedata.facilities facility ON o.facilityid = facility.id
+    INNER JOIN referencedata.facility_types facility_type ON facility.typeid = facility_type.id
+    INNER JOIN referencedata.processing_periods period ON o.processingperiodid = period.id
+    INNER JOIN referencedata.geographic_zones zone ON facility.geographiczoneid = zone.id
+    INNER JOIN fulfillment.status_changes status_change ON o.id = status_change.orderid AND status_change.status = 'RELEASED'
+WHERE
+    ($P{period}::varchar IS NULL OR period.id IN (SELECT id FROM findLastPeriods))
+    AND ($P{program}::varchar IS NULL OR program.name = $P{program}::varchar)
+GROUP BY
+    period.startdate,
+    period.name,
+    zone.name,
+    facility_type.name
+ORDER BY
+    zone ASC,
+    type ASC,
+    period.startdate ASC]]>
     </queryString>
     <field name="zone" class="java.lang.String"/>
     <field name="type" class="java.lang.String"/>
