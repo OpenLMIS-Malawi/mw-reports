@@ -100,7 +100,7 @@ FROM
     INNER JOIN (SELECT orderId, SUM(orderedQuantity) AS sumOrderedQuantity FROM fulfillment.order_line_items GROUP BY orderId) oli ON o.id = oli.orderid AND oli.sumOrderedQuantity > 0
     INNER JOIN referencedata.programs program ON o.programid = program.id
     INNER JOIN referencedata.facilities facility ON o.facilityid = facility.id
-    INNER JOIN referencedata.facility_types facility_type ON facility.typeid = facility_type.id
+    INNER JOIN referencedata.facility_types facility_type ON facility.typeid = facility_type.id AND (CASE WHEN program.code = 'em' AND facility_type.code IN ('CHAM', 'pricH') THEN FALSE ELSE TRUE END)
     INNER JOIN referencedata.processing_periods period ON o.processingperiodid = period.id
     INNER JOIN referencedata.geographic_zones zone ON facility.geographiczoneid = zone.id
     INNER JOIN fulfillment.status_changes status_change ON o.id = status_change.orderid AND status_change.status = 'RELEASED'
