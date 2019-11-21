@@ -203,6 +203,8 @@ GROUP BY periodname]]>
 SELECT
   referencedata.facilities.name AS facilityname,
   referencedata.facilities.code AS facilitycode,
+  referencedata.facility_types.name AS facilitytypename,
+  referencedata.facility_operators.name AS facilityoperatorname,
   referencedata.orderable_display_categories.displayname AS category,
   referencedata.orderables.code AS productcode,
   referencedata.orderables.fullproductname AS productname,
@@ -226,6 +228,8 @@ FROM
   LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
   JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id and referencedata.programs.name = $P{program}::varchar
   JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id AND referencedata.facilities.active = true
+  JOIN referencedata.facility_types ON referencedata.facilities.typeid = referencedata.facility_types.id
+  JOIN referencedata.facility_operators ON referencedata.facilities.operatedbyid = referencedata.facility_operators.id 
   JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
   JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
   JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
@@ -239,6 +243,8 @@ ORDER BY
 	</queryString>
 	<field name="facilityname" class="java.lang.String"/>
 	<field name="facilitycode" class="java.lang.String"/>
+	<field name="facilitytypename" class="java.lang.String"/>
+	<field name="facilityoperatorname" class="java.lang.String"/>
 	<field name="category" class="java.lang.String"/>
 	<field name="productcode" class="java.lang.String"/>
 	<field name="productname" class="java.lang.String"/>
@@ -617,42 +623,7 @@ ORDER BY
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<printWhenExpression><![CDATA[Arrays.asList("csv", "xls").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 			<staticText>
-				<reportElement mode="Opaque" x="259" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Unit of Issue]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="185" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="c634db8f-4071-46c4-bb80-805bdf23594b">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Product Code]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="0" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="9cdb75eb-17cb-448c-93dc-c6f31127d9d4">
+				<reportElement mode="Opaque" x="0" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="9cdb75eb-17cb-448c-93dc-c6f31127d9d4">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
@@ -668,150 +639,8 @@ ORDER BY
 				</textElement>
 				<text><![CDATA[Line #]]></text>
 			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="333" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="d2068580-1b98-44f3-b43d-1901072e3917">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Quantity Issued]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="222" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="84c24f1d-8210-4ed0-9770-e006f90c646a">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Product]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="444" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="d1d3a7b4-2ea8-4e32-bfe0-b9338f85ad07">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Requested Quantity]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="148" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="d2f5a9ed-1f05-4be3-9dae-80070c053b36">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Facility Name]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="111" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="d2f5a9ed-1f05-4be3-9dae-80070c053b36">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Facility Code]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="296" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="5f4fa34d-e956-4fb7-8983-cd07639fc8b1">
-					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Quantity Received]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="407" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="5f53eaa6-05ee-4362-89e7-6f81931e37ee">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Closing balance (SOH)]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="74" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="3f893719-9029-47b3-a0d0-4c7a9c094d7b">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement verticalAlignment="Bottom">
-					<font size="9"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[District]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="37" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="580f45d1-3ee2-410f-989a-ded14399211d">
+		<staticText>
+				<reportElement mode="Opaque" x="32" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="580f45d1-3ee2-410f-989a-ded14399211d">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
@@ -828,42 +657,236 @@ ORDER BY
 				</textElement>
 				<text><![CDATA[Order Type]]></text>
 			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="518" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Total losses and adjustments]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="370" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font size="8"/>
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[AMC]]></text>
-			</staticText>
-			<staticText>
-				<reportElement mode="Opaque" x="481" y="0" width="37" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+		<staticText>
+			<reportElement mode="Opaque" x="64" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="3f893719-9029-47b3-a0d0-4c7a9c094d7b">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[District]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="96" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="d2f5a9ed-1f05-4be3-9dae-80070c053b36">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Facility Code]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="128" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="d2f5a9ed-1f05-4be3-9dae-80070c053b36">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Facility Name]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="160" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Facility Type]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="192" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Facility Operator]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="224" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="c634db8f-4071-46c4-bb80-805bdf23594b">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="2" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Product Code]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="256" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="84c24f1d-8210-4ed0-9770-e006f90c646a">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Product]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="288" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<font size="9"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Unit of Issue]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="320" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="5f4fa34d-e956-4fb7-8983-cd07639fc8b1">
+				<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<font size="8"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Quantity Received]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="352" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="d2068580-1b98-44f3-b43d-1901072e3917">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<font size="8"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Quantity Issued]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="384" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+		</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+			<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+			<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+			<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+		</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+			<font size="8"/>
+			<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+		</textElement>
+			<text><![CDATA[AMC]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="416" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="5f53eaa6-05ee-4362-89e7-6f81931e37ee">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<font size="8"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Closing balance (SOH)]]></text>
+		</staticText>
+		<staticText>
+			<reportElement mode="Opaque" x="448" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="d1d3a7b4-2ea8-4e32-bfe0-b9338f85ad07">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<font size="8"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Requested Quantity]]></text>
+		</staticText>
+		<staticText>
+				<reportElement mode="Opaque" x="480" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
@@ -879,61 +902,29 @@ ORDER BY
 				</textElement>
 				<text><![CDATA[Total stockout days]]></text>
 			</staticText>
-		</band>
+		<staticText>
+			<reportElement mode="Opaque" x="512" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="6de9e8a5-b402-4152-896f-bc63015d6435">
+				<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</reportElement>
+			<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+				<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+			<textElement textAlignment="Right" verticalAlignment="Bottom">
+				<font size="8"/>
+				<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
+			</textElement>
+			<text><![CDATA[Total losses and adjustments]]></text>
+		</staticText>
+	</band>
 	</columnHeader>
 	<detail>
 		<band height="15" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-			<textField isStretchWithOverflow="true" pattern="">
-				<reportElement stretchType="RelativeToTallestObject" x="255" y="0" width="60" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-				</reportElement>
-				<box rightPadding="20"/>
-				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true">
-				<reportElement stretchType="RelativeToTallestObject" x="165" y="0" width="90" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
-				</reportElement>
-				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
-				<reportElement stretchType="RelativeToTallestObject" x="315" y="0" width="60" height="15" uuid="2180998a-bb86-470f-b078-84e24c1d8312"/>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
-				<reportElement stretchType="RelativeToTallestObject" x="435" y="0" width="60" height="15" uuid="8087e8ff-3bb4-4fba-bf70-33d48f601427"/>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
-				<reportElement stretchType="RelativeToTallestObject" x="375" y="0" width="60" height="15" uuid="45c414cf-2e2f-436b-b1b4-8dee782ea31e"/>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
-				<reportElement stretchType="RelativeToTallestObject" x="495" y="0" width="60" height="15" uuid="9bafa0da-3f3e-40ac-9527-44626f78005e">
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-				</reportElement>
-				<box rightPadding="2"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{approvedquantity} == null) ? "-" : $F{approvedquantity}]]></textFieldExpression>
-			</textField>
-			<textField isStretchWithOverflow="true">
-				<reportElement stretchType="RelativeToTallestObject" x="110" y="0" width="55" height="15" uuid="e551397e-cb09-466d-8082-28298fe9a398">
-					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
-				</reportElement>
-				<box leftPadding="2" rightPadding="0"/>
-				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
-			</textField>
 			<textField isStretchWithOverflow="true">
 				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="50" height="15" uuid="790bc7ec-8ac7-4e37-bbf8-637803eaaccd">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -952,73 +943,61 @@ ORDER BY
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
-		</band>
-		<band height="15">
-			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-			<printWhenExpression><![CDATA[Arrays.asList("csv", "xls").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-			<textField>
-				<reportElement x="222" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="407" y="0" width="37" height="15" uuid="30e5aae5-706e-4b27-9139-c4e793b72f06">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="444" y="0" width="37" height="15" uuid="9230bb11-d624-4a77-9edf-000ba9906404">
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<box rightPadding="2"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{quantityrequired} == null) ? "-" : $F{quantityrequired}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="296" y="0" width="37" height="15" uuid="891a0a09-7800-48d4-91e7-e50cd743a119">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
-			</textField>
-			<textField pattern="">
-				<reportElement x="259" y="0" width="37" height="15" uuid="bfb0f034-c0c2-4a21-b1e2-89fce4f0e2cf">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box rightPadding="20"/>
-				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
-			</textField>
-			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="333" y="0" width="37" height="15" uuid="00b6db3d-2dd2-457c-87d4-e8efcf429296">
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-				</reportElement>
-				<box rightPadding="0"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="185" y="0" width="37" height="15" uuid="fe8825c8-9d4b-407b-ace8-d66624e77c09">
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="110" y="0" width="55" height="15" uuid="e551397e-cb09-466d-8082-28298fe9a398">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
 				<box leftPadding="2" rightPadding="0"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
 			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="165" y="0" width="90" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement stretchType="RelativeToTallestObject" x="255" y="0" width="60" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box rightPadding="20"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+				<reportElement stretchType="RelativeToTallestObject" x="315" y="0" width="60" height="15" uuid="2180998a-bb86-470f-b078-84e24c1d8312"/>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+				<reportElement stretchType="RelativeToTallestObject" x="375" y="0" width="60" height="15" uuid="45c414cf-2e2f-436b-b1b4-8dee782ea31e"/>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+				<reportElement stretchType="RelativeToTallestObject" x="435" y="0" width="60" height="15" uuid="8087e8ff-3bb4-4fba-bf70-33d48f601427"/>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+				<reportElement stretchType="RelativeToTallestObject" x="495" y="0" width="60" height="15" uuid="9bafa0da-3f3e-40ac-9527-44626f78005e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{approvedquantity} == null) ? "-" : $F{approvedquantity}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="15">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<printWhenExpression><![CDATA[Arrays.asList("csv", "xls").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 			<textField>
-				<reportElement x="0" y="0" width="37" height="15" uuid="7219b778-1d8b-4fa1-ad76-26a7beddd284">
+				<reportElement x="0" y="0" width="32" height="15" uuid="7219b778-1d8b-4fa1-ad76-26a7beddd284">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box leftPadding="0" rightPadding="20"/>
@@ -1028,44 +1007,92 @@ ORDER BY
 				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="148" y="0" width="37" height="15" uuid="5ebcf557-a11c-4d71-8768-ea7c9669e7f5">
+				<reportElement x="32" y="0" width="32" height="15" uuid="492e8396-0448-430f-9d50-6d5964ee68f1">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
-				<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="111" y="0" width="37" height="15" uuid="5ebcf557-a11c-4d71-8768-ea7c9669e7f5">
-					<property name="com.jaspersoft.studio.unit.width" value="px"/>
-					<property name="com.jaspersoft.studio.unit.x" value="px"/>
-				</reportElement>
-				<textFieldExpression><![CDATA[$F{facilitycode}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="74" y="0" width="37" height="15" uuid="a0414fa3-eefa-48c1-a409-de2523b1e23f">
+				<reportElement x="64" y="0" width="32" height="15" uuid="a0414fa3-eefa-48c1-a409-de2523b1e23f">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{geographiczone}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="37" y="0" width="37" height="15" uuid="492e8396-0448-430f-9d50-6d5964ee68f1">
+				<reportElement x="96" y="0" width="32" height="15" uuid="5ebcf557-a11c-4d71-8768-ea7c9669e7f5">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
-				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{facilitycode}]]></textFieldExpression>
 			</textField>
-			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="518" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+			<textField>
+				<reportElement x="128" y="0" width="32" height="15" uuid="5ebcf557-a11c-4d71-8768-ea7c9669e7f5">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="160" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{facilitytypename}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="192" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{facilityoperatorname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="224" y="0" width="32" height="15" uuid="fe8825c8-9d4b-407b-ace8-d66624e77c09">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="0"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="256" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="288" y="0" width="32" height="15" uuid="bfb0f034-c0c2-4a21-b1e2-89fce4f0e2cf">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box rightPadding="20"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,-##0.###">
+				<reportElement x="320" y="0" width="32" height="15" uuid="891a0a09-7800-48d4-91e7-e50cd743a119">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[($F{totallossesandadjustments} == null) ? "-" : $F{totallossesandadjustments}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="370" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+				<reportElement x="352" y="0" width="32" height="15" uuid="00b6db3d-2dd2-457c-87d4-e8efcf429296">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,-##0.###">
+				<reportElement x="384" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
@@ -1074,13 +1101,40 @@ ORDER BY
 				<textFieldExpression><![CDATA[($F{averageconsumption} == null) ? "-" : $F{averageconsumption}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.###;#,-##0.###">
-				<reportElement x="481" y="0" width="37" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+				<reportElement x="416" y="0" width="32" height="15" uuid="30e5aae5-706e-4b27-9139-c4e793b72f06">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,-##0.###">
+				<reportElement x="448" y="0" width="32" height="15" uuid="9230bb11-d624-4a77-9edf-000ba9906404">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{quantityrequired} == null) ? "-" : $F{quantityrequired}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,-##0.###">
+				<reportElement x="480" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
 				</reportElement>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{totalstockoutdays} == null) ? "-" : $F{totalstockoutdays}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###;#,-##0.###">
+				<reportElement x="512" y="0" width="32" height="15" uuid="8e8d5302-ac97-4c02-8ae6-c4d68695b702">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<box rightPadding="0"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{totallossesandadjustments} == null) ? "-" : $F{totallossesandadjustments}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
