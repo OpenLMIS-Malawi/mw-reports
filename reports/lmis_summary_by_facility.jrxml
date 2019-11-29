@@ -221,20 +221,22 @@ SELECT
   requisition.requisitions.emergency AS ordertype
 FROM
   requisition.requisition_line_items
-  JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status in ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'IN_APPROVAL', 'APPROVED', 'RELEASED'))
+  JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status in ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED') AND requisition.requisitions.emergency IS FALSE)
   JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
   JOIN referencedata.program_orderables ON referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber and referencedata.program_orderables.programid = requisition.requisitions.programid
   JOIN referencedata.orderable_display_categories ON referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
   LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
   JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id and referencedata.programs.name = $P{program}::varchar
-  JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id AND referencedata.facilities.active = true
+  JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id
   JOIN referencedata.facility_types ON referencedata.facilities.typeid = referencedata.facility_types.id
   JOIN referencedata.facility_operators ON referencedata.facilities.operatedbyid = referencedata.facility_operators.id 
   JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
   JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
   JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
-  (stockonhand > 0 OR totalconsumedquantity > 0 OR totalreceivedquantity > 0 OR requestedquantity > 0 OR approvedquantity > 0)
+  requisition.requisition_line_items.nonFullSupply IS FALSE
+  AND requisition.requisition_line_items.skipped IS FALSE
+  AND NOT (requisition.requisition_line_items.stockOnHand = 0 AND requisition.requisition_line_items.totalConsumedQuantity = 0 AND requisition.requisition_line_items.averageConsumption = 0 AND requisition.requisition_line_items.totalReceivedQuantity = 0)
 ORDER BY
   referencedata.facilities.name DESC,
   referencedata.orderable_display_categories.displayorder ASC,
