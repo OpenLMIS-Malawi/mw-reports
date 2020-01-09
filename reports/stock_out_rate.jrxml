@@ -242,8 +242,9 @@ GROUP BY periodname]]>
 		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{geographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
 		INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
 		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{period}::varchar IS NULL OR pp.name = $P{period}::varchar)
-		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.nonFullSupply IS FALSE AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
+		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
 		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId AND o.versionnumber = rli.orderableversionnumber
+		INNER JOIN referencedata.program_orderables AS po ON po.orderableId = o.id AND po.programid = p.id AND po.fullsupply IS TRUE
 	WHERE
 		r.emergency IS FALSE
 		AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
