@@ -234,7 +234,11 @@ GROUP BY periodname]]>
 		o.fullProductName AS productName,
 		o.code AS productCode,
 		r.id AS requisitionId,
-		rli.stockOnHand AS closingBalance
+		rli.stockOnHand AS closingBalance,
+		f.name as facilityName,
+		rli.maxperiodsofstock as maxPeriodsOfStock,
+		rli.totalstockoutdays as totalStockOutDays,
+		rli.beginningbalance as beginingBalance
 	FROM
 		requisition.requisitions AS r
 		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{program}::varchar IS NULL OR p.name = $P{program}::varchar)
@@ -249,19 +253,20 @@ GROUP BY periodname]]>
 	WHERE
 		r.emergency IS FALSE
 		AND r.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
+	group  by facilityName, productName, productCode, r.id, closingBalance, maxPeriodsOfStock, totalStockOutDays, beginingBalance
 )
 SELECT
 	r.productName AS productName,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float AS rate,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
-	f.name as facilityName,
-	SUM(rli.maxperiodsofstock) as monthsOfStock,
+	r.facilityName as facilityName,
+	SUM(r.maxPeriodsOfStock) as monthsOfStock,
 	count(*) AS reported,
 	CASE
-	    WHEN SUM(rli.maxperiodsofstock) > 6 THEN 'Overstocked'
-	    WHEN SUM(rli.maxperiodsofstock) < 3 AND (SUM(rli.stockonhand) = 0 OR SUM(rli.totalstockoutdays) > 0 OR SUM(rli.beginningbalance) = 0 OR SUM(rli.maxperiodsofstock) = 0) THEN 'Stocked Out'
-	    WHEN SUM(rli.maxperiodsofstock) < 3 AND SUM(rli.maxperiodsofstock) > 0 AND NOT(SUM(rli.stockonhand) = 0 OR SUM(rli.totalstockoutdays) > 0 OR SUM(rli.beginningbalance ) = 0 OR SUM(rli.maxperiodsofstock) = 0) THEN 'Understocked'
-	    WHEN SUM(rli.maxperiodsofstock) = 0 AND NOT(SUM(rli.stockonhand) = 0 OR SUM(rli.totalstockoutdays) > 0 OR SUM(rli.beginningbalance ) = 0 OR SUM(rli.maxperiodsofstock) = 0) THEN 'Unknown'
+	    WHEN SUM(r.maxPeriodsOfStock) > 6 THEN 'Overstocked'
+	    WHEN SUM(r.maxPeriodsOfStock) < 3 AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Stocked Out'
+	    WHEN SUM(r.maxPeriodsOfStock) < 3 AND SUM(r.maxPeriodsOfStock) > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Understocked'
+	    WHEN SUM(r.maxPeriodsOfStock) = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Unknown'
     ELSE 'Adequately stocked' END as stockStatus
 FROM
 	records AS r
@@ -271,7 +276,8 @@ WHERE
 	OR ($P{product}::varchar = 'ALL_IC' AND r.productCode IN (SELECT code FROM allRh))
 	OR ($P{product}::varchar = r.productCode)
 GROUP BY
-	productName
+	productName, facilityName
+
 UNION ALL
 SELECT
 	'All malaria formulations' AS productName,
