@@ -471,7 +471,7 @@ ORDER BY
 		<band height="50">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
-				<reportElement x="430" y="0" width="70" height="45" uuid="8669cfa6-a280-4c7b-9eee-d7d84e3ed8f8">
+				<reportElement x="410" y="0" width="70" height="45" uuid="8669cfa6-a280-4c7b-9eee-d7d84e3ed8f8">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -486,7 +486,7 @@ ORDER BY
 				<text><![CDATA[Stock Status]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="190" y="0" width="80" height="45" uuid="2cf984d1-9b5f-4b00-b148-16b798e15f1d">
+				<reportElement x="100" y="0" width="110" height="45" uuid="2cf984d1-9b5f-4b00-b148-16b798e15f1d">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -499,19 +499,6 @@ ORDER BY
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Facility]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="100" y="0" width="90" height="45" uuid="9d12f106-a390-4105-9af1-4dd88553a0f1"/>
-				<box topPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[District]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="0" y="0" width="100" height="45" uuid="8ddee9d1-2704-4329-8266-ee79f7cd737a"/>
@@ -527,7 +514,7 @@ ORDER BY
 				<text><![CDATA[Region]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="500" y="0" width="54" height="45" uuid="7e27071f-41fc-4996-8d9c-1f756d2b1c1a">
+				<reportElement x="480" y="0" width="74" height="45" uuid="7e27071f-41fc-4996-8d9c-1f756d2b1c1a">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -542,7 +529,7 @@ ORDER BY
 				<text><![CDATA[Months Of Stock]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="270" y="0" width="160" height="45" uuid="6967aa93-f568-4bde-ac6e-7562372b35ec">
+				<reportElement x="210" y="0" width="200" height="45" uuid="6967aa93-f568-4bde-ac6e-7562372b35ec">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -562,7 +549,7 @@ ORDER BY
 		<band height="50" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField textAdjust="StretchHeight">
-				<reportElement x="500" y="0" width="54" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
+				<reportElement x="480" y="0" width="74" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
@@ -571,14 +558,8 @@ ORDER BY
 				<textFieldExpression><![CDATA[$F{monthsOfStock}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
-				<reportElement x="270" y="0" width="160" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+				<reportElement x="210" y="0" width="200" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
 				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
-			</textField>
-			<textField textAdjust="StretchHeight" pattern="#,##0.00%" isBlankWhenNull="true">
-				<reportElement x="100" y="0" width="90" height="15" uuid="cc856392-d0be-499c-97fb-26727d074942"/>
-				<box rightPadding="20"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$P{geographicZone}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
 				<reportElement x="0" y="0" width="100" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
@@ -587,11 +568,11 @@ ORDER BY
 				<textFieldExpression><![CDATA[$F{stockedOut}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
-				<reportElement x="190" y="0" width="80" height="15" uuid="8b0f6d9a-031a-4702-af36-ca05bb281aa1"/>
+				<reportElement x="100" y="0" width="110" height="15" uuid="8b0f6d9a-031a-4702-af36-ca05bb281aa1"/>
 				<textFieldExpression><![CDATA[$F{facilityName}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
-				<reportElement x="430" y="0" width="70" height="15" uuid="531e594b-db47-40cf-95a7-83cc333b82a7">
+				<reportElement x="410" y="0" width="70" height="15" uuid="531e594b-db47-40cf-95a7-83cc333b82a7">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
