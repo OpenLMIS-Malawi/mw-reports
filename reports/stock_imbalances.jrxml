@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi-dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -444,9 +444,9 @@ ORDER BY referencedata.facilities.name DESC,
 				<text><![CDATA[Qty Used]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="360" y="0" width="45" height="40" uuid="a1d70b38-1b5f-4c33-8226-7c4d24adab9c">
+				<reportElement x="360" y="0" width="48" height="40" uuid="a1d70b38-1b5f-4c33-8226-7c4d24adab9c">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
@@ -473,7 +473,10 @@ ORDER BY referencedata.facilities.name DESC,
 				<text><![CDATA[Product]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="405" y="0" width="60" height="40" uuid="431d4cbc-ca50-44e7-8a44-bd1907430138"/>
+				<reportElement x="408" y="0" width="57" height="40" uuid="431d4cbc-ca50-44e7-8a44-bd1907430138">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="20">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -499,8 +502,9 @@ ORDER BY referencedata.facilities.name DESC,
 				<text><![CDATA[Facility]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="465" y="0" width="89" height="40" uuid="d46d1acf-f2fb-42a1-9d4d-29730555175a">
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				<reportElement x="465" y="0" width="90" height="40" uuid="d46d1acf-f2fb-42a1-9d4d-29730555175a">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="20">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
@@ -532,9 +536,11 @@ ORDER BY referencedata.facilities.name DESC,
 		<band height="20" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField>
-				<reportElement x="405" y="0" width="60" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
+				<reportElement x="408" y="0" width="57" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 				</reportElement>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
@@ -559,13 +565,18 @@ ORDER BY referencedata.facilities.name DESC,
 				<textFieldExpression><![CDATA[($F{qtyUsed} == null) ? "-" : $F{qtyUsed}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="360" y="0" width="45" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
+				<reportElement x="360" y="0" width="48" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[($F{amc} == null) ? "-" : $F{amc}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="465" y="0" width="89" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371"/>
+				<reportElement x="465" y="0" width="90" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{stockstatus}]]></textFieldExpression>
