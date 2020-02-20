@@ -213,22 +213,6 @@ GROUP BY periodname]]>
 	FROM
 		referencedata.geographic_zones AS z
 		INNER JOIN findChildZones AS c ON c.id = z.parentId
-), allMalaria AS (
-	SELECT
-		id,
-		code
-	FROM
-		referencedata.orderables
-	WHERE
-		code IN ('AA040200', 'AA039900', 'AA040500', 'AA039600')
-), allRh AS (
-	SELECT
-		id,
-		code
-	FROM
-		referencedata.orderables
-	WHERE
-		code IN ('FP004100', 'FP003700')
 ), records AS (
 	SELECT
 		o.fullProductName AS productName,
@@ -272,56 +256,9 @@ FROM
 	records AS r
 WHERE
 	($P{product}::varchar IS NULL)
-	OR ($P{product}::varchar = 'ALL_LA' AND r.productCode IN (SELECT code FROM allMalaria))
-	OR ($P{product}::varchar = 'ALL_IC' AND r.productCode IN (SELECT code FROM allRh))
 	OR ($P{product}::varchar = r.productCode)
 GROUP BY
 	productName, facilityName
-
-UNION ALL
-SELECT
-	'All malaria formulations' AS productName,
-	sum(stockedOut) / sum(reported)::float AS rate,
-	sum(stockedOut) AS stockedOut,
-	sum(reported) AS reported
-FROM (
-	SELECT
-		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allMalaria) THEN 1 ELSE 0 END AS stockedOut,
-		count(*) / (SELECT count(*) FROM allMalaria) AS reported
-	FROM
-		records AS r
-	WHERE
-		($P{product}::varchar IS NULL OR $P{product}::varchar = 'ALL_LA')
-    AND r.productCode IN (SELECT code FROM allMalaria)
-	GROUP BY
-		r.requisitionId
-	HAVING
-		count(r.requisitionId) = (SELECT count(*) FROM allMalaria)
-) AS t
-HAVING
-	count(*) > 0
-UNION ALL
-SELECT
-	'All implantable contraceptives' AS productName,
-	sum(stockedOut) / sum(reported)::float AS rate,
-	sum(stockedOut) AS stockedOut,
-	sum(reported) AS reported
-FROM (
-	SELECT
-		CASE WHEN sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) = (SELECT count(*) FROM allRh) THEN 1 ELSE 0 END AS stockedOut,
-		count(*) / (SELECT count(*) FROM allRh) AS reported
-	FROM
-		records AS r
-	WHERE
-		($P{product}::varchar IS NULL OR $P{product}::varchar = 'ALL_IC')
-    AND r.productCode IN (SELECT code FROM allRh)
-	GROUP BY
-		r.requisitionId
-	HAVING
-		count(r.requisitionId) = (SELECT count(*) FROM allRh)
-) AS t
-HAVING
-	count(*) > 0
 ORDER BY
 	productName]]>
 	</queryString>
