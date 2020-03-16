@@ -236,7 +236,7 @@ WHERE
 GROUP BY
 	productName, facilityName, districtName, periodName
 ORDER BY
-	districtName, periodName, productName]]>
+	districtName, periodName, productName, facilityName]]>
 	</queryString>
 	<field name="productName" class="java.lang.String"/>
 	<field name="rate" class="java.lang.Double"/>
@@ -248,17 +248,6 @@ ORDER BY
 	<field name="districtName" class="java.lang.String"/>
 	<field name="periodName" class="java.lang.String"/>
 	<group name="Group1" isStartNewPage="true" isReprintHeaderOnEachPage="true"/>
-	<background>
-		<band height="45" splitType="Stretch">
-			<textField>
-				<reportElement x="352" y="20" width="174" height="12" uuid="72284fb0-e09a-4363-9df0-1bae2534f478">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				</reportElement>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA["Page: " + $V{PAGE_NUMBER}]]></textFieldExpression>
-			</textField>
-		</band>
-	</background>
 	<pageHeader>
 		<band height="130" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
@@ -340,10 +329,10 @@ ORDER BY
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="50">
+		<band height="55">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
-				<reportElement x="390" y="0" width="99" height="45" uuid="8669cfa6-a280-4c7b-9eee-d7d84e3ed8f8">
+				<reportElement x="410" y="0" width="100" height="45" uuid="8669cfa6-a280-4c7b-9eee-d7d84e3ed8f8">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -352,7 +341,7 @@ ORDER BY
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Stock Status]]></text>
@@ -367,7 +356,7 @@ ORDER BY
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Facility]]></text>
@@ -380,13 +369,13 @@ ORDER BY
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Region]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="490" y="0" width="63" height="45" uuid="7e27071f-41fc-4996-8d9c-1f756d2b1c1a">
+				<reportElement x="510" y="0" width="43" height="45" uuid="7e27071f-41fc-4996-8d9c-1f756d2b1c1a">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -395,13 +384,13 @@ ORDER BY
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Months Of Stock]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="230" y="0" width="160" height="45" uuid="6967aa93-f568-4bde-ac6e-7562372b35ec">
+				<reportElement x="170" y="0" width="240" height="45" uuid="6967aa93-f568-4bde-ac6e-7562372b35ec">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box topPadding="0">
@@ -410,66 +399,50 @@ ORDER BY
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
 				</textElement>
 				<text><![CDATA[Product Name]]></text>
 			</staticText>
-			<staticText>
-				<reportElement x="170" y="0" width="60" height="45" uuid="27f7b49f-6201-4e10-b8e5-fb5e1f3b08d4"/>
-				<box topPadding="0">
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#D4D4D4"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<paragraph lineSpacing="Single" lineSpacingSize="1.0" spacingAfter="0"/>
-				</textElement>
-				<text><![CDATA[Period]]></text>
-			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="17" splitType="Stretch">
+		<band height="19" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-			<textField>
-				<reportElement x="490" y="0" width="63" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
+			<property name="com.jaspersoft.studio.layout"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="510" y="0" width="43" height="15" uuid="13359167-bc7b-4585-ada9-19647b196b65">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box rightPadding="20"/>
-				<textElement textAlignment="Center"/>
+				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{monthsOfStock}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="230" y="0" width="160" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="170" y="0" width="240" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da"/>
+				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="0" y="0" width="60" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="60" height="15" uuid="b186e93e-a969-4174-9faa-7938bfb9ad27"/>
 				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{districtName}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="60" y="0" width="110" height="15" uuid="8b0f6d9a-031a-4702-af36-ca05bb281aa1"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="60" y="0" width="110" height="15" uuid="8b0f6d9a-031a-4702-af36-ca05bb281aa1"/>
+				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{facilityName}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="390" y="0" width="99" height="15" uuid="531e594b-db47-40cf-95a7-83cc333b82a7">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="0" width="100" height="15" uuid="531e594b-db47-40cf-95a7-83cc333b82a7">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 				</reportElement>
 				<box rightPadding="20"/>
-				<textElement textAlignment="Center"/>
-				<textFieldExpression><![CDATA[$F{stockStatus}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement x="170" y="0" width="60" height="15" uuid="1e86e9ee-ffc5-4156-b491-bfb914610fab"/>
-				<box rightPadding="20"/>
 				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[$F{periodName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{stockStatus}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
