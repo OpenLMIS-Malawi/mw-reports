@@ -173,12 +173,14 @@ allMalaria AS (
     JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
     JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status = 'SUBMITTED' OR requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
     JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id AND referencedata.programs.name = $P{program}::varchar
+    JOIN referencedata.program_orderables ON referencedata.program_orderables.orderableid = referencedata.orderables.id AND referencedata.program_orderables.orderableversionnumber = referencedata.orderables.versionnumber
+      AND referencedata.program_orderables.programid = requisition.requisitions.programid
     JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id AND referencedata.facilities.active = true
     JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
     JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
     JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
   WHERE
-    requisition.requisition_line_items.nonFullSupply IS FALSE
+    referencedata.program_orderables.fullSupply IS TRUE
   GROUP BY
     referencedata.orderables.fullproductname,
     referencedata.orderables.code
