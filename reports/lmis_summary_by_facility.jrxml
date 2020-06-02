@@ -234,7 +234,7 @@ FROM
   JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
   JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
-  requisition.requisition_line_items.nonFullSupply IS FALSE
+  referencedata.program_orderables.fullSupply IS TRUE
   AND requisition.requisition_line_items.skipped IS FALSE
   AND NOT (requisition.requisition_line_items.stockOnHand = 0 AND requisition.requisition_line_items.totalConsumedQuantity = 0 AND requisition.requisition_line_items.averageConsumption = 0 AND requisition.requisition_line_items.totalReceivedQuantity = 0)
 ORDER BY
