@@ -44,6 +44,7 @@ public class RequisitionReportDtoBuilder {
     reportDto.setFullSupplyTotalCost(requisition.getFullSupplyTotalCost());
     reportDto.setNonFullSupplyTotalCost(requisition.getNonFullSupplyTotalCost());
     reportDto.setTotalCost(requisition.getTotalCost());
+    reportDto.setChamFacility(requisition.isChamFacility());
 
     List<StatusChangeDto> statusChanges = requisition.getStatusHistory();
     if (statusChanges != null) {

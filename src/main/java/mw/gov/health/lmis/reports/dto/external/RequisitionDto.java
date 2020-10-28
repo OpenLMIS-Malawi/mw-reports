@@ -124,6 +124,16 @@ public class RequisitionDto {
     return calculateTotalCostForLines(getNonSkippedFullSupplyRequisitionLineItems());
   }
 
+  /**
+   * Returns information if it is CHAM facility or not.
+   *
+   * @return Boolean value.
+   */
+  public Boolean isChamFacility() {
+    return !program.getCode().equals("tb") && facility.getOperator().getCode().equals("CHAM")
+        && !status.isPreAuthorize();
+  }
+
   private BigDecimal calculateTotalCostForLines(List<RequisitionLineItemDto> requisitionLineItems) {
     if (requisitionLineItems.isEmpty()) {
       return BigDecimal.ZERO;

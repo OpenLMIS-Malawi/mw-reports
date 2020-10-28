@@ -24,8 +24,7 @@
 		<property name="displayName" value="title"/>
 	</parameter>
 	<parameter name="requisitionStatus" class="mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto" isForPrompting="false"/>
-	<parameter name="facilityOperatorCode" class="java.lang.String" isForPrompting="false"/>
-	<parameter name="programCode" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="chamFacility" class="java.lang.Boolean" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -563,8 +562,8 @@
 				<textElement>
 					<font size="6"/>
 				</textElement>
-				<textFieldExpression><![CDATA[($P{template}.getColumnsMap().get("approvedQuantity").getIsDisplayed() && ($P{programCode}.equals("tb") || !($P{facilityOperatorCode}.equals("CHAM"))) && !($P{requisitionStatus} == mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto.INITIATED || $P{requisitionStatus} == mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto.SUBMITTED)) ?
-					$F{approvedQuantity} : (($P{template}.getColumnsMap().get("approvedQuantity").getIsDisplayed() && !($P{requisitionStatus} == mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto.INITIATED || $P{requisitionStatus} == mw.gov.health.lmis.reports.dto.external.RequisitionStatusDto.SUBMITTED)) ? "0" : "")]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($P{template}.getColumnsMap().get("approvedQuantity").getIsDisplayed() && !$P{chamFacility}) ?
+					$F{approvedQuantity} : (($P{template}.getColumnsMap().get("approvedQuantity").getIsDisplayed() && !$P{requisitionStatus}.isPreAuthorize()) ? "0" : "")]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement key="totalStockoutDays" x="509" y="0" width="30" height="20" uuid="0b535dc6-aa7d-41e4-bf5f-092d578c0ced">

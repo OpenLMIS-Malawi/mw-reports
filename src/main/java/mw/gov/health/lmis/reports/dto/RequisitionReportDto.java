@@ -29,4 +29,5 @@ public class RequisitionReportDto {
   private ZonedDateTime submittedDate;
   private UserDto authorizedBy;
   private ZonedDateTime authorizedDate;
+  private Boolean chamFacility;
 }
