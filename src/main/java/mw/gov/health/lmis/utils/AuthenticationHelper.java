@@ -3,7 +3,6 @@ package mw.gov.health.lmis.utils;
 import static mw.gov.health.lmis.reports.i18n.AuthorizationMessageKeys.ERROR_RIGHT_NOT_FOUND;
 import static mw.gov.health.lmis.reports.i18n.AuthorizationMessageKeys.ERROR_USER_NOT_FOUND;
 
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,11 +30,12 @@ public class AuthenticationHelper {
    * @throws AuthenticationMessageException if user cannot be found.
    */
   public UserDto getCurrentUser() {
-    UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    UserDto user = userReferenceDataService.findOne(userId);
+    String username =
+        (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    UserDto user = userReferenceDataService.findUser(username);
 
     if (user == null) {
-      throw new AuthenticationMessageException(new Message(ERROR_USER_NOT_FOUND, userId));
+      throw new AuthenticationMessageException(new Message(ERROR_USER_NOT_FOUND, username));
     }
 
     return user;

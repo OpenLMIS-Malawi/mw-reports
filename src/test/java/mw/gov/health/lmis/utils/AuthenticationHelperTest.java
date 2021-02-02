@@ -3,16 +3,11 @@ package mw.gov.health.lmis.utils;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
-import mw.gov.health.lmis.reports.dto.external.RightDto;
-import mw.gov.health.lmis.reports.dto.external.UserDto;
-import mw.gov.health.lmis.reports.exception.AuthenticationMessageException;
-import mw.gov.health.lmis.reports.service.referencedata.RightReferenceDataService;
-import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +17,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import mw.gov.health.lmis.reports.dto.external.RightDto;
+import mw.gov.health.lmis.reports.dto.external.UserDto;
+import mw.gov.health.lmis.reports.exception.AuthenticationMessageException;
+import mw.gov.health.lmis.reports.service.referencedata.RightReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
+import mw.gov.health.lmis.utils.AuthenticationHelper;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuthenticationHelperTest {
@@ -35,12 +37,10 @@ public class AuthenticationHelperTest {
   @InjectMocks
   private AuthenticationHelper authenticationHelper;
 
-  private UUID userId = UUID.randomUUID();
-
   @Before
   public void setUp() {
     Authentication authentication = mock(Authentication.class);
-    when(authentication.getPrincipal()).thenReturn(userId);
+    when(authentication.getPrincipal()).thenReturn("username");
 
     SecurityContext securityContext = mock(SecurityContext.class);
     when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -52,7 +52,7 @@ public class AuthenticationHelperTest {
   public void shouldReturnUser() {
     // given
     UserDto userMock = mock(UserDto.class);
-    when(userReferenceDataService.findOne(userId)).thenReturn(userMock);
+    when(userReferenceDataService.findUser(any(String.class))).thenReturn(userMock);
 
     // when
     UserDto user = authenticationHelper.getCurrentUser();
@@ -64,7 +64,7 @@ public class AuthenticationHelperTest {
   @Test(expected = AuthenticationMessageException.class)
   public void shouldThrowExceptionIfUserDoesNotExist() {
     // given
-    when(userReferenceDataService.findOne(userId)).thenReturn(null);
+    when(userReferenceDataService.findUser(any(String.class))).thenReturn(null);
 
     // when
     authenticationHelper.getCurrentUser();

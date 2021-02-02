@@ -52,8 +52,9 @@ public class JasperTemplateControllerIntegrationTest extends BaseWebIntegrationT
   @Test
   public void shouldGetAllTemplates() {
     // given
-    JasperTemplate[] templates = { generateTemplate(), generateTemplate() };
-    given(jasperTemplateRepository.findByIsDisplayed(true)).willReturn(Arrays.asList(templates));
+    JasperTemplate[] templates = { generateTemplate(), generateTemplate(),
+            generateTemplate(false) };
+    given(jasperTemplateRepository.findAll()).willReturn(Arrays.asList(templates));
 
     // when
     JasperTemplateDto[] result = restAssured.given()

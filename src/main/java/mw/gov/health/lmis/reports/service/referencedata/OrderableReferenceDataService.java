@@ -3,8 +3,6 @@ package mw.gov.health.lmis.reports.service.referencedata;
 import java.util.List;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.utils.RequestParameters;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,17 +23,8 @@ public class OrderableReferenceDataService extends BaseReferenceDataService<Orde
     return OrderableDto[].class;
   }
 
-  /**
-   * Retrieves all orderables.
-   *
-   * @return A list of orderables
-   */
   public List<OrderableDto> findAll() {
-    RequestParameters requestParameters = RequestParameters
-        .init()
-        .setPage(new PageRequest(0, Integer.MAX_VALUE, Direction.ASC, "fullProductName"));
-
-    return getPage("", requestParameters).getContent();
+    return getPage("", RequestParameters.init()).getContent();
   }
 
   public List<OrderableDto> findByProgramCode(String programCode) {

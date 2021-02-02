@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -111,8 +112,11 @@ public class JasperTemplateController extends BaseController {
   @ResponseBody
   public List<JasperTemplateDto> getAllTemplates() {
     permissionService.canViewReports(null);
-    // filter out templates that shouldn't be displayed
-    return JasperTemplateDto.newInstance(jasperTemplateRepository.findByIsDisplayed(true));
+    return JasperTemplateDto.newInstance(jasperTemplateRepository.findAll())
+        .stream()
+        // filter out templates that shouldn't be displayed
+        .filter(JasperTemplateDto::getIsDisplayed)
+        .collect(Collectors.toList());
   }
 
   /**

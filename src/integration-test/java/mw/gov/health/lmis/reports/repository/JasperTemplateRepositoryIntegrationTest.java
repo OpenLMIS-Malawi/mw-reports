@@ -2,7 +2,6 @@ package mw.gov.health.lmis.reports.repository;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,18 +35,5 @@ public class JasperTemplateRepositoryIntegrationTest extends
     JasperTemplate found = jasperTemplateRepository.findByName(NAME);
 
     assertThat(found.getName(), is(NAME));
-  }
-
-  @Test
-  public void shouldFindTemplateByDisplayed() {
-    jasperTemplateRepository.save(generateInstance());
-
-    JasperTemplate template = generateInstance();
-    template.setName("Test");
-    template.setIsDisplayed(false);
-    jasperTemplateRepository.save(template);
-
-    jasperTemplateRepository.findByIsDisplayed(true)
-        .forEach(jt -> assertTrue(jt.getIsDisplayed()));
   }
 }

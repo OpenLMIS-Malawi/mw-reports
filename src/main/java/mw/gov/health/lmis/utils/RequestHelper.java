@@ -1,11 +1,13 @@
 package mw.gov.health.lmis.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import mw.gov.health.lmis.reports.exception.EncodingException;
+import org.apache.commons.codec.Charsets;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+
+import mw.gov.health.lmis.reports.exception.EncodingException;
 
 public final class RequestHelper {
 
@@ -19,19 +21,14 @@ public final class RequestHelper {
   public static URI createUri(String url, RequestParameters parameters) {
     UriComponentsBuilder builder = UriComponentsBuilder.newInstance().uri(URI.create(url));
 
-    RequestParameters
-        .init()
-        .setAll(parameters)
-        .forEach(e -> e.getValue().forEach(one -> {
-              try {
-                builder.queryParam(e.getKey(),
-                    UriUtils.encodeQueryParam(String.valueOf(one),
-                        StandardCharsets.UTF_8.name()));
-              } catch (UnsupportedEncodingException ex) {
-                throw new EncodingException(ex);
-              }
-            }
-        ));
+    parameters.forEach(e -> {
+      try {
+        builder.queryParam(e.getKey(),
+            UriUtils.encodeQueryParam(String.valueOf(e.getValue()), Charsets.UTF_8.name()));
+      } catch (UnsupportedEncodingException ex) {
+        throw new EncodingException(ex);
+      }
+    });
 
     return builder.build(true).toUri();
   }
