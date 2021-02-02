@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="aggregate_orders" pageWidth="800" pageHeight="800" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="800" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Dev.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -98,7 +98,7 @@
 SELECT referencedata.facilities.name AS FacilityName,
   requisition.requisition_line_items.calculatedorderquantity AS Quantity,
   requisition.requisition_line_items.totalcost AS TotalCost,
-  requisition.requisition_line_items.priceperpack AS PricePerPack,
+  referencedata.program_orderables.priceperpack AS PricePerPack,
   referencedata.orderables.fullproductname AS ProductName,
   referencedata.orderables.packroundingthreshold AS PackRoundingThreshold,
   referencedata.orderables.roundtozero AS RoundToZero,
@@ -113,6 +113,9 @@ FROM requisition.requisition_line_items
    requisition.requisition_line_items.requisitionid = requisition.requisitions.id
   JOIN referencedata.programs ON
    requisition.requisitions.programid = referencedata.programs.id
+  JOIN referencedata.program_orderables ON
+    referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber
+    AND referencedata.programs.id = referencedata.program_orderables.programid
   JOIN referencedata.facilities ON
    requisition.requisitions.facilityid = referencedata.facilities.id
   JOIN referencedata.processing_periods ON
@@ -343,7 +346,7 @@ referencedata.facilities.name DESC]]>
 						<textField pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
 							<reportElement style="Crosstab_CH" mode="Transparent" x="60" y="0" width="70" height="20" backcolor="#FFFFFF" uuid="2524dd4f-d8aa-4a5f-9ca3-9c278b5060d0">
 								<property name="net.sf.jasperreports.export.xls.formula">
-									<![CDATA[IF(ISBLANK(INDIRECT(ADDRESS(ROW(),COLUMN()-1))),"-",IF(INDIRECT(ADDRESS(ROW(),COLUMN()-1))=0,0,INDIRECT(ADDRESS(ROW(),6))*IF(MOD(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))>INDIRECT(ADDRESS(ROW(),3)),QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))+1,IF(AND(QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))=0,INDIRECT(ADDRESS(ROW(),4))=0),1,QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))))))]]>
+									<![CDATA[IF(LEN(TRIM(INDIRECT(ADDRESS(ROW(),COLUMN()-1)))),IF(INDIRECT(ADDRESS(ROW(),COLUMN()-1))=0,0,INDIRECT(ADDRESS(ROW(),6))*IF(MOD(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))>INDIRECT(ADDRESS(ROW(),3)),QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))+1,IF(AND(QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))=0,INDIRECT(ADDRESS(ROW(),4))=0),1,QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))))), "-")]]>
 								</property>
 								<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
