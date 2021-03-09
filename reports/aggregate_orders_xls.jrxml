@@ -150,8 +150,12 @@ WHERE
    AND fulfillment.order_line_items.orderedquantity > 0
    AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
         AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
-   AND (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital'] ) OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
-        AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'true'))
+   AND ((referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'Central Hospital'] )
+   	 		AND referencedata.programs.name = 'TB')
+   	 OR (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital'] )
+   	 		AND referencedata.programs.name <> 'TB')
+     OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
+   			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'true'))
 ORDER BY ProductCode ASC, FacilityName DESC, LineItemId ASC]]>
 	</queryString>
 	<field name="OrderCode" class="java.lang.String"/>
