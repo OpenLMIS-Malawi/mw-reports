@@ -164,7 +164,7 @@ WHERE
    			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND ((referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'Central Hospital'] )
    	 		AND referencedata.programs.name = 'TB')
-   	 OR (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital'] )
+   	 OR (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital', 'District Health Office p', 'Central Hospital p'] )
    	 		AND referencedata.programs.name <> 'TB')
      OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
    			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'true'))
