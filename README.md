@@ -5,6 +5,6 @@ Service for managing and printing reports for Malawi OpenLMIS implementation.
 1. After modification in .jrxml file with report it should be compiled in Jaspersoft Studio to .jasper file. 
 2. Convert .jasper file to hex. Command in terminal for that: 
  ```shell
-xxd -pxxd -c 999999999 plik.jsaper > plik.hex
+xxd -pxxd -c 999999999 plik.jasper > plik.hex
 ```
 3. Add new migration file with update on reports.jasper_templates using converted data
