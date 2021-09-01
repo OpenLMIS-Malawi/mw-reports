@@ -40,6 +40,7 @@ import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -64,6 +65,7 @@ public class ReportsController extends BaseController {
 
   private static int DISTRICT_LEVEL = 3;
   public static final String PRINT_PI = "Print PI";
+  private static final Logger LOGGER = Logger.getLogger(ReportsController.class);
 
   @Autowired
   private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
@@ -143,14 +145,16 @@ public class ReportsController extends BaseController {
   public ResponseEntity<byte[]> print(@PathVariable("id") UUID id, @RequestParam String format)
       throws JasperReportViewException {
 
+    LOGGER.info("Looking for template");
     JasperTemplate printTemplate = jasperTemplateRepository.findByName(PRINT_PI);
     if (printTemplate == null) {
+      LOGGER.info("Template not found");
       throw new ValidationMessageException(
           new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_PI));
     }
 
+    LOGGER.info("Generating report...");
     byte[] bytes = jasperReportsViewService.generateReport(printTemplate, getParams(id, format));
-
     MediaType mediaType;
     if ("csv".equals(format)) {
       mediaType = new MediaType("text", "csv", StandardCharsets.UTF_8);
@@ -162,7 +166,7 @@ public class ReportsController extends BaseController {
       mediaType = new MediaType("application", "pdf", StandardCharsets.UTF_8);
     }
     String fileName = printTemplate.getName().replaceAll("\\s+", "_");
-
+    LOGGER.info("Created file name: " + fileName);
     return ResponseEntity
         .ok()
         .contentType(mediaType)
