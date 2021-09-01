@@ -187,6 +187,16 @@ public abstract class BaseCommunicationService<T> {
     return getPage(resourceUrl, parameters, payload, HttpMethod.POST, getResultClass());
   }
 
+  /**
+   * Return all reference data T objects for Page that need to be retrieved with GET request.
+   *
+   * @param parameters  Map of query parameters.
+   * @return Page of reference data T objects.
+   */
+  public Page<T> getPage(RequestParameters parameters) {
+    return getPage("", parameters, null, HttpMethod.GET, getResultClass());
+  }
+
   protected <P> Page<P> getPage(String resourceUrl, RequestParameters parameters, Object payload,
                                 HttpMethod method, Class<P> type) {
     String url = getServiceUrl() + getUrl() + resourceUrl;

@@ -16,8 +16,12 @@ public class MessageKeys {
           REQUISITION_ERROR + ".statusChange.user.system";
   public static final String ERROR_REQUISITION_NOT_FOUND = REQUISITION_ERROR
           + ".requisitionNotFound";
+  private static final String ERROR_PREFIX = SERVICE + ".error";
 
   protected static final String NOT_FOUND = "notFound";
+
+  //report
+  public static final String ERROR_GENERATE_REPORT_FAILED = ERROR_PREFIX + ".generateReport.failed";
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));

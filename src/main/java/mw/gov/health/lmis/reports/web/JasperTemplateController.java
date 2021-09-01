@@ -5,8 +5,11 @@ import static mw.gov.health.lmis.reports.service.PermissionService.AGGREGATE_ORD
 import static mw.gov.health.lmis.reports.service.PermissionService.AGGREGATE_ORDERS_XLS_ID;
 import static mw.gov.health.lmis.reports.web.ReportTypes.CONSISTENCY_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
+import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
+import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 
 import mw.gov.health.lmis.reports.dto.external.UserDto;
+import mw.gov.health.lmis.reports.service.stockmanagement.JasperReportService;
 import mw.gov.health.lmis.utils.AuthenticationHelper;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRVirtualizationHelper;
@@ -16,6 +19,7 @@ import net.sf.jasperreports.engine.util.JRSwapFile;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,11 +44,17 @@ import mw.gov.health.lmis.reports.service.JasperTemplateService;
 import mw.gov.health.lmis.reports.service.PermissionService;
 import mw.gov.health.lmis.utils.Message;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Clock;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.UUID;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -64,6 +74,9 @@ public class JasperTemplateController extends BaseController {
   private JasperReportsViewService jasperReportsViewService;
 
   @Autowired
+  private JasperReportService jasperReportService;
+
+  @Autowired
   private PermissionService permissionService;
 
   @Autowired
@@ -71,6 +84,18 @@ public class JasperTemplateController extends BaseController {
 
   @Autowired
   private AuthenticationHelper authenticationHelper;
+
+  @Value("${dateTimeFormat}")
+  private String dateTimeFormat;
+
+  @Value("${dateFormat}")
+  private String dateFormat;
+
+  @Value("${groupingSeparator}")
+  private String groupingSeparator;
+
+  @Value("${groupingSize}")
+  private String groupingSize;
 
   /**
    * Adding report templates with ".jrxml" format to database.
@@ -189,9 +214,16 @@ public class JasperTemplateController extends BaseController {
         1000, new JRSwapFile(tmpdir, 4096, 200), true);
     JRVirtualizationHelper.setThreadVirtualizer(virtualizer);
 
-    Map<String, Object> map = jasperTemplateService.mapRequestParametersToTemplate(
-        request, template
-    );
+    Map<String, Object> map = new HashMap<>();
+    if (templateId.equals(UUID.fromString("6bf325d4-0755-453c-b606-573dd455ab09"))) {
+      String id = request.getParameterMap().get("id")[0];
+      map = getParams(UUID.fromString(id));
+    } else {
+      map = jasperTemplateService.mapRequestParametersToTemplate(
+          request, template
+      );
+    }
+
     String fileName = jasperReportsViewService.getFilename(template, map);
     map.put("format", format);
     map.put("imagesDirectory", "images/");
@@ -216,6 +248,39 @@ public class JasperTemplateController extends BaseController {
     } else {
       return new ModelAndView(jasperView, map);
     }
+  }
+
+  private Map<String, Object> getParams(UUID eventId) throws JasperReportViewException {
+    Map<String, Object> params = createParametersMap();
+    String formatId = "'" + eventId + "'";
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
+    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
+    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
+    params.put("pi_id", formatId);
+    params.put("dateTimeFormat", dateTimeFormat);
+    params.put("dateFormat", dateFormat);
+    params.put("decimalFormat", decimalFormat);
+    params.put("subreport",
+        jasperReportService.createCustomizedPhysicalInventoryLineSubreport());
+
+    return params;
+  }
+
+  /**
+   * Set parameters of rendered pdf report.
+   */
+  public static Map<String, Object> createParametersMap() {
+    Map<String, Object> params = new HashMap<>();
+    params.put("format", "pdf");
+
+    Locale currentLocale = LocaleContextHolder.getLocale();
+    params.put(REPORT_LOCALE, currentLocale);
+
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("messages", currentLocale);
+    params.put(REPORT_RESOURCE_BUNDLE, resourceBundle);
+
+    return params;
   }
 
 }
