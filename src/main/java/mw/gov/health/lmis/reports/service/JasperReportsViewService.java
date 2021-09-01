@@ -2,6 +2,8 @@ package mw.gov.health.lmis.reports.service;
 
 import static java.io.File.createTempFile;
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FILE_CREATION;
+import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_CLASS_NOT_FOUND;
+import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_GENERATE_REPORT_FAILED;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
@@ -24,11 +26,15 @@ import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataServi
 import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
 import mw.gov.health.lmis.reports.web.RequisitionReportDtoBuilder;
 import mw.gov.health.lmis.utils.ReportUtils;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JRBand;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperReport;
+
 
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
@@ -47,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,6 +79,7 @@ public class JasperReportsViewService {
   private static final String REQUISITION_LINE_REPORT_DIR =
           "/jasperTemplates/requisitionLines.jrxml";
   private static final String DATASOURCE = "datasource";
+  static final String PI_LINES_REPORT_URL = "/jasperTemplates/physicalinventoryLines.jrxml";
 
   @Autowired
   private DataSource replicationDataSource;
@@ -273,6 +281,20 @@ public class JasperReportsViewService {
         .toLowerCase(Locale.ENGLISH);
   }
 
+  /**
+   * Creates PI line sub-report.
+   * */
+  public JasperDesign createCustomizedPhysicalInventoryLineSubreport()
+      throws JasperReportViewException {
+    try (InputStream inputStream = getClass().getResourceAsStream(PI_LINES_REPORT_URL)) {
+      return JRXmlLoader.load(inputStream);
+    } catch (IOException ex) {
+      throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
+    } catch (JRException ex) {
+      throw new JasperReportViewException(ex, ERROR_GENERATE_REPORT_FAILED);
+    }
+  }
+
   private JasperDesign createCustomizedRequisitionLineSubreport(RequisitionTemplateDto template)
           throws JasperReportViewException {
     try (InputStream inputStream = getClass().getResourceAsStream(REQUISITION_LINE_REPORT_DIR)) {
@@ -338,5 +360,60 @@ public class JasperReportsViewService {
       return nextPeriod;
     }
     return null;
+  }
+
+  byte[] fillAndExportReport(JasperReport compiledReport, Map<String, Object> params)
+      throws JasperReportViewException {
+
+    byte[] bytes;
+
+    try {
+      JasperPrint jasperPrint;
+
+      try (Connection connection = replicationDataSource.getConnection()) {
+        jasperPrint = JasperFillManager.fillReport(compiledReport, params,
+            connection);
+      }
+
+      bytes = JasperExportManager.exportReportToPdf(jasperPrint);
+    } catch (Exception ex) {
+      throw new JasperReportViewException(ex, ERROR_GENERATE_REPORT_FAILED);
+    }
+
+    return bytes;
+  }
+
+  /**
+   * Generate a report based on the Jasper template.
+   * Create compiled report (".jasper" file) from bytes from Template entity, and get URL.
+   * Using compiled report URL to fill in data and export to desired format.
+   *
+   * @param jasperTemplate template that will be used to generate a report
+   * @param params  map of parameters
+   * @return data of generated report
+   */
+  public byte[] generateReport(JasperTemplate jasperTemplate, Map<String, Object> params)
+      throws JasperReportViewException {
+    return fillAndExportReport(getReportFromTemplateData(jasperTemplate), params);
+  }
+
+  /**
+   * Create ".jasper" file with byte array from Template.
+   *
+   * @return Url to ".jasper" file.
+   */
+  JasperReport getReportFromTemplateData(JasperTemplate jasperTemplate)
+      throws JasperReportViewException {
+
+    try (ObjectInputStream inputStream =
+             new ObjectInputStream(new ByteArrayInputStream(jasperTemplate.getData()))) {
+
+      return (JasperReport) inputStream.readObject();
+    } catch (IOException ex) {
+      throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
+    } catch (ClassNotFoundException ex) {
+      throw new JasperReportViewException(
+          ex, ERROR_CLASS_NOT_FOUND + JasperReport.class.getName());
+    }
   }
 }

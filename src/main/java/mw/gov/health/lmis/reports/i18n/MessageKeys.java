@@ -22,6 +22,9 @@ public class MessageKeys {
 
   //report
   public static final String ERROR_GENERATE_REPORT_FAILED = ERROR_PREFIX + ".generateReport.failed";
+  public static final String ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME = ERROR_PREFIX
+      + ".reporting.template.notFound.with.name";
+  public static final String ERROR_CLASS_NOT_FOUND = ERROR_PREFIX + ".classNotFound";
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));

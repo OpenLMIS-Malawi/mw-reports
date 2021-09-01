@@ -1,13 +1,25 @@
 package mw.gov.health.lmis.reports.web;
 
 import static java.util.Arrays.asList;
+import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME;
+import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
+import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+
+import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
@@ -15,7 +27,9 @@ import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
 import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
+import mw.gov.health.lmis.reports.exception.ValidationMessageException;
 import mw.gov.health.lmis.reports.i18n.MessageKeys;
+import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.PermissionService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
@@ -27,9 +41,14 @@ import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReaso
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,7 +61,9 @@ import org.springframework.web.servlet.ModelAndView;
 @Transactional
 @RequestMapping("/api/reports")
 public class ReportsController extends BaseController {
+
   private static int DISTRICT_LEVEL = 3;
+  public static final String PRINT_PI = "Print PI";
 
   @Autowired
   private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
@@ -66,7 +87,26 @@ public class ReportsController extends BaseController {
   private JasperReportsViewService jasperReportsViewService;
 
   @Autowired
+  private JasperTemplateRepository jasperTemplateRepository;
+
+  @Autowired
   private RequisitionService requisitionService;
+
+  @Value("${dateTimeFormat}")
+  private String dateTimeFormat;
+
+  @Value("${dateFormat}")
+  private String dateFormat;
+
+  @Value("${time.zoneId}")
+  private String timeZoneId;
+
+  @Value("${groupingSeparator}")
+  private String groupingSeparator;
+
+  @Value("${groupingSize}")
+  private String groupingSize;
+
 
   /**
    * Print out requisition as a PDF file.
@@ -88,6 +128,46 @@ public class ReportsController extends BaseController {
     permissionService.canViewRequisition(requisition);
 
     return jasperReportsViewService.getRequisitionJasperReportView(requisition, request);
+  }
+
+  /**
+   * Print out physical inventory as a PDF file.
+   *
+   * @param id The UUID of the stock event to print
+   * @param format The report format
+   * @return ResponseEntity with the "#200 OK" HTTP response status and PDF file on success, or
+   *     ResponseEntity containing the error description status.
+   */
+  @GetMapping(value = "/physicalInventories/{id}", params = "format")
+  @ResponseBody
+  public ResponseEntity<byte[]> print(@PathVariable("id") UUID id, @RequestParam String format)
+      throws JasperReportViewException {
+
+    JasperTemplate printTemplate = jasperTemplateRepository.findByName(PRINT_PI);
+    if (printTemplate == null) {
+      throw new ValidationMessageException(
+          new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_PI));
+    }
+
+    byte[] bytes = jasperReportsViewService.generateReport(printTemplate, getParams(id, format));
+
+    MediaType mediaType;
+    if ("csv".equals(format)) {
+      mediaType = new MediaType("text", "csv", StandardCharsets.UTF_8);
+    } else if ("xls".equals(format)) {
+      mediaType = new MediaType("application", "vnd.ms-excel", StandardCharsets.UTF_8);
+    } else if ("html".equals(format)) {
+      mediaType = new MediaType("text", "html", StandardCharsets.UTF_8);
+    } else {
+      mediaType = new MediaType("application", "pdf", StandardCharsets.UTF_8);
+    }
+    String fileName = printTemplate.getName().replaceAll("\\s+", "_");
+
+    return ResponseEntity
+        .ok()
+        .contentType(mediaType)
+        .header("Content-Disposition", "inline; filename=" + fileName + "." + format)
+        .body(bytes);
   }
 
   /**
@@ -188,4 +268,41 @@ public class ReportsController extends BaseController {
 
     return list;
   }
+
+  private Map<String, Object> getParams(UUID eventId, String format)
+      throws JasperReportViewException {
+    Map<String, Object> params = createParametersMap();
+    String formatId = "'" + eventId + "'";
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
+    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
+    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
+    params.put("pi_id", formatId);
+    params.put("dateTimeFormat", dateTimeFormat);
+    params.put("dateFormat", dateFormat);
+    params.put("timeZoneId", timeZoneId);
+    params.put("format", format);
+    params.put("decimalFormat", decimalFormat);
+    params.put("subreport",
+        jasperReportsViewService.createCustomizedPhysicalInventoryLineSubreport());
+
+    return params;
+  }
+
+  /**
+   * Set parameters of rendered pdf report.
+   */
+  public static Map<String, Object> createParametersMap() {
+    Map<String, Object> params = new HashMap<>();
+    params.put("format", "pdf");
+
+    Locale currentLocale = LocaleContextHolder.getLocale();
+    params.put(REPORT_LOCALE, currentLocale);
+
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("messages", currentLocale);
+    params.put(REPORT_RESOURCE_BUNDLE, resourceBundle);
+
+    return params;
+  }
+
 }

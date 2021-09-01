@@ -194,7 +194,7 @@
 				<textElement>
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Itemized reasons]]></text>
+				<text><![CDATA[Itemized Reasons]]></text>
 			</staticText>
 			<staticText>
 				<reportElement mode="Opaque" x="592" y="0" width="72" height="25" backcolor="#CCCCCC" uuid="1dd698e8-9aae-4cd6-94b9-708523090dec"/>
@@ -246,7 +246,7 @@
 				<textElement>
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Expiry date]]></text>
+				<text><![CDATA[Expiry Date]]></text>
 			</staticText>
 			<staticText>
 				<reportElement mode="Opaque" x="244" y="0" width="72" height="25" backcolor="#CCCCCC" uuid="93bc4e67-36dd-4077-95db-0db852108a30"/>
@@ -259,7 +259,7 @@
 				<textElement>
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Batch number]]></text>
+				<text><![CDATA[Batch Number]]></text>
 			</staticText>
 			<staticText>
 				<reportElement mode="Opaque" x="82" y="0" width="162" height="25" backcolor="#CCCCCC" uuid="f75fae81-e6b8-4993-898d-632ddf29d1e8"/>
