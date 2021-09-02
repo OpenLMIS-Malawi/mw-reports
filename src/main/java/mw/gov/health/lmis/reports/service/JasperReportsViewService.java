@@ -1,9 +1,9 @@
 package mw.gov.health.lmis.reports.service;
 
 import static java.io.File.createTempFile;
+
+import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_GENERATE_REPORT_FAILED;
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FILE_CREATION;
-import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_CLASS_NOT_FOUND;
-import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_GENERATE_REPORT_FAILED;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
@@ -413,7 +413,7 @@ public class JasperReportsViewService {
       throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
     } catch (ClassNotFoundException ex) {
       throw new JasperReportViewException(
-          ex, ERROR_CLASS_NOT_FOUND + JasperReport.class.getName());
+          ex, ERROR_REPORTING_CLASS_NOT_FOUND + JasperReport.class.getName());
     }
   }
 }

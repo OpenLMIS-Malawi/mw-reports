@@ -1,7 +1,8 @@
 package mw.gov.health.lmis.reports.web;
 
 import static java.util.Arrays.asList;
-import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME;
+
+import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 

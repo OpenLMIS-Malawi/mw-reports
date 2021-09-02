@@ -1,7 +1,13 @@
 package mw.gov.health.lmis.reports.i18n;
 
 public class ReportingMessageKeys extends MessageKeys {
-  private static final String ERROR = join(SERVICE_ERROR, "reporting");
+  private static final String ERROR;
+
+  static {
+    String serviceError = SERVICE_ERROR;
+    ERROR = join(serviceError, "reporting");
+  }
+
   private static final String INCORRECT_TYPE = "incorrectType";
   private static final String PARAMETER = "parameter";
   private static final String CREATION = "creation";
@@ -31,4 +37,7 @@ public class ReportingMessageKeys extends MessageKeys {
       join(ERROR, TEMPLATE, EXISTS);
   public static final String ERROR_REPORTING_TEMPLATE_NOT_FOUND =
       join(ERROR, TEMPLATE, NOT_FOUND);
+  public static final String ERROR_GENERATE_REPORT_FAILED = ERROR + ".generateReport.failed";
+  public static final String ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME = ERROR
+      + ".reporting.template.notFound.with.name";
 }
