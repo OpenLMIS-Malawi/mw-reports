@@ -20,9 +20,13 @@ import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionTemplateColumnDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionTemplateDto;
+import mw.gov.health.lmis.reports.dto.external.StockCardDto;
+import mw.gov.health.lmis.reports.dto.external.StockCardSummaryDto;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.BaseReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.StockCardReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.StockCardSummariesReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
 import mw.gov.health.lmis.reports.web.RequisitionReportDtoBuilder;
 import mw.gov.health.lmis.utils.ReportUtils;
@@ -40,6 +44,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -54,17 +59,23 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +86,8 @@ import mw.gov.health.lmis.reports.exception.JasperReportViewException;
 
 @Service
 public class JasperReportsViewService {
+
+  static final String CARD_SUMMARY_REPORT_URL = "/jasperTemplates/stockCardSummary.jrxml";
   private static final String REQUISITION_REPORT_DIR = "/jasperTemplates/requisition.jrxml";
   private static final String REQUISITION_LINE_REPORT_DIR =
           "/jasperTemplates/requisitionLines.jrxml";
@@ -95,6 +108,24 @@ public class JasperReportsViewService {
 
   @Autowired
   private RequisitionReportDtoBuilder requisitionReportDtoBuilder;
+
+  @Autowired
+  private StockCardSummariesReferenceDataService stockCardSummariesDataService;
+
+  @Autowired
+  private StockCardReferenceDataService stockCardReferenceDataService;
+
+  @Value("${dateTimeFormat}")
+  private String dateTimeFormat;
+
+  @Value("${dateFormat}")
+  private String dateFormat;
+
+  @Value("${groupingSeparator}")
+  private String groupingSeparator;
+
+  @Value("${groupingSize}")
+  private String groupingSize;
 
   /**
    * Create Jasper Report View.
@@ -395,6 +426,66 @@ public class JasperReportsViewService {
   public byte[] generateReport(JasperTemplate jasperTemplate, Map<String, Object> params)
       throws JasperReportViewException {
     return fillAndExportReport(getReportFromTemplateData(jasperTemplate), params);
+  }
+
+  /**
+   * Generate stock card summary report in PDF format.
+   *
+   * @param program  program id
+   * @param facility facility id
+   * @return generated stock card summary report.
+   */
+  public byte[] generateStockCardSummariesReport(UUID program, UUID facility)
+      throws JasperReportViewException {
+    List<StockCardSummaryDto> cardSummaries = stockCardSummariesDataService
+        .findStockCardsSummaries(program, facility);
+    Set cardIds = new HashSet();
+    for (StockCardSummaryDto stockCardSummary : cardSummaries) {
+      cardIds.addAll(stockCardSummary.getCanFulfillForMe()
+          .stream()
+          .map(c -> c.getOrderable().getId())
+          .collect(Collectors.toList()));
+    }
+    List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
+    StockCardDto firstCard = cards.get(0);
+    Map<String, Object> params = new HashMap<>();
+    params.put("stockCardSummaries", cards);
+
+    params.put("program", firstCard.getProgram());
+    params.put("facility", firstCard.getFacility());
+    //right now, each report can only be about one program, one facility
+    //in the future we may want to support one report for multiple programs
+    params.put("showProgram", getCount(cards, card -> card.getProgram().getId().toString()) > 1);
+    params.put("showFacility", getCount(cards, card -> card.getFacility().getId().toString()) > 1);
+    params.put("showLot", cards.stream().anyMatch(card -> card.getLot().getId() != null));
+    params.put("dateFormat", dateFormat);
+    params.put("dateTimeFormat", dateTimeFormat);
+    params.put("decimalFormat", createDecimalFormat());
+
+    return fillAndExportReport(compileReportFromTemplateUrl(CARD_SUMMARY_REPORT_URL), params);
+  }
+
+  private long getCount(List<StockCardDto> stockCards, Function<StockCardDto, String> mapper) {
+    return stockCards.stream().map(mapper).distinct().count();
+  }
+
+  private DecimalFormat createDecimalFormat() {
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
+    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
+    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
+    return decimalFormat;
+  }
+
+  JasperReport compileReportFromTemplateUrl(String templateUrl) throws JasperReportViewException {
+    try (InputStream inputStream = getClass().getResourceAsStream(templateUrl)) {
+
+      return JasperCompileManager.compileReport(inputStream);
+    } catch (IOException ex) {
+      throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
+    } catch (JRException ex) {
+      throw new JasperReportViewException(ex, ERROR_GENERATE_REPORT_FAILED);
+    }
   }
 
   /**

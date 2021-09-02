@@ -7,6 +7,7 @@ import static mw.gov.health.lmis.reports.web.ReportTypes.CONSISTENCY_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 
 import mw.gov.health.lmis.reports.dto.external.UserDto;
+import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.utils.AuthenticationHelper;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JRVirtualizationHelper;
@@ -67,6 +68,9 @@ public class JasperTemplateController extends BaseController {
   private PermissionService permissionService;
 
   @Autowired
+  private ViewPermissionService viewPermissionService;
+
+  @Autowired
   private Clock clock;
 
   @Autowired
@@ -110,7 +114,7 @@ public class JasperTemplateController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public List<JasperTemplateDto> getAllTemplates() {
-    permissionService.canViewReports(null);
+    viewPermissionService.canViewReports(null);
     // filter out templates that shouldn't be displayed
     return JasperTemplateDto.newInstance(jasperTemplateRepository.findByIsDisplayed(true));
   }
@@ -125,7 +129,7 @@ public class JasperTemplateController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public JasperTemplateDto getTemplate(@PathVariable("id") UUID templateId) {
-    permissionService.canViewReports(templateId);
+    viewPermissionService.canViewReports(templateId);
     JasperTemplate jasperTemplate =
         jasperTemplateRepository.findOne(templateId);
     if (jasperTemplate == null) {
@@ -169,7 +173,7 @@ public class JasperTemplateController extends BaseController {
                                      @PathVariable("format") String format)
       throws JasperReportViewException {
 
-    permissionService.canViewReports(templateId);
+    viewPermissionService.canViewReports(templateId);
 
     JasperTemplate template;
     if (AGGREGATE_ORDERS_ID.equals(templateId)

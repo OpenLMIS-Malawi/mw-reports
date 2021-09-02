@@ -16,6 +16,10 @@ public class MessageKeys {
           REQUISITION_ERROR + ".statusChange.user.system";
   public static final String ERROR_REQUISITION_NOT_FOUND = REQUISITION_ERROR
           + ".requisitionNotFound";
+  private static final String PHYSICAL_INVENTORY_ERROR_PREFIX = SERVICE_ERROR
+          + ".physicalInventory";
+  public static final String ERROR_PHYSICAL_INVENTORY_NOT_FOUND =
+      PHYSICAL_INVENTORY_ERROR_PREFIX + ".notFound";
 
   protected static final String NOT_FOUND = "notFound";
 

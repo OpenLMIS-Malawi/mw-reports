@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
+import mw.gov.health.lmis.reports.dto.external.PhysicalInventoryDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
@@ -33,15 +35,16 @@ import mw.gov.health.lmis.reports.i18n.MessageKeys;
 import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.PermissionService;
+import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.PhysicalInventoryReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
 import mw.gov.health.lmis.reports.service.requisition.RequisitionService;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.utils.Message;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -66,7 +69,6 @@ public class ReportsController extends BaseController {
 
   private static int DISTRICT_LEVEL = 3;
   public static final String PRINT_PI = "Print PI";
-  private static final Logger LOGGER = Logger.getLogger(ReportsController.class);
 
   @Autowired
   private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
@@ -81,10 +83,16 @@ public class ReportsController extends BaseController {
   private StockCardLineItemReasonStockmanagementService reasonStockmanagementService;
 
   @Autowired
+  private PhysicalInventoryReferenceDataService physicalInventoryReferenceDataService;
+
+  @Autowired
   private OrderableReferenceDataService orderableReferenceDataService;
 
   @Autowired
   private PermissionService permissionService;
+
+  @Autowired
+  private ViewPermissionService viewPermissionService;
 
   @Autowired
   private JasperReportsViewService jasperReportsViewService;
@@ -110,7 +118,6 @@ public class ReportsController extends BaseController {
   @Value("${groupingSize}")
   private String groupingSize;
 
-
   /**
    * Print out requisition as a PDF file.
    *
@@ -128,7 +135,7 @@ public class ReportsController extends BaseController {
       throw new NotFoundMessageException(
               new Message(MessageKeys.ERROR_REQUISITION_NOT_FOUND, id));
     }
-    permissionService.canViewRequisition(requisition);
+    viewPermissionService.canViewRequisition(requisition);
 
     return jasperReportsViewService.getRequisitionJasperReportView(requisition, request);
   }
@@ -146,15 +153,13 @@ public class ReportsController extends BaseController {
   public ResponseEntity<byte[]> print(@PathVariable("id") UUID id, @RequestParam String format)
       throws JasperReportViewException {
 
-    LOGGER.info("Looking for template");
+    checkPermission(id);
     JasperTemplate printTemplate = jasperTemplateRepository.findByName(PRINT_PI);
     if (printTemplate == null) {
-      LOGGER.info("Template not found");
       throw new ValidationMessageException(
           new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_PI));
     }
 
-    LOGGER.info("Generating report...");
     byte[] bytes = jasperReportsViewService.generateReport(printTemplate, getParams(id, format));
     MediaType mediaType;
     if ("csv".equals(format)) {
@@ -167,12 +172,34 @@ public class ReportsController extends BaseController {
       mediaType = new MediaType("application", "pdf", StandardCharsets.UTF_8);
     }
     String fileName = printTemplate.getName().replaceAll("\\s+", "_");
-    LOGGER.info("Created file name: " + fileName);
+
     return ResponseEntity
         .ok()
         .contentType(mediaType)
         .header("Content-Disposition", "inline; filename=" + fileName + "." + format)
         .body(bytes);
+  }
+
+  /**
+   * Get stock card summaries report by program and facility.
+   *
+   * @return generated PDF report
+   */
+  @RequestMapping(value = "/stockCardSummaries/print", method = GET)
+  @ResponseBody
+  public ResponseEntity<byte[]> getStockCardSummaries(
+      @RequestParam("program") UUID program,
+      @RequestParam("facility") UUID facility) throws JasperReportViewException {
+
+    viewPermissionService.canViewStockCard(program, facility);
+    byte[] report = jasperReportsViewService.generateStockCardSummariesReport(program, facility);
+
+    return ResponseEntity
+        .ok()
+        .contentType(MediaType.APPLICATION_PDF)
+        .header("Content-Disposition",
+            "inline; filename=stock_card_summaries" + program + "_" + facility + ".pdf")
+        .body(report);
   }
 
   /**
@@ -184,7 +211,7 @@ public class ReportsController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Collection<GeographicZoneDto> getDistricts() {
-    permissionService.canViewReportsOrOrders();
+    viewPermissionService.canViewReportsOrOrders();
     return geographicZoneReferenceDataService.search(DISTRICT_LEVEL, null);
   }
 
@@ -197,7 +224,7 @@ public class ReportsController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Collection<ProcessingPeriodDto> getProcessingPeriods() {
-    permissionService.canViewReportsOrOrders();
+    viewPermissionService.canViewReportsOrOrders();
     return periodReferenceDataService.getNonFuturePeriods();
   }
 
@@ -210,7 +237,7 @@ public class ReportsController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Collection<ProgramDto> getPrograms() {
-    permissionService.canViewReportsOrOrders();
+    viewPermissionService.canViewReportsOrOrders();
     return programReferenceDataService.findAll();
   }
 
@@ -223,7 +250,7 @@ public class ReportsController extends BaseController {
   @ResponseStatus(HttpStatus.OK)
   @ResponseBody
   public Set<StockCardLineItemReasonDto> getValidReasons() {
-    permissionService.canViewReportsOrOrders();
+    viewPermissionService.canViewReportsOrOrders();
 
     List<UUID> disabledReasons = asList(
         UUID.fromString("b5c27da7-bdda-4790-925a-9484c5dfb594"), // Consumed
@@ -246,7 +273,7 @@ public class ReportsController extends BaseController {
   @ResponseBody
   public Collection<OrderableDto> getOrderables(
       @RequestParam(value = "program", required = false) String programName) {
-    permissionService.canViewReportsOrOrders();
+    viewPermissionService.canViewReportsOrOrders();
 
     List<OrderableDto> list = null;
 
@@ -308,6 +335,12 @@ public class ReportsController extends BaseController {
     params.put(REPORT_RESOURCE_BUNDLE, resourceBundle);
 
     return params;
+  }
+
+  private void checkPermission(UUID id) {
+    PhysicalInventoryDto pi = physicalInventoryReferenceDataService.findById(id);
+
+    permissionService.canEditPhysicalInventory(pi.getProgramId(), pi.getFacilityId());
   }
 
 }

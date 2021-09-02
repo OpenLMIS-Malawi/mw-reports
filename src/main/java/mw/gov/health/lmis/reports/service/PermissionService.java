@@ -1,9 +1,23 @@
+/*
+ * This program is part of the OpenLMIS logistics management information system platform software.
+ * Copyright © 2017 VillageReach
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms
+ * of the GNU Affero General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Affero General Public License for more details. You should have received a copy of
+ * the GNU Affero General Public License along with this program. If not, see
+ * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org.
+ */
+
 package mw.gov.health.lmis.reports.service;
 
 import static mw.gov.health.lmis.reports.i18n.PermissionMessageKeys.ERROR_NO_PERMISSION;
 
 import mw.gov.health.lmis.reports.dto.external.DetailedRoleAssignmentDto;
-import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -17,22 +31,20 @@ import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService
 import mw.gov.health.lmis.utils.AuthenticationHelper;
 import mw.gov.health.lmis.utils.Message;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class PermissionService {
   public static final String REPORT_TEMPLATES_EDIT = "REPORT_TEMPLATES_EDIT";
-  public static final String REPORTS_VIEW = "REPORTS_VIEW";
-  public static final String ORDERS_VIEW = "ORDERS_VIEW";
+  public static final String STOCK_INVENTORIES_EDIT = "STOCK_INVENTORIES_EDIT";
+
   public static final UUID AGGREGATE_ORDERS_ID =
           UUID.fromString("f28d0ebd-7276-4453-bc3c-48556a4bd25a");
   public static final UUID AGGREGATE_ORDERS_XLS_ID =
       UUID.fromString("5e378334-d1fe-4915-902e-22ecd0a61f5b");
-  public static final UUID ORDER_ID =
-          UUID.fromString("3c9d1e80-1e45-4adb-97d9-208b6fdceeec");
-  public static final String REQUISITION_VIEW = "REQUISITION_VIEW";
+  public static final String ORDERS_VIEW = "ORDERS_VIEW";
+
 
   @Autowired
   private AuthenticationHelper authenticationHelper;
@@ -45,44 +57,46 @@ public class PermissionService {
   }
 
   /**
-   * Check whether the user has REPORTS_VIEW permission.
-   * @param templateId (optional) id of the report; if it equals to Aggregate Orders,
-   *                   the user can have either the ORDERS_VIEW or REPORTS_VIEW permission
+   * Checks if current user has permission to do physical inventory.
+   *
+   * @param programId  program id.
+   * @param facilityId facility id.
    */
-  public void canViewReports(UUID templateId) {
-    if (templateId != null && (templateId.equals(AGGREGATE_ORDERS_ID)
-            || templateId.equals(ORDER_ID))) {
-      canViewReportsOrOrders();
-    } else {
-      checkPermission(REPORTS_VIEW);
-    }
+  public void canEditPhysicalInventory(UUID programId, UUID facilityId) {
+    hasPermission(STOCK_INVENTORIES_EDIT, programId, facilityId, null);
   }
 
   /**
-   * Checks if current user has permission to view a requisition.
+   * Checks if current user has permission.
+   *
+   * @param rightName  right name.
    */
-  public void canViewRequisition(RequisitionDto requisition) {
-    checkPermission(REQUISITION_VIEW, requisition.getProgram().getId(),
-            requisition.getFacility().getId(), null);
-  }
-
-  public void canViewReportsOrOrders() {
-    checkAnyPermission(Arrays.asList(REPORTS_VIEW, ORDERS_VIEW));
-  }
-
-  private void checkPermission(String rightName) {
+  public void checkPermission(String rightName) {
     if (!hasPermission(rightName)) {
       throw new PermissionMessageException(new Message(ERROR_NO_PERMISSION, rightName));
     }
   }
 
-  private void checkPermission(String rightName, UUID program, UUID facility, UUID warehouse) {
+  /**
+   * Checks if current user has permission.
+   *
+   * @param rightName  right name.
+   * @param program program id.
+   * @param facility facility id.
+   * @param warehouse warehouse id.
+   */
+  public void checkPermission(String rightName, UUID program, UUID facility, UUID warehouse) {
     if (!hasPermission(rightName, program, facility, warehouse)) {
       throw new PermissionMessageException(new Message(ERROR_NO_PERMISSION, rightName));
     }
   }
 
-  private void checkAnyPermission(List<String> rightNames) {
+  /**
+   * Checks if current user has any permission.
+   *
+   * @param rightNames  list of rights names.
+   */
+  public void checkAnyPermission(List<String> rightNames) {
     if (rightNames.stream().noneMatch(this::hasPermission)) {
       throw new PermissionMessageException(new Message(ERROR_NO_PERMISSION, rightNames));
     }
@@ -98,7 +112,16 @@ public class PermissionService {
     return null != result && result.getResult();
   }
 
-  private Boolean hasPermission(String rightName, UUID program, UUID facility, UUID warehouse) {
+  /**
+   * Checks if current user has permission to do physical inventory.
+   *
+   * @param rightName  right name.
+   * @param program program id.
+   * @param facility facility id.
+   * @param warehouse warehouse id.
+   * @return boolean
+   */
+  public Boolean hasPermission(String rightName, UUID program, UUID facility, UUID warehouse) {
     OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext()
             .getAuthentication();
     if (authentication.isClientOnly()) {
