@@ -8,7 +8,6 @@ import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -204,19 +203,10 @@ public class ReportsController extends BaseController {
     ProofOfDeliveryDto proofOfDelivery = proofOfDeliveryDataService.findProofOfDelivery(id);
     canViewPod(authentication, proofOfDelivery);
 
-    String filePath = "jasperTemplates/proofOfDelivery.jrxml";
-    ClassLoader classLoader = getClass().getClassLoader();
-
-    //    Template template = new Template();
-    //    template.setName("ordersJasperTemplate");
     JasperTemplate template = jasperTemplateRepository.findByName(PRINT_POD);
     if (template == null) {
       throw new ValidationMessageException(
-          new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_POD));
-    }
-
-    try (InputStream fis = classLoader.getResourceAsStream(filePath)) {
-      jasperReportsViewService.createTemplateParameters(template, fis);
+         new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_POD));
     }
 
     Map<String, Object> params = new HashMap<>();

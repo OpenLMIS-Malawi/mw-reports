@@ -15,24 +15,17 @@
 
 package mw.gov.health.lmis.reports.dto.external;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.time.LocalDate;
-import java.util.Map;
 import java.util.UUID;
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-
 @ToString
-@Builder
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
+@JsonDeserialize(builder = StockCardDto.Builder.class)
 public class StockCardDto {
 
   private UUID id;
@@ -41,8 +34,75 @@ public class StockCardDto {
   private ProgramDto program;
   private OrderableDto orderable;
   private LotDto lot;
-  private Map<String, String> extraData;
 
-  @JsonFormat(shape = STRING)
-  private LocalDate lastUpdate;
+  /**
+   * Constructor of stock card.
+   */
+  public StockCardDto(UUID id,
+                      Integer stockOnHand,
+                      FacilityDto facility,
+                      ProgramDto program,
+                      OrderableDto orderable,
+                      LotDto lot) {
+    this.id = id;
+    this.stockOnHand = stockOnHand;
+    this.facility = facility;
+    this.program = program;
+    this.orderable = orderable;
+    this.lot = lot;
+  }
+
+  @JsonPOJOBuilder
+  public static class Builder {
+    UUID id;
+    Integer stockOnHand;
+    FacilityDto facility;
+    ProgramDto program;
+    OrderableDto orderable;
+    LotDto lot;
+
+    public StockCardDto.Builder withId(UUID id) {
+      this.id = id;
+      return this;
+    }
+
+    public StockCardDto.Builder withStockOnHand(Integer stockOnHand) {
+      this.stockOnHand = stockOnHand;
+      return this;
+    }
+
+    public StockCardDto.Builder withFacility(FacilityDto facility) {
+      this.facility = facility;
+      return this;
+    }
+
+    public StockCardDto.Builder withProgram(ProgramDto program) {
+      this.program = program;
+      return this;
+    }
+
+    public StockCardDto.Builder withOrderable(OrderableDto orderable) {
+      this.orderable = orderable;
+      return this;
+    }
+
+    public StockCardDto.Builder withLot(LotDto lot) {
+      this.lot = lot;
+      return this;
+    }
+
+    /**
+     * Build method of stock card builder.
+     * @return {@link StockCardDto}
+     */
+    public StockCardDto build() {
+      return new StockCardDto(
+          id,
+          stockOnHand,
+          facility,
+          program,
+          orderable,
+          lot);
+    }
+  }
 }

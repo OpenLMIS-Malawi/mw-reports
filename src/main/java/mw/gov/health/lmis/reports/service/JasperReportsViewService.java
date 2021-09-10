@@ -11,7 +11,6 @@ import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTI
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
 import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
-import static net.sf.jasperreports.engine.export.JRHtmlExporterParameter.IS_USING_IMAGES_TO_ALIGN;
 import static org.apache.commons.io.FileUtils.writeByteArrayToFile;
 
 import mw.gov.health.lmis.reports.dto.RequisitionReportDto;
@@ -39,8 +38,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.JRBand;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRExporterParameter;
-
 
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.JasperDesign;
@@ -142,7 +139,6 @@ public class JasperReportsViewService {
   public JasperReportsMultiFormatView getJasperReportsView(
       JasperTemplate jasperTemplate, HttpServletRequest request) throws JasperReportViewException {
     JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
-    setExportParams(jasperView);
     jasperView.setUrl(getReportUrlForReportData(jasperTemplate));
     jasperView.setJdbcDataSource(replicationDataSource);
 
@@ -150,15 +146,6 @@ public class JasperReportsViewService {
       jasperView.setApplicationContext(getApplicationContext(request));
     }
     return jasperView;
-  }
-
-  /**
-   * Set export parameters in jasper view.
-   */
-  private void setExportParams(JasperReportsMultiFormatView jasperView) {
-    Map<JRExporterParameter, Object> reportFormatMap = new HashMap<>();
-    reportFormatMap.put(IS_USING_IMAGES_TO_ALIGN, false);
-    jasperView.setExporterParameters(reportFormatMap);
   }
 
   /**
@@ -252,7 +239,6 @@ public class JasperReportsViewService {
     params.put("template", template);
 
     JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
-    setExportParams(jasperView);
     setCustomizedJasperTemplateForRequisitionReport(jasperView);
 
     if (getApplicationContext(request) != null) {
@@ -453,14 +439,17 @@ public class JasperReportsViewService {
     StockCardDto firstCard = cards.get(0);
     Map<String, Object> params = new HashMap<>();
     params.put("stockCardSummaries", cards);
-
     params.put("program", firstCard.getProgram());
     params.put("facility", firstCard.getFacility());
     //right now, each report can only be about one program, one facility
     //in the future we may want to support one report for multiple programs
     params.put("showProgram", getCount(cards, card -> card.getProgram().getId().toString()) > 1);
     params.put("showFacility", getCount(cards, card -> card.getFacility().getId().toString()) > 1);
-    params.put("showLot", cards.stream().anyMatch(card -> card.getLot().getId() != null));
+    if (cards.stream().anyMatch(card -> card.getLot() != null)) {
+      params.put("showLot", cards.stream().anyMatch(card -> card.getLot().getId() != null));
+    } else {
+      params.put("showLot", false);
+    }
     params.put("dateFormat", dateFormat);
     params.put("dateTimeFormat", dateTimeFormat);
     params.put("decimalFormat", createDecimalFormat());

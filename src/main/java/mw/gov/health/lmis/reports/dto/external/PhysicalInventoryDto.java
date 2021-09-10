@@ -28,8 +28,10 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @Getter
 public class PhysicalInventoryDto {
 
+  @JsonFormat(shape = STRING)
   private UUID programId;
 
+  @JsonFormat(shape = STRING)
   private UUID facilityId;
 
   private Boolean isDraft;

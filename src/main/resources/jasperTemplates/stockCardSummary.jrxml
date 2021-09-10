@@ -11,8 +11,7 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<import value="org.openlmis.stockmanagement.domain.card.*"/>
-	<import value="org.openlmis.stockmanagement.dto.*"/>
+	<import value="mw.gov.health.lmis.reports.dto.external.*"/>
 	<import value="java.time.LocalDate"/>
 	<import value="java.time.format.DateTimeFormatter"/>
 	<import value="java.time.ZonedDateTime"/>
@@ -86,15 +85,15 @@
 		<queryString>
 			<![CDATA[]]>
 		</queryString>
-		<field name="facility" class="org.openlmis.stockmanagement.dto.referencedata.FacilityDto"/>
-		<field name="program" class="org.openlmis.stockmanagement.dto.referencedata.ProgramDto"/>
-		<field name="orderable" class="org.openlmis.stockmanagement.dto.referencedata.OrderableDto"/>
+		<field name="facility" class="mw.gov.health.lmis.reports.dto.external.FacilityDto"/>
+		<field name="program" class="mw.gov.health.lmis.reports.dto.external.ProgramDto"/>
+		<field name="orderable" class="mw.gov.health.lmis.reports.dto.external.OrderableDto"/>
 		<field name="stockOnHand" class="java.lang.Integer"/>
 		<field name="lastUpdate" class="java.time.LocalDate"/>
-		<field name="lot" class="org.openlmis.stockmanagement.dto.referencedata.LotDto"/>
+		<field name="lot" class="mw.gov.health.lmis.reports.dto.external.LotDto"/>
 	</subDataset>
-	<parameter name="program" class="org.openlmis.stockmanagement.dto.referencedata.ProgramDto" isForPrompting="false"/>
-	<parameter name="facility" class="org.openlmis.stockmanagement.dto.referencedata.FacilityDto" isForPrompting="false"/>
+	<parameter name="program" class="mw.gov.health.lmis.reports.dto.external.ProgramDto" isForPrompting="false"/>
+	<parameter name="facility" class="mw.gov.health.lmis.reports.dto.external.FacilityDto" isForPrompting="false"/>
 	<parameter name="stockCardSummaries" class="java.util.List" isForPrompting="false"/>
 	<parameter name="showProgram" class="java.lang.Boolean" isForPrompting="false"/>
 	<parameter name="showFacility" class="java.lang.Boolean" isForPrompting="false"/>

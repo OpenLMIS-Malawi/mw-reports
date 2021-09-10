@@ -21,7 +21,7 @@ dependencies {
     compile "com.github.tomakehurst:wiremock:1.58"
     compile "commons-codec:commons-codec:1.10"
     compile "commons-io:commons-io:2.4"
-    compile "net.sf.jasperreports:jasperreports:6.4.1"
+    compile "net.sf.jasperreports:jasperreports:6.5.1"
     compile "org.apache.commons:commons-lang3:3.5"
     compile "org.flywaydb:flyway-core:4.0.3"
     compile "org.javers:javers-spring-boot-starter-sql:2.8.1"
