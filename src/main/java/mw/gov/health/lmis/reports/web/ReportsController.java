@@ -7,6 +7,8 @@ import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -27,8 +29,10 @@ import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.PhysicalInventoryDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
+import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
+import mw.gov.health.lmis.reports.exception.MissingPermissionException;
 import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
 import mw.gov.health.lmis.reports.exception.ValidationMessageException;
 import mw.gov.health.lmis.reports.i18n.MessageKeys;
@@ -36,6 +40,7 @@ import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.PermissionService;
 import mw.gov.health.lmis.reports.service.ViewPermissionService;
+import mw.gov.health.lmis.reports.service.fulfillment.ProofOfDeliveryDataService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
@@ -51,6 +56,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -69,6 +75,7 @@ public class ReportsController extends BaseController {
 
   private static int DISTRICT_LEVEL = 3;
   public static final String PRINT_PI = "Print PI";
+  public static final String PRINT_POD = "Print POD";
 
   @Autowired
   private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
@@ -87,6 +94,9 @@ public class ReportsController extends BaseController {
 
   @Autowired
   private OrderableReferenceDataService orderableReferenceDataService;
+
+  @Autowired
+  private ProofOfDeliveryDataService proofOfDeliveryDataService;
 
   @Autowired
   private PermissionService permissionService;
@@ -181,6 +191,57 @@ public class ReportsController extends BaseController {
   }
 
   /**
+   * Prints proofOfDelivery in PDF format.
+   *
+   * @param id UUID of ProofOfDelivery to print
+   */
+  @RequestMapping(value = "/proofsOfDelivery/{id}/print", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  public ResponseEntity<byte[]> printProofOfDelivery(@PathVariable("id") UUID id,
+                                                     OAuth2Authentication authentication)
+      throws IOException, MissingPermissionException, JasperReportViewException {
+
+    ProofOfDeliveryDto proofOfDelivery = proofOfDeliveryDataService.findProofOfDelivery(id);
+    canViewPod(authentication, proofOfDelivery);
+
+    String filePath = "jasperTemplates/proofOfDelivery.jrxml";
+    ClassLoader classLoader = getClass().getClassLoader();
+
+    //    Template template = new Template();
+    //    template.setName("ordersJasperTemplate");
+    JasperTemplate template = jasperTemplateRepository.findByName(PRINT_POD);
+    if (template == null) {
+      throw new ValidationMessageException(
+          new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_POD));
+    }
+
+    try (InputStream fis = classLoader.getResourceAsStream(filePath)) {
+      jasperReportsViewService.createTemplateParameters(template, fis);
+    }
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", proofOfDelivery.getId());
+    params.put("dateFormat", dateFormat);
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
+    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
+    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
+    params.put("decimalFormat", decimalFormat);
+    params.put("dateTimeFormat", dateTimeFormat);
+    params.put("timeZoneId", timeZoneId);
+
+    byte[] bytes = jasperReportsViewService.generateReport(template, params);
+
+    String fileName = template.getName().replaceAll("\\s+", "_");
+
+    return ResponseEntity
+        .ok()
+        .contentType(new MediaType("application", "pdf", StandardCharsets.UTF_8))
+        .header("Content-Disposition", "inline; filename=" + fileName + ".pdf")
+        .body(bytes);
+  }
+
+  /**
    * Get stock card summaries report by program and facility.
    *
    * @return generated PDF report
@@ -190,10 +251,8 @@ public class ReportsController extends BaseController {
   public ResponseEntity<byte[]> getStockCardSummaries(
       @RequestParam("program") UUID program,
       @RequestParam("facility") UUID facility) throws JasperReportViewException {
-
     viewPermissionService.canViewStockCard(program, facility);
     byte[] report = jasperReportsViewService.generateStockCardSummariesReport(program, facility);
-
     return ResponseEntity
         .ok()
         .contentType(MediaType.APPLICATION_PDF)
@@ -343,4 +402,10 @@ public class ReportsController extends BaseController {
     permissionService.canEditPhysicalInventory(pi.getProgramId(), pi.getFacilityId());
   }
 
+  private void canViewPod(OAuth2Authentication authentication, ProofOfDeliveryDto pod)
+      throws MissingPermissionException {
+    if (!authentication.isClientOnly()) {
+      viewPermissionService.canViewPod(pod);
+    }
+  }
 }

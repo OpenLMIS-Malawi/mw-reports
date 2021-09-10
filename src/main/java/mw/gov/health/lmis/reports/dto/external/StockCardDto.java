@@ -15,13 +15,24 @@
 
 package mw.gov.health.lmis.reports.dto.external;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+
+@ToString
+@Builder
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class StockCardDto {
 
   private UUID id;
@@ -31,5 +42,7 @@ public class StockCardDto {
   private OrderableDto orderable;
   private LotDto lot;
   private Map<String, String> extraData;
+
+  @JsonFormat(shape = STRING)
   private LocalDate lastUpdate;
 }

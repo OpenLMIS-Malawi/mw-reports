@@ -13,42 +13,36 @@
  * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org.
  */
 
-package mw.gov.health.lmis.reports.service.referencedata;
+package mw.gov.health.lmis.reports.service.fulfillment;
 
-import mw.gov.health.lmis.reports.dto.external.PhysicalInventoryDto;
+import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
 import mw.gov.health.lmis.utils.RequestParameters;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
-public class PhysicalInventoryReferenceDataService
-    extends BaseReferenceDataService<PhysicalInventoryDto> {
-
+public class ProofOfDeliveryDataService extends BaseFulfillmentService<ProofOfDeliveryDto> {
   @Override
   protected String getUrl() {
-    return "/api/physicalInventories";
+    return "/api/proofsOfDelivery";
   }
 
   @Override
-  protected Class<PhysicalInventoryDto> getResultClass() {
-    return PhysicalInventoryDto.class;
+  protected Class<ProofOfDeliveryDto> getResultClass() {
+    return ProofOfDeliveryDto.class;
   }
 
   @Override
-  protected Class<PhysicalInventoryDto[]> getArrayResultClass() {
-    return PhysicalInventoryDto[].class;
+  protected Class<ProofOfDeliveryDto[]> getArrayResultClass() {
+    return ProofOfDeliveryDto[].class;
   }
 
   /**
-   * Finds physical inventory by id.
-   *
-   * @param id to look for.
-   * @return physical inventory
+   * Finds proof of delivery matching all of the provided parameters.
    */
-  public PhysicalInventoryDto findById(UUID id) {
-    RequestParameters requestParameters = RequestParameters
-        .init();
-    return findOne("/" + id, requestParameters);
+  public ProofOfDeliveryDto findProofOfDelivery(UUID id) {
+    RequestParameters parameters = RequestParameters.init();
+    return findOne("/" + id, parameters);
   }
 }

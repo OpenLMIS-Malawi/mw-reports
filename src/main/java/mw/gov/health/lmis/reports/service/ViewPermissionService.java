@@ -15,7 +15,9 @@
 
 package mw.gov.health.lmis.reports.service;
 
+import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
+import mw.gov.health.lmis.reports.exception.MissingPermissionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,9 @@ public class ViewPermissionService {
   public static final String REPORTS_VIEW = "REPORTS_VIEW";
   public static final String REQUISITION_VIEW = "REQUISITION_VIEW";
   public static final String STOCK_CARDS_VIEW = "STOCK_CARDS_VIEW";
+  public static final String PODS_MANAGE = "PODS_MANAGE";
+  public static final String PODS_VIEW = "PODS_VIEW";
+  public static final String SHIPMENTS_EDIT = "SHIPMENTS_EDIT";
 
   public static final UUID ORDER_ID =
       UUID.fromString("3c9d1e80-1e45-4adb-97d9-208b6fdceeec");
@@ -73,4 +78,23 @@ public class ViewPermissionService {
   public void canViewReportsOrOrders() {
     permissionService.checkAnyPermission(Arrays.asList(REPORTS_VIEW, ORDERS_VIEW));
   }
+
+  /**
+   * Checks if user has permission to view PoD.
+   */
+  public void canViewPod(ProofOfDeliveryDto proofOfDelivery) throws MissingPermissionException {
+    UUID receivingFacilityId = proofOfDelivery.getReceivingFacilityId();
+    UUID supplyingFacilityId = proofOfDelivery.getSupplyingFacilityId();
+    UUID programId = proofOfDelivery.getProgramId();
+
+    if (permissionService.hasPermission(PODS_MANAGE, receivingFacilityId, programId)
+        || permissionService.hasPermission(PODS_VIEW, receivingFacilityId, programId)
+        || permissionService.hasPermission(SHIPMENTS_EDIT, supplyingFacilityId)) {
+      return;
+    }
+
+    throw new MissingPermissionException(PODS_MANAGE, PODS_VIEW, SHIPMENTS_EDIT);
+  }
+
+
 }

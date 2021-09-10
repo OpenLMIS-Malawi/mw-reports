@@ -15,29 +15,15 @@
 
 package mw.gov.health.lmis.reports.dto.external;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-
-@Builder
 @Getter
-public class PhysicalInventoryDto {
+public class ProofOfDeliveryDto {
 
+  private UUID id;
+  private UUID receivingFacilityId;
+  private UUID supplyingFacilityId;
   private UUID programId;
-
-  private UUID facilityId;
-
-  private Boolean isDraft;
-
-  @JsonFormat(shape = STRING)
-  private LocalDate occurredDate;
-
-  private String signature;
-
-  private String documentNumber;
 }

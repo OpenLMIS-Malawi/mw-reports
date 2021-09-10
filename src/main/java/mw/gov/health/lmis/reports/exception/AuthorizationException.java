@@ -13,31 +13,15 @@
  * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org.
  */
 
-package mw.gov.health.lmis.reports.dto.external;
+package mw.gov.health.lmis.reports.exception;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-import lombok.Getter;
+/**
+ * Signals user lacking permission to access the resource.
+ */
+public abstract class AuthorizationException extends ReportingException {
 
-import java.time.LocalDate;
-import java.util.UUID;
+  AuthorizationException(String messageKey, String... params) {
+    super(messageKey, params);
+  }
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-
-@Builder
-@Getter
-public class PhysicalInventoryDto {
-
-  private UUID programId;
-
-  private UUID facilityId;
-
-  private Boolean isDraft;
-
-  @JsonFormat(shape = STRING)
-  private LocalDate occurredDate;
-
-  private String signature;
-
-  private String documentNumber;
 }

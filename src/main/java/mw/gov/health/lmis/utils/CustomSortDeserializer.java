@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 
 public class CustomSortDeserializer extends JsonDeserializer<Sort> {
 
@@ -29,10 +31,10 @@ public class CustomSortDeserializer extends JsonDeserializer<Sort> {
   public Sort deserialize(JsonParser parser, DeserializationContext context)
       throws IOException {
     ArrayNode node = parser.getCodec().readTree(parser);
-    Sort.Order[] orders = new Sort.Order[node.size()];
+    Order[] orders = new Order[node.size()];
     int index = 0;
     for (JsonNode obj : node) {
-      orders[index] =  new Sort.Order(Sort.Direction.valueOf(obj.get("direction").asText()),
+      orders[index] =  new Order(Direction.valueOf(obj.get("direction").asText()),
           obj.get("property").asText());
       index++;
     }

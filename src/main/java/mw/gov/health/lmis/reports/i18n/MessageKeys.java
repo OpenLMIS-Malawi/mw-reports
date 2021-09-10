@@ -22,6 +22,9 @@ public class MessageKeys {
       PHYSICAL_INVENTORY_ERROR_PREFIX + ".notFound";
 
   protected static final String NOT_FOUND = "notFound";
+  protected static final String PERMISSION = "permission";
+  protected static final String PERMISSIONS = PERMISSION + "s";
+  protected static final String MISSING = "missing";
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));

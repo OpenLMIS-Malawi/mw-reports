@@ -17,6 +17,8 @@ package mw.gov.health.lmis.reports.service.referencedata;
 
 import mw.gov.health.lmis.reports.dto.external.StockCardSummaryDto;
 import mw.gov.health.lmis.utils.RequestParameters;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,7 +30,7 @@ public class StockCardSummariesReferenceDataService
 
   @Override
   protected String getUrl() {
-    return "/api/v2/stockCardSummaries/";
+    return "/api/v2/stockCardSummaries";
   }
 
   @Override
@@ -53,7 +55,8 @@ public class StockCardSummariesReferenceDataService
         .init()
         .set("programId", program)
         .set("facilityId", facility)
-        .set("nonEmptyOnly", "true"))
+        .set("nonEmptyOnly", "true")
+        .setPage(new PageRequest(0, Integer.MAX_VALUE, Direction.ASC, "orderable")))
         .getContent();
   }
 }

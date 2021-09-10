@@ -7,6 +7,7 @@ import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FIL
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
+import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_FILE_INVALID;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
 import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
@@ -30,6 +31,7 @@ import mw.gov.health.lmis.reports.service.referencedata.StockCardSummariesRefere
 import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
 import mw.gov.health.lmis.reports.web.RequisitionReportDtoBuilder;
 import mw.gov.health.lmis.utils.ReportUtils;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -443,10 +445,11 @@ public class JasperReportsViewService {
     for (StockCardSummaryDto stockCardSummary : cardSummaries) {
       cardIds.addAll(stockCardSummary.getCanFulfillForMe()
           .stream()
-          .map(c -> c.getOrderable().getId())
+          .map(c -> c.getStockCard().getId())
           .collect(Collectors.toList()));
     }
     List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
+
     StockCardDto firstCard = cards.get(0);
     Map<String, Object> params = new HashMap<>();
     params.put("stockCardSummaries", cards);
@@ -461,7 +464,6 @@ public class JasperReportsViewService {
     params.put("dateFormat", dateFormat);
     params.put("dateTimeFormat", dateTimeFormat);
     params.put("decimalFormat", createDecimalFormat());
-
     return fillAndExportReport(compileReportFromTemplateUrl(CARD_SUMMARY_REPORT_URL), params);
   }
 
@@ -507,4 +509,46 @@ public class JasperReportsViewService {
           ex, ERROR_REPORTING_CLASS_NOT_FOUND + JasperReport.class.getName());
     }
   }
+
+  /**
+   * Create additional report parameters.
+   * Save additional report parameters as TemplateParameter list.
+   * Save report file as ".jasper" in byte array in Template class.
+   * If report is not valid throw exception.
+   *
+   * @param template The template to insert parameters to
+   * @param inputStream input stream of the file
+   */
+  public void createTemplateParameters(JasperTemplate template, InputStream inputStream)
+      throws JasperReportViewException {
+    try {
+      JasperReport report = JasperCompileManager.compileReport(inputStream);
+      JRParameter[] jrParameters = report.getParameters();
+
+      //      if (jrParameters != null && jrParameters.length > 0) {
+      //        //setTemplateParameters(template, jrParameters);
+      //      }
+
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bos);
+      out.writeObject(report);
+      template.setData(bos.toByteArray());
+    } catch (JRException ex) {
+      throw new JasperReportViewException(ex, ERROR_REPORTING_FILE_INVALID);
+    } catch (IOException ex) {
+      throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
+    }
+  }
+
+  //  private void setTemplateParameters(JasperTemplate template, JRParameter[] jrParameters) {
+  //    ArrayList<TemplateParameter> parameters = new ArrayList<>();
+  //
+  //    for (JRParameter jrParameter : jrParameters) {
+  //      if (!jrParameter.isSystemDefined()) {
+  //        parameters.add(createParameter(jrParameter));
+  //      }
+  //    }
+  //
+  //    template.setTemplateParameters(parameters);
+  //  }
 }

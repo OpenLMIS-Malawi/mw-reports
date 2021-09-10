@@ -17,6 +17,8 @@ package mw.gov.health.lmis.reports.service.referencedata;
 
 import mw.gov.health.lmis.reports.dto.external.StockCardDto;
 import mw.gov.health.lmis.utils.RequestParameters;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -29,7 +31,7 @@ public class StockCardReferenceDataService
 
   @Override
   protected String getUrl() {
-    return "/api/stockCards/";
+    return "/api/stockCards";
   }
 
   @Override
@@ -49,6 +51,10 @@ public class StockCardReferenceDataService
    * @return list of stock cards.
    */
   public List<StockCardDto> findByIds(Collection<UUID> ids) {
-    return getPage("", RequestParameters.init().set("id", ids)).getContent();
+    return getPage("", RequestParameters
+        .init()
+        .set("id", ids)
+        .setPage(new PageRequest(0, Integer.MAX_VALUE, Sort.Direction.ASC, "id")))
+        .getContent();
   }
 }

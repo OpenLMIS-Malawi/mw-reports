@@ -66,6 +66,8 @@ public class PermissionService {
     hasPermission(STOCK_INVENTORIES_EDIT, programId, facilityId, null);
   }
 
+
+
   /**
    * Checks if current user has permission.
    *
@@ -133,6 +135,14 @@ public class PermissionService {
             user.getId(), right.getId(), program, facility, warehouse
     );
     return null != result && result.getResult();
+  }
+
+  public boolean hasPermission(String rightName, UUID facility, UUID program) {
+    return hasPermission(rightName, program, facility, null);
+  }
+
+  public boolean hasPermission(String rightName, UUID warehouse) {
+    return hasPermission(rightName, null, null, warehouse);
   }
 
   // Check if a user has fulfillment permission without specifying the warehouse
