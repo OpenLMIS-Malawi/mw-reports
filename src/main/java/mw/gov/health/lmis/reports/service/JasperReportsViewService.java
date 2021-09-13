@@ -7,7 +7,6 @@ import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FIL
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
-import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_FILE_INVALID;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
 import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
@@ -30,7 +29,6 @@ import mw.gov.health.lmis.reports.service.referencedata.StockCardSummariesRefere
 import mw.gov.health.lmis.reports.service.referencedata.UserReferenceDataService;
 import mw.gov.health.lmis.reports.web.RequisitionReportDtoBuilder;
 import mw.gov.health.lmis.utils.ReportUtils;
-import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -44,6 +42,7 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -82,7 +81,9 @@ import javax.sql.DataSource;
 
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsPdfView;
 
+@SuppressWarnings("PMD.TooManyMethods")
 @Service
 public class JasperReportsViewService {
 
@@ -92,6 +93,9 @@ public class JasperReportsViewService {
           "/jasperTemplates/requisitionLines.jrxml";
   private static final String DATASOURCE = "datasource";
   static final String PI_LINES_REPORT_URL = "/jasperTemplates/physicalinventoryLines.jrxml";
+
+  @Autowired
+  private ApplicationContext appContext;
 
   @Autowired
   private DataSource replicationDataSource;
@@ -416,44 +420,12 @@ public class JasperReportsViewService {
     return fillAndExportReport(getReportFromTemplateData(jasperTemplate), params);
   }
 
-  /**
-   * Generate stock card summary report in PDF format.
-   *
-   * @param program  program id
-   * @param facility facility id
-   * @return generated stock card summary report.
-   */
-  public byte[] generateStockCardSummariesReport(UUID program, UUID facility)
+  private ModelAndView generateReport(String templateUrl, Map<String, Object> params)
       throws JasperReportViewException {
-    List<StockCardSummaryDto> cardSummaries = stockCardSummariesDataService
-        .findStockCardsSummaries(program, facility);
-    Set cardIds = new HashSet();
-    for (StockCardSummaryDto stockCardSummary : cardSummaries) {
-      cardIds.addAll(stockCardSummary.getCanFulfillForMe()
-          .stream()
-          .map(c -> c.getStockCard().getId())
-          .collect(Collectors.toList()));
-    }
-    List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
-
-    StockCardDto firstCard = cards.get(0);
-    Map<String, Object> params = new HashMap<>();
-    params.put("stockCardSummaries", cards);
-    params.put("program", firstCard.getProgram());
-    params.put("facility", firstCard.getFacility());
-    //right now, each report can only be about one program, one facility
-    //in the future we may want to support one report for multiple programs
-    params.put("showProgram", getCount(cards, card -> card.getProgram().getId().toString()) > 1);
-    params.put("showFacility", getCount(cards, card -> card.getFacility().getId().toString()) > 1);
-    if (cards.stream().anyMatch(card -> card.getLot() != null)) {
-      params.put("showLot", cards.stream().anyMatch(card -> card.getLot().getId() != null));
-    } else {
-      params.put("showLot", false);
-    }
-    params.put("dateFormat", dateFormat);
-    params.put("dateTimeFormat", dateTimeFormat);
-    params.put("decimalFormat", createDecimalFormat());
-    return fillAndExportReport(compileReportFromTemplateUrl(CARD_SUMMARY_REPORT_URL), params);
+    JasperReportsPdfView view = createJasperReportsPdfView();
+    view.setUrl(compileReportAndGetUrl(templateUrl));
+    view.setApplicationContext(appContext);
+    return new ModelAndView(view, params);
   }
 
   private long getCount(List<StockCardDto> stockCards, Function<StockCardDto, String> mapper) {
@@ -468,15 +440,78 @@ public class JasperReportsViewService {
     return decimalFormat;
   }
 
-  JasperReport compileReportFromTemplateUrl(String templateUrl) throws JasperReportViewException {
-    try (InputStream inputStream = getClass().getResourceAsStream(templateUrl)) {
+  /**
+   * Generate stock card summary report in PDF format.
+   *
+   * @param program  program id
+   * @param facility facility id
+   * @return generated stock card summary report.
+   */
+  public ModelAndView getStockCardSummariesReportView(UUID program, UUID facility)
+      throws JasperReportViewException {
+    List<StockCardSummaryDto> cardSummaries = stockCardSummariesDataService
+        .findStockCardsSummaries(program, facility);
+    Set cardIds = new HashSet();
+    for (StockCardSummaryDto stockCardSummary : cardSummaries) {
+      cardIds.addAll(stockCardSummary.getCanFulfillForMe()
+          .stream()
+          .map(c -> c.getStockCard().getId())
+          .collect(Collectors.toList()));
+    }
+    List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
+    StockCardDto firstCard = cards.get(0);
+    Map<String, Object> params = new HashMap<>();
+    params.put("stockCardSummaries", cards);
 
-      return JasperCompileManager.compileReport(inputStream);
+    params.put("program", firstCard.getProgram());
+    params.put("facility", firstCard.getFacility());
+    //right now, each report can only be about one program, one facility
+    //in the future we may want to support one reprot for multiple programs
+    params.put("showProgram",
+        getCount(cards, card -> card.getProgram().getId().toString()) > 1);
+    params.put("showFacility",
+        getCount(cards, card -> card.getFacility().getId().toString()) > 1);
+    params.put("showLot", cards.stream().anyMatch(card -> card.getLotId() != null));
+    params.put("dateFormat", dateFormat);
+    params.put("dateTimeFormat", dateTimeFormat);
+    params.put("decimalFormat", createDecimalFormat());
+
+    return generateReport(CARD_SUMMARY_REPORT_URL, params);
+  }
+
+  private String compileReportAndGetUrl(String templateUrl) throws JasperReportViewException {
+    try (InputStream inputStream = getClass().getResourceAsStream(templateUrl)) {
+      JasperReport report = JasperCompileManager.compileReport(inputStream);
+
+      return saveAndGetUrl(report, "report_temp");
     } catch (IOException ex) {
       throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
     } catch (JRException ex) {
       throw new JasperReportViewException(ex, ERROR_GENERATE_REPORT_FAILED);
     }
+  }
+
+  private String saveAndGetUrl(JasperReport report, String templateName)
+      throws IOException, JasperReportViewException {
+    File reportTempFile;
+    try {
+      reportTempFile = createTempFile(templateName, ".jasper");
+    } catch (IOException ex) {
+      throw new JasperReportViewException(ex, ERROR_JASPER_FILE_CREATION);
+    }
+
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         ObjectOutputStream out = new ObjectOutputStream(bos)) {
+
+      out.writeObject(report);
+      writeByteArrayToFile(reportTempFile, bos.toByteArray());
+
+      return reportTempFile.toURI().toURL().toString();
+    }
+  }
+
+  protected JasperReportsPdfView createJasperReportsPdfView() {
+    return new JasperReportsPdfView();
   }
 
   /**
@@ -498,46 +533,4 @@ public class JasperReportsViewService {
           ex, ERROR_REPORTING_CLASS_NOT_FOUND + JasperReport.class.getName());
     }
   }
-
-  /**
-   * Create additional report parameters.
-   * Save additional report parameters as TemplateParameter list.
-   * Save report file as ".jasper" in byte array in Template class.
-   * If report is not valid throw exception.
-   *
-   * @param template The template to insert parameters to
-   * @param inputStream input stream of the file
-   */
-  public void createTemplateParameters(JasperTemplate template, InputStream inputStream)
-      throws JasperReportViewException {
-    try {
-      JasperReport report = JasperCompileManager.compileReport(inputStream);
-      JRParameter[] jrParameters = report.getParameters();
-
-      //      if (jrParameters != null && jrParameters.length > 0) {
-      //        //setTemplateParameters(template, jrParameters);
-      //      }
-
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      ObjectOutputStream out = new ObjectOutputStream(bos);
-      out.writeObject(report);
-      template.setData(bos.toByteArray());
-    } catch (JRException ex) {
-      throw new JasperReportViewException(ex, ERROR_REPORTING_FILE_INVALID);
-    } catch (IOException ex) {
-      throw new JasperReportViewException(ex, ERROR_IO + ex.getMessage());
-    }
-  }
-
-  //  private void setTemplateParameters(JasperTemplate template, JRParameter[] jrParameters) {
-  //    ArrayList<TemplateParameter> parameters = new ArrayList<>();
-  //
-  //    for (JRParameter jrParameter : jrParameters) {
-  //      if (!jrParameter.isSystemDefined()) {
-  //        parameters.add(createParameter(jrParameter));
-  //      }
-  //    }
-  //
-  //    template.setTemplateParameters(parameters);
-  //  }
 }

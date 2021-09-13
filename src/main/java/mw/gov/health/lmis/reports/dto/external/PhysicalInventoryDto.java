@@ -20,7 +20,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
@@ -28,11 +27,9 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @Getter
 public class PhysicalInventoryDto {
 
-  @JsonFormat(shape = STRING)
-  private UUID programId;
+  private String programId;
 
-  @JsonFormat(shape = STRING)
-  private UUID facilityId;
+  private String facilityId;
 
   private Boolean isDraft;
 

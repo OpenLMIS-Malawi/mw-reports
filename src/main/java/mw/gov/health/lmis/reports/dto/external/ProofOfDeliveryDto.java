@@ -15,11 +15,17 @@
 
 package mw.gov.health.lmis.reports.dto.external;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
+@Builder
 @Getter
+@Setter
+@AllArgsConstructor
 public class ProofOfDeliveryDto {
 
   private UUID id;

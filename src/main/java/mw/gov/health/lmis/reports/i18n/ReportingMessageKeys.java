@@ -40,4 +40,5 @@ public class ReportingMessageKeys extends MessageKeys {
   public static final String ERROR_GENERATE_REPORT_FAILED = ERROR + ".generateReport.failed";
   public static final String ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME = ERROR
       + ".reporting.template.notFound.with.name";
+  public static final String ERROR_JASPER_FILE_CREATION = ERROR + ".jasper.fileCreation";
 }

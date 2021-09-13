@@ -220,5 +220,4 @@ public class JasperTemplateController extends BaseController {
       return new ModelAndView(jasperView, map);
     }
   }
-
 }

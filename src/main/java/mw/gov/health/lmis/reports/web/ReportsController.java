@@ -238,17 +238,11 @@ public class ReportsController extends BaseController {
    */
   @RequestMapping(value = "/stockCardSummaries/print", method = GET)
   @ResponseBody
-  public ResponseEntity<byte[]> getStockCardSummaries(
+  public ModelAndView getStockCardSummaries(
       @RequestParam("program") UUID program,
       @RequestParam("facility") UUID facility) throws JasperReportViewException {
     viewPermissionService.canViewStockCard(program, facility);
-    byte[] report = jasperReportsViewService.generateStockCardSummariesReport(program, facility);
-    return ResponseEntity
-        .ok()
-        .contentType(MediaType.APPLICATION_PDF)
-        .header("Content-Disposition",
-            "inline; filename=stock_card_summaries" + program + "_" + facility + ".pdf")
-        .body(report);
+    return jasperReportsViewService.getStockCardSummariesReportView(program, facility);
   }
 
   /**
@@ -389,7 +383,9 @@ public class ReportsController extends BaseController {
   private void checkPermission(UUID id) {
     PhysicalInventoryDto pi = physicalInventoryReferenceDataService.findById(id);
 
-    permissionService.canEditPhysicalInventory(pi.getProgramId(), pi.getFacilityId());
+    permissionService.canEditPhysicalInventory(
+        UUID.fromString(pi.getProgramId()),
+        UUID.fromString(pi.getFacilityId()));
   }
 
   private void canViewPod(OAuth2Authentication authentication, ProofOfDeliveryDto pod)
