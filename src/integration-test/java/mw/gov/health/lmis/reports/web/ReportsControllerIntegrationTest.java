@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 
 import guru.nidi.ramltester.junit.RamlMatchers;
 import java.time.LocalDate;
@@ -23,6 +24,8 @@ import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
+import mw.gov.health.lmis.reports.exception.PermissionMessageException;
+import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
@@ -30,6 +33,7 @@ import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataServ
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonDto;
 import mw.gov.health.lmis.reports.service.stockmanagement.StockCardLineItemReasonStockmanagementService;
 import mw.gov.health.lmis.testutils.StockCardLineItemReasonDtoDataBuilder;
+import mw.gov.health.lmis.utils.Message;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +43,7 @@ import org.springframework.http.MediaType;
 @SuppressWarnings("PMD.TooManyMethods")
 public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   private static final String RESOURCE_URL = "/api/reports";
+  private static final String CARD_SUMMARY_REPORT = RESOURCE_URL + "/stockCardSummaries/print";
   private static final String NAME = "name";
   private static final String CODE = "code";
   private static final String DESCRIPTION = "description";
@@ -57,6 +62,9 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
 
   @MockBean
   private OrderableReferenceDataService orderableReferenceDataService;
+
+  @MockBean
+  private ViewPermissionService viewPermissionService;
 
   @Before
   public void setUp() {
@@ -193,6 +201,26 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
     assertEquals(2, result.length);
     assertThat(result, arrayContainingInAnyOrder(reasons.get(0), reasons.get(1)));
     assertThat(RAML_ASSERT_MESSAGE, restAssured.getLastReport(), RamlMatchers.hasNoViolations());
+  }
+
+  @Test
+  public void return403WhenUserHasNoPermissionToViewStockCard() throws Exception {
+    //given
+    UUID programId = UUID.randomUUID();
+    UUID facilityId = UUID.randomUUID();
+    doThrow(new PermissionMessageException(new Message("key"))).when(viewPermissionService)
+        .canViewStockCard(programId, facilityId);
+
+    //when
+    restAssured.given()
+        .queryParam(ACCESS_TOKEN, getToken())
+        .queryParam("program", programId.toString())
+        .queryParam("facility", facilityId.toString())
+        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        .when()
+        .get(CARD_SUMMARY_REPORT)
+        .then()
+        .statusCode(403);
   }
 
   private GeographicZoneDto generateGeographicZone() {

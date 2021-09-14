@@ -153,6 +153,24 @@ public class JasperReportsViewService {
   }
 
   /**
+   * Create Jasper Report View.
+   * Create Jasper Report (".jasper" file) from bytes from Template entity.
+   * Set 'Jasper' exporter parameters, JDBC data source, web application context, url to file.
+   *
+   * @param jasperTemplate template that will be used to create a view
+   * @return created jasper view.
+   * @throws JasperReportViewException if there will be any problem with creating the view.
+   */
+  public JasperReportsMultiFormatView getJasperReportsView(JasperTemplate jasperTemplate)
+      throws JasperReportViewException {
+    JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
+    jasperView.setJdbcDataSource(replicationDataSource);
+    jasperView.setUrl(getReportUrlForReportData(jasperTemplate));
+    jasperView.setApplicationContext(appContext);
+    return jasperView;
+  }
+
+  /**
    * Get application context from servlet.
    */
   public WebApplicationContext getApplicationContext(HttpServletRequest servletRequest) {
@@ -420,7 +438,15 @@ public class JasperReportsViewService {
     return fillAndExportReport(getReportFromTemplateData(jasperTemplate), params);
   }
 
-  private ModelAndView generateReport(String templateUrl, Map<String, Object> params)
+  /**
+   * Generate a report.
+   * Using report URL to fill in data and export to desired format.
+   *
+   * @param templateUrl template url that will be used to generate a report
+   * @param params  map of parameters
+   * @return data of generated report
+   */
+  public ModelAndView generateReport(String templateUrl, Map<String, Object> params)
       throws JasperReportViewException {
     JasperReportsPdfView view = createJasperReportsPdfView();
     view.setUrl(compileReportAndGetUrl(templateUrl));

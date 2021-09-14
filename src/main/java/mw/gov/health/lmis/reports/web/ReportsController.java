@@ -1,16 +1,18 @@
 package mw.gov.health.lmis.reports.web;
 
+import static java.lang.String.join;
 import static java.util.Arrays.asList;
 
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME;
+import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_PHYSICAL_INVENTORY_FORMAT_NOT_ALLOWED;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -52,9 +54,8 @@ import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +67,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
 
 @Controller
 @Transactional
@@ -74,7 +76,8 @@ public class ReportsController extends BaseController {
 
   private static int DISTRICT_LEVEL = 3;
   public static final String PRINT_PI = "Print PI";
-  public static final String PRINT_POD = "Print POD";
+  public static final String FORMAT = "format";
+  public static final String POD_REPORT_URL = "/jasperTemplates/proofOfDelivery.jrxml";
 
   @Autowired
   private GeographicZoneReferenceDataService geographicZoneReferenceDataService;
@@ -157,36 +160,23 @@ public class ReportsController extends BaseController {
    * @return ResponseEntity with the "#200 OK" HTTP response status and PDF file on success, or
    *     ResponseEntity containing the error description status.
    */
-  @GetMapping(value = "/physicalInventories/{id}", params = "format")
+  @GetMapping(value = "physicalInventories/{id}", params = FORMAT)
   @ResponseBody
-  public ResponseEntity<byte[]> print(@PathVariable("id") UUID id, @RequestParam String format)
+  public ModelAndView print(@PathVariable("id") UUID id, @RequestParam String format)
       throws JasperReportViewException {
 
-    checkPermission(id);
+    checkFormat(format.toLowerCase());
+
     JasperTemplate printTemplate = jasperTemplateRepository.findByName(PRINT_PI);
     if (printTemplate == null) {
       throw new ValidationMessageException(
           new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_PI));
     }
 
-    byte[] bytes = jasperReportsViewService.generateReport(printTemplate, getParams(id, format));
-    MediaType mediaType;
-    if ("csv".equals(format)) {
-      mediaType = new MediaType("text", "csv", StandardCharsets.UTF_8);
-    } else if ("xls".equals(format)) {
-      mediaType = new MediaType("application", "vnd.ms-excel", StandardCharsets.UTF_8);
-    } else if ("html".equals(format)) {
-      mediaType = new MediaType("text", "html", StandardCharsets.UTF_8);
-    } else {
-      mediaType = new MediaType("application", "pdf", StandardCharsets.UTF_8);
-    }
-    String fileName = printTemplate.getName().replaceAll("\\s+", "_");
+    JasperReportsMultiFormatView jasperView =
+        jasperReportsViewService.getJasperReportsView(printTemplate);
 
-    return ResponseEntity
-        .ok()
-        .contentType(mediaType)
-        .header("Content-Disposition", "inline; filename=" + fileName + "." + format)
-        .body(bytes);
+    return new ModelAndView(jasperView, getParams(id, format));
   }
 
   /**
@@ -196,20 +186,16 @@ public class ReportsController extends BaseController {
    */
   @RequestMapping(value = "/proofsOfDelivery/{id}/print", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.OK)
-  public ResponseEntity<byte[]> printProofOfDelivery(@PathVariable("id") UUID id,
-                                                     OAuth2Authentication authentication)
+  public ModelAndView printProofOfDelivery(HttpServletRequest request,
+                                           @PathVariable("id") UUID id,
+                                           OAuth2Authentication authentication)
       throws IOException, MissingPermissionException, JasperReportViewException {
 
     ProofOfDeliveryDto proofOfDelivery = proofOfDeliveryDataService.findProofOfDelivery(id);
     canViewPod(authentication, proofOfDelivery);
 
-    JasperTemplate template = jasperTemplateRepository.findByName(PRINT_POD);
-    if (template == null) {
-      throw new ValidationMessageException(
-         new Message(ERROR_REPORTING_TEMPLATE_NOT_FOUND_WITH_NAME, PRINT_POD));
-    }
-
     Map<String, Object> params = new HashMap<>();
+    params.put(FORMAT, "pdf");
     params.put("id", proofOfDelivery.getId());
     params.put("dateFormat", dateFormat);
     DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
@@ -220,15 +206,8 @@ public class ReportsController extends BaseController {
     params.put("dateTimeFormat", dateTimeFormat);
     params.put("timeZoneId", timeZoneId);
 
-    byte[] bytes = jasperReportsViewService.generateReport(template, params);
-
-    String fileName = template.getName().replaceAll("\\s+", "_");
-
-    return ResponseEntity
-        .ok()
-        .contentType(new MediaType("application", "pdf", StandardCharsets.UTF_8))
-        .header("Content-Disposition", "inline; filename=" + fileName + ".pdf")
-        .body(bytes);
+    return jasperReportsViewService
+        .generateReport(POD_REPORT_URL, params);
   }
 
   /**
@@ -356,7 +335,7 @@ public class ReportsController extends BaseController {
     params.put("dateTimeFormat", dateTimeFormat);
     params.put("dateFormat", dateFormat);
     params.put("timeZoneId", timeZoneId);
-    params.put("format", format);
+    params.put(FORMAT, format);
     params.put("decimalFormat", decimalFormat);
     params.put("subreport",
         jasperReportsViewService.createCustomizedPhysicalInventoryLineSubreport());
@@ -369,7 +348,7 @@ public class ReportsController extends BaseController {
    */
   public static Map<String, Object> createParametersMap() {
     Map<String, Object> params = new HashMap<>();
-    params.put("format", "pdf");
+    params.put(FORMAT, "pdf");
 
     Locale currentLocale = LocaleContextHolder.getLocale();
     params.put(REPORT_LOCALE, currentLocale);
@@ -382,16 +361,25 @@ public class ReportsController extends BaseController {
 
   private void checkPermission(UUID id) {
     PhysicalInventoryDto pi = physicalInventoryReferenceDataService.findById(id);
-
     permissionService.canEditPhysicalInventory(
-        UUID.fromString(pi.getProgramId()),
-        UUID.fromString(pi.getFacilityId()));
+        pi.getProgramId(),
+        pi.getFacilityId());
   }
 
   private void canViewPod(OAuth2Authentication authentication, ProofOfDeliveryDto pod)
       throws MissingPermissionException {
     if (!authentication.isClientOnly()) {
       viewPermissionService.canViewPod(pod);
+    }
+  }
+
+  private void checkFormat(String format) {
+    List<String> supportedFormats = Arrays.asList("csv", "html", "pdf", "xls", "xlsx");
+    if (!supportedFormats.contains(format)) {
+      throw new ResourceNotFoundException(
+          ERROR_PHYSICAL_INVENTORY_FORMAT_NOT_ALLOWED
+              + format
+              + join(", ", supportedFormats));
     }
   }
 }

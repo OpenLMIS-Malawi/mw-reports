@@ -16,20 +16,29 @@
 package mw.gov.health.lmis.reports.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Builder
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PhysicalInventoryDto {
 
-  private String programId;
+  private UUID id;
 
-  private String facilityId;
+  private UUID programId;
+
+  private UUID facilityId;
 
   private Boolean isDraft;
 

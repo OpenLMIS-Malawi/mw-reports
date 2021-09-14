@@ -25,6 +25,8 @@ public class MessageKeys {
   protected static final String PERMISSION = "permission";
   protected static final String PERMISSIONS = PERMISSION + "s";
   protected static final String MISSING = "missing";
+  public static final String ERROR_PHYSICAL_INVENTORY_FORMAT_NOT_ALLOWED =
+      PHYSICAL_INVENTORY_ERROR_PREFIX + ".format.notAllowed";
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));

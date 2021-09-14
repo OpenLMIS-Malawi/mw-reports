@@ -16,8 +16,11 @@
 package mw.gov.health.lmis.reports.dto.external;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -38,7 +41,9 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class StockCardDto {
 
+  @JsonInclude(NON_NULL)
   private UUID id;
+
   private Integer stockOnHand;
   private FacilityDto facility;
   private ProgramDto program;
@@ -48,7 +53,17 @@ public class StockCardDto {
   @JsonFormat(shape = STRING)
   private LocalDate lastUpdate;
 
+  @JsonIgnore
+  public UUID getOrderableId() {
+    return orderable.getId();
+  }
+
+  @JsonIgnore
   public UUID getLotId() {
     return lot == null ? null : lot.getId();
+  }
+
+  public boolean hasLot() {
+    return getLotId() != null;
   }
 }
