@@ -1,5 +1,6 @@
 package mw.gov.health.lmis.utils;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +14,7 @@ import java.util.List;
  * Because the former lacks a default constructor, it is inconvenient to
  * deserialize. PageImplRepresentation may be used in its stead.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PageImplRepresentation<T> extends PageImpl<T> {
 
   private static final long serialVersionUID = 1L;

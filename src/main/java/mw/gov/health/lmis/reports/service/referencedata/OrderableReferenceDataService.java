@@ -1,6 +1,8 @@
 package mw.gov.health.lmis.reports.service.referencedata;
 
 import java.util.List;
+import java.util.UUID;
+
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.utils.RequestParameters;
 import org.springframework.data.domain.PageRequest;
@@ -42,4 +44,7 @@ public class OrderableReferenceDataService extends BaseReferenceDataService<Orde
     return getPage("", RequestParameters.init().set("program", programCode)).getContent();
   }
 
+  public OrderableDto findById(UUID id) {
+    return findOne("/" + id, RequestParameters.init());
+  }
 }

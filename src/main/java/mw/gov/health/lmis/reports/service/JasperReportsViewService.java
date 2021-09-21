@@ -23,6 +23,7 @@ import mw.gov.health.lmis.reports.dto.external.StockCardDto;
 import mw.gov.health.lmis.reports.dto.external.StockCardSummaryDto;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.BaseReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.StockCardReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.StockCardSummariesReferenceDataService;
@@ -117,6 +118,9 @@ public class JasperReportsViewService {
 
   @Autowired
   private StockCardReferenceDataService stockCardReferenceDataService;
+
+  @Autowired
+  private OrderableReferenceDataService orderableReferenceDataService;
 
   @Value("${dateTimeFormat}")
   private String dateTimeFormat;
@@ -485,6 +489,9 @@ public class JasperReportsViewService {
           .collect(Collectors.toList()));
     }
     List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
+    cards.stream()
+        .forEach(c -> c.setOrderable(orderableReferenceDataService.findById(c.getOrderableId())));
+
     StockCardDto firstCard = cards.get(0);
     Map<String, Object> params = new HashMap<>();
     params.put("stockCardSummaries", cards);
@@ -493,10 +500,8 @@ public class JasperReportsViewService {
     params.put("facility", firstCard.getFacility());
     //right now, each report can only be about one program, one facility
     //in the future we may want to support one reprot for multiple programs
-    params.put("showProgram",
-        getCount(cards, card -> card.getProgram().getId().toString()) > 1);
-    params.put("showFacility",
-        getCount(cards, card -> card.getFacility().getId().toString()) > 1);
+    params.put("showProgram", getCount(cards, card -> card.getProgram().getId().toString()) > 1);
+    params.put("showFacility", getCount(cards, card -> card.getFacility().getId().toString()) > 1);
     params.put("showLot", cards.stream().anyMatch(card -> card.getLotId() != null));
     params.put("dateFormat", dateFormat);
     params.put("dateTimeFormat", dateTimeFormat);

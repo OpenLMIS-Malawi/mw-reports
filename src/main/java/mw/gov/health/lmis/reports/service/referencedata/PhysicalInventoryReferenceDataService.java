@@ -47,9 +47,7 @@ public class PhysicalInventoryReferenceDataService
    * @return physical inventory
    */
   public PhysicalInventoryDto findById(UUID id) {
-    RequestParameters requestParameters = RequestParameters
-        .init();
-    System.out.println("~~~~~~~~~~~~~~~~~~Jestem3");
-    return findOne("/" + id.toString(), requestParameters);
+
+    return getPage("/" + id, RequestParameters.init()).getContent().get(0);
   }
 }
