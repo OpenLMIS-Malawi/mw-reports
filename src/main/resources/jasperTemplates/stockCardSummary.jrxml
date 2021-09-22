@@ -345,12 +345,12 @@
 							</textField>
 						</jr:detailCell>
 					</jr:column>
-					<jr:column width="80" uuid="a7bee396-1a71-4dc5-a7c7-5a795da02240">
+					<jr:column width="93" uuid="a7bee396-1a71-4dc5-a7c7-5a795da02240">
 						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column5"/>
 						<printWhenExpression><![CDATA[$P{showLot}]]></printWhenExpression>
 						<jr:columnHeader style="Table 1_CH" height="30" rowSpan="1">
 							<staticText>
-								<reportElement x="0" y="0" width="80" height="30" uuid="f3af19dd-e960-4808-8702-7afdbc4b9503">
+								<reportElement x="0" y="0" width="93" height="30" uuid="f3af19dd-e960-4808-8702-7afdbc4b9503">
 									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 								</reportElement>
 								<box padding="2"/>
@@ -362,7 +362,7 @@
 						</jr:columnHeader>
 						<jr:detailCell style="Table 1_TD" height="30">
 							<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-								<reportElement x="0" y="0" width="80" height="30" uuid="6680122f-b158-4277-afff-29f8eae11525"/>
+								<reportElement x="0" y="0" width="93" height="30" uuid="6680122f-b158-4277-afff-29f8eae11525"/>
 								<box padding="2"/>
 								<textElement textAlignment="Center" verticalAlignment="Middle"/>
 								<textFieldExpression><![CDATA[$F{lot} != null ? $F{lot}.getLotCode()  : "No batch defined"]]></textFieldExpression>
