@@ -165,7 +165,6 @@ public class ReportsController extends BaseController {
   public ModelAndView print(@PathVariable("id") UUID id, @RequestParam String format)
       throws JasperReportViewException {
 
-    checkPermission(id);
     checkFormat(format.toLowerCase());
 
     JasperTemplate printTemplate = jasperTemplateRepository.findByName(PRINT_PI);

@@ -23,6 +23,7 @@ import mw.gov.health.lmis.reports.dto.external.StockCardDto;
 import mw.gov.health.lmis.reports.dto.external.StockCardSummaryDto;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.BaseReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.LotReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.StockCardReferenceDataService;
@@ -121,6 +122,9 @@ public class JasperReportsViewService {
 
   @Autowired
   private OrderableReferenceDataService orderableReferenceDataService;
+
+  @Autowired
+  private LotReferenceDataService lotReferenceDataService;
 
   @Value("${dateTimeFormat}")
   private String dateTimeFormat;
@@ -490,8 +494,12 @@ public class JasperReportsViewService {
     }
     List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
     cards.stream()
-        .forEach(c -> c.setOrderable(orderableReferenceDataService.findById(c.getOrderableId())));
-
+        .forEach(c -> {
+          c.setOrderable(orderableReferenceDataService.findById(c.getOrderableId()));
+          if (c.getLotId() != null) {
+            c.setLot(lotReferenceDataService.findById(c.getLotId()));
+          }
+        });
     StockCardDto firstCard = cards.get(0);
     Map<String, Object> params = new HashMap<>();
     params.put("stockCardSummaries", cards);
