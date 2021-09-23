@@ -18,18 +18,28 @@ package mw.gov.health.lmis.reports.dto.external;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import mw.gov.health.lmis.reports.service.referencedata.ObjectReferenceDto;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Builder
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@ToString
 public class ProofOfDeliveryDto {
 
   private UUID id;
-  private UUID receivingFacilityId;
-  private UUID supplyingFacilityId;
-  private UUID programId;
+  private ObjectReferenceDto shipment;
+  private String status;
+  private List<ProofOfDeliveryLineItemDto> lineItems;
+  private String receivedBy;
+  private String deliveredBy;
+  private LocalDate receivedDate;
 }

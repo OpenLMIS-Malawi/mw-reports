@@ -9,6 +9,7 @@ public class MessageKeys {
   protected static final String SERVICE = "malawi.reports";
   protected static final String SERVICE_ERROR = join(SERVICE, "error");
   protected static final String REQUISITION_ERROR = "requisition.error";
+  private static final String PROOF_OF_DELIVERY = "proofOfDelivery";
 
   public static final String ERROR_IO = REQUISITION_ERROR + ".io";
   public static final String ERROR_JASPER_FILE_FORMAT = REQUISITION_ERROR + ".jasper.file.format";
@@ -27,6 +28,9 @@ public class MessageKeys {
   protected static final String MISSING = "missing";
   public static final String ERROR_PHYSICAL_INVENTORY_FORMAT_NOT_ALLOWED =
       PHYSICAL_INVENTORY_ERROR_PREFIX + ".format.notAllowed";
+
+  public static final String PROOF_OF_DELIVERY_NOT_FOUND =
+      join(SERVICE_ERROR, PROOF_OF_DELIVERY, NOT_FOUND);
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));

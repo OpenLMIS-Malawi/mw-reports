@@ -42,7 +42,7 @@ public class ProofOfDeliveryDataService extends BaseFulfillmentService<ProofOfDe
    * Finds proof of delivery matching all of the provided parameters.
    */
   public ProofOfDeliveryDto findProofOfDelivery(UUID id) {
-    RequestParameters parameters = RequestParameters.init();
-    return findOne("/" + id, parameters);
+
+    return findOne("/" + id, RequestParameters.init());
   }
 }

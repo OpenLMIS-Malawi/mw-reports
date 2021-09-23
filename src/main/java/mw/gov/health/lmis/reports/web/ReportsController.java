@@ -9,7 +9,6 @@ import static net.sf.jasperreports.engine.JRParameter.REPORT_LOCALE;
 import static net.sf.jasperreports.engine.JRParameter.REPORT_RESOURCE_BUNDLE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
@@ -33,8 +32,8 @@ import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
-import mw.gov.health.lmis.reports.exception.MissingPermissionException;
 import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
+import mw.gov.health.lmis.reports.exception.ProofOfDeliveryNotFoundException;
 import mw.gov.health.lmis.reports.exception.ValidationMessageException;
 import mw.gov.health.lmis.reports.i18n.MessageKeys;
 import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
@@ -189,10 +188,9 @@ public class ReportsController extends BaseController {
   public ModelAndView printProofOfDelivery(HttpServletRequest request,
                                            @PathVariable("id") UUID id,
                                            OAuth2Authentication authentication)
-      throws IOException, MissingPermissionException, JasperReportViewException {
+      throws JasperReportViewException {
 
-    ProofOfDeliveryDto proofOfDelivery = proofOfDeliveryDataService.findProofOfDelivery(id);
-    canViewPod(authentication, proofOfDelivery);
+    ProofOfDeliveryDto proofOfDelivery = findProofOfDelivery(id);
 
     Map<String, Object> params = new HashMap<>();
     params.put(FORMAT, "pdf");
@@ -366,13 +364,6 @@ public class ReportsController extends BaseController {
         pi.getFacilityId());
   }
 
-  private void canViewPod(OAuth2Authentication authentication, ProofOfDeliveryDto pod)
-      throws MissingPermissionException {
-    if (!authentication.isClientOnly()) {
-      viewPermissionService.canViewPod(pod);
-    }
-  }
-
   private void checkFormat(String format) {
     List<String> supportedFormats = Arrays.asList("csv", "html", "pdf", "xls", "xlsx");
     if (!supportedFormats.contains(format)) {
@@ -381,5 +372,14 @@ public class ReportsController extends BaseController {
               + format
               + join(", ", supportedFormats));
     }
+  }
+
+  private ProofOfDeliveryDto findProofOfDelivery(UUID id) {
+    ProofOfDeliveryDto entity = proofOfDeliveryDataService.findProofOfDelivery(id);
+    if (null == entity) {
+      throw new ProofOfDeliveryNotFoundException(id);
+    }
+
+    return entity;
   }
 }
