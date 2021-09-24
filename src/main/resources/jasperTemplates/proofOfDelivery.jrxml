@@ -176,7 +176,7 @@ ORDER BY
     <property name="com.jaspersoft.studio.field.label" value="orderStatus"/>
   </field>
   <field name="orderingFacilityCode" class="java.lang.String"/>
-  <field name="orderingfacility" class="java.lang.String">
+  <field name="orderingFacility" class="java.lang.String">
     <property name="com.jaspersoft.studio.field.label" value="orderingFacility"/>
   </field>
   <field name="orderDate" class="java.sql.Timestamp">
