@@ -24,7 +24,7 @@
     <property name="displayName" value="TimeZoneId"/>
   </parameter>
   <queryString language="SQL">
-    <![CDATA[SELECT DISTINCT ON (orderProductName, productname, lotcode)
+    <![CDATA[SELECT DISTINCT ON (orderProductName, productName, lotCode)
   program.name                         AS programName,
   ord.ordercode                        AS orderCode,
   ord.status                           AS orderStatus,
@@ -168,67 +168,67 @@ WHERE
 ORDER BY
   orderProductName, productName, lotCode DESC]]>
   </queryString>
-  <field name="programname" class="java.lang.String"/>
-  <field name="ordercode" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="ordercode"/>
+  <field name="programName" class="java.lang.String"/>
+  <field name="orderCode" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="orderCode"/>
   </field>
-  <field name="orderstatus" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="orderstatus"/>
+  <field name="orderStatus" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="orderStatus"/>
   </field>
-  <field name="orderingfacilitycode" class="java.lang.String"/>
+  <field name="orderingFacilityCode" class="java.lang.String"/>
   <field name="orderingfacility" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="orderingfacility"/>
+    <property name="com.jaspersoft.studio.field.label" value="orderingFacility"/>
   </field>
-  <field name="orderdate" class="java.sql.Timestamp">
-    <property name="com.jaspersoft.studio.field.label" value="orderdate"/>
+  <field name="orderDate" class="java.sql.Timestamp">
+    <property name="com.jaspersoft.studio.field.label" value="orderDate"/>
   </field>
-  <field name="periodstartdate" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="periodstartdate"/>
+  <field name="periodStartDate" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="periodStartDate"/>
   </field>
-  <field name="periodenddate" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="periodenddate"/>
+  <field name="periodEndDate" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="periodEndDate"/>
   </field>
-  <field name="supplyingfacility" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="supplyingfacility"/>
+  <field name="supplyingFacility" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="supplyingFacility"/>
   </field>
-  <field name="productname" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="productname"/>
+  <field name="productName" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="productName"/>
   </field>
-  <field name="productunit" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="productunit"/>
+  <field name="productUnit" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="productUnit"/>
   </field>
-  <field name="quantityordered" class="java.lang.Long">
-    <property name="com.jaspersoft.studio.field.label" value="quantityordered"/>
+  <field name="quantityOrdered" class="java.lang.Long">
+    <property name="com.jaspersoft.studio.field.label" value="quantityOrdered"/>
   </field>
-  <field name="quantityshipped" class="java.lang.Long">
-    <property name="com.jaspersoft.studio.field.label" value="quantityshipped"/>
+  <field name="quantityShipped" class="java.lang.Long">
+    <property name="com.jaspersoft.studio.field.label" value="quantityShipped"/>
   </field>
-  <field name="lotcode" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="lotcode"/>
+  <field name="lotCode" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="lotCode"/>
   </field>
-  <field name="quantityaccepted" class="java.lang.Integer">
-    <property name="com.jaspersoft.studio.field.label" value="quantityaccepted"/>
+  <field name="quantityAccepted" class="java.lang.Integer">
+    <property name="com.jaspersoft.studio.field.label" value="quantityAccepted"/>
   </field>
-  <field name="quantityreturned" class="java.lang.Integer">
-    <property name="com.jaspersoft.studio.field.label" value="quantityreturned"/>
+  <field name="quantityReturned" class="java.lang.Integer">
+    <property name="com.jaspersoft.studio.field.label" value="quantityReturned"/>
   </field>
-  <field name="rejectionreason" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="rejectionreason"/>
+  <field name="rejectionReason" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="rejectionReason"/>
   </field>
   <field name="notes" class="java.lang.String">
     <property name="com.jaspersoft.studio.field.label" value="notes"/>
   </field>
-  <field name="deliveredby" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="deliveredby"/>
+  <field name="deliveredBy" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="deliveredBy"/>
   </field>
-  <field name="receivedby" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="receivedby"/>
+  <field name="receivedBy" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="receivedBy"/>
   </field>
-  <field name="receiveddate" class="java.lang.String">
-    <property name="com.jaspersoft.studio.field.label" value="receiveddate"/>
+  <field name="receivedDate" class="java.lang.String">
+    <property name="com.jaspersoft.studio.field.label" value="receivedDate"/>
   </field>
   <field name="orderProductName" class="java.lang.String"/>
-  <field name="vvmstatus" class="java.lang.String"/>
+  <field name="vvmStatus" class="java.lang.String"/>
   <group name="OrderProductGroup">
     <groupExpression><![CDATA[$F{orderProductName}]]></groupExpression>
     <groupHeader>
@@ -260,7 +260,7 @@ ORDER BY
             <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
           </box>
           <textElement verticalAlignment="Middle"/>
-          <textFieldExpression><![CDATA[$F{productunit}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{productUnit}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="190" y="0" width="70" height="20" backcolor="#F0F0F0" uuid="4ad70c86-5691-4163-9574-37f4124787dc">
@@ -274,7 +274,7 @@ ORDER BY
             <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
           </box>
           <textElement verticalAlignment="Middle"/>
-          <textFieldExpression><![CDATA[$F{quantityordered} != null ? $P{decimalFormat}.format($F{quantityordered}).toString() : ""]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{quantityOrdered} != null ? $P{decimalFormat}.format($F{quantityOrdered}).toString() : ""]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" mode="Opaque" x="620" y="0" width="80" height="20" backcolor="#F0F0F0" uuid="fee7ae94-a0b2-4ffe-84d0-9624f2b76451">
@@ -372,7 +372,7 @@ ORDER BY
     </groupHeader>
   </group>
   <group name="ProductGroup" keepTogether="true">
-    <groupExpression><![CDATA[$F{productname}]]></groupExpression>
+    <groupExpression><![CDATA[$F{productName}]]></groupExpression>
     <groupHeader>
       <band height="20">
         <property name="com.jaspersoft.studio.unit.height" value="px"/>
@@ -388,7 +388,7 @@ ORDER BY
             <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
           </box>
           <textElement verticalAlignment="Middle"/>
-          <textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="100" y="0" width="90" height="20" uuid="1858ff19-86d9-47f6-9131-42fc75ee6749">
@@ -402,7 +402,7 @@ ORDER BY
             <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
           </box>
           <textElement verticalAlignment="Middle"/>
-          <textFieldExpression><![CDATA[$F{productunit}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{productUnit}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="190" y="0" width="70" height="20" uuid="0415ac4b-970a-42fb-a514-769c50a10192">
@@ -532,7 +532,7 @@ ORDER BY
         <textElement>
           <font size="14" isBold="false"/>
         </textElement>
-        <textFieldExpression><![CDATA["Proof of Delivery for " + $F{programname}]]></textFieldExpression>
+        <textFieldExpression><![CDATA["Proof of Delivery for " + $F{programName}]]></textFieldExpression>
       </textField>
       <frame>
         <reportElement x="0" y="30" width="800" height="65" uuid="7eb68997-e2c7-4b99-a497-6e69aa52ee81">
@@ -608,37 +608,37 @@ ORDER BY
           <reportElement stretchType="RelativeToTallestObject" x="20" y="25" width="159" height="20" uuid="884fadf8-ba37-4d75-b597-2d24b17f8943">
             <property name="com.jaspersoft.studio.unit.x" value="px"/>
           </reportElement>
-          <textFieldExpression><![CDATA[$F{ordercode}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{orderCode}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="185" y="25" width="95" height="20" uuid="29a25e17-f036-4b8d-9fc3-0e111c9e5fb1">
             <property name="com.jaspersoft.studio.unit.width" value="px"/>
             <property name="com.jaspersoft.studio.unit.x" value="px"/>
           </reportElement>
-          <textFieldExpression><![CDATA[$F{orderstatus}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{orderStatus}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="290" y="24" width="120" height="20" uuid="dc36e235-9922-4f47-8643-d7ef79ea4bb8">
             <property name="com.jaspersoft.studio.unit.width" value="px"/>
           </reportElement>
-          <textFieldExpression><![CDATA[$F{orderingfacilitycode} + " - " + $F{orderingfacility}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{orderingFacilityCode} + " - " + $F{orderingFacility}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="420" y="24" width="110" height="20" uuid="bce52b53-860d-4071-b91e-88c902b244f2"/>
           <textFieldExpression>
             <![CDATA[DateTimeFormatter.ofPattern($P{dateTimeFormat}).format(
-            ZonedDateTime.ofInstant($F{orderdate}.toInstant(), ZoneId.of($P{timeZoneId})))]]>
+            ZonedDateTime.ofInstant($F{orderDate}.toInstant(), ZoneId.of($P{timeZoneId})))]]>
           </textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="540" y="24" width="130" height="20" uuid="e22e66f2-d7be-4f05-99b4-57cacf3a7567"/>
-          <textFieldExpression><![CDATA[DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{periodstartdate}))
-           + " - " + DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{periodenddate}))]]>
+          <textFieldExpression><![CDATA[DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{periodStartDate}))
+           + " - " + DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{periodEndDate}))]]>
           </textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement stretchType="RelativeToTallestObject" x="680" y="24" width="110" height="20" uuid="d5d4d509-c122-4414-b010-23283f1ab8a1"/>
-          <textFieldExpression><![CDATA[$F{supplyingfacility}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{supplyingFacility}]]></textFieldExpression>
         </textField>
       </frame>
     </band>
@@ -784,7 +784,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[($F{lotcode} == null) ? "No Batch Defined" : $F{lotcode}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[($F{lotCode} == null) ? "No Batch Defined" : $F{lotCode}]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="260" y="0" width="70" height="20" uuid="03b293b8-2dd4-4a9c-9f15-fc4c01005f47">
@@ -798,7 +798,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[$F{quantityshipped} != null ? $P{decimalFormat}.format($F{quantityshipped}).toString() : ""]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{quantityShipped} != null ? $P{decimalFormat}.format($F{quantityShipped}).toString() : ""]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="700" y="0" width="100" height="20" uuid="3d74a886-184c-4912-9be8-d505876fe76c">
@@ -827,7 +827,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[$F{rejectionreason}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{rejectionReason}]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="410" y="0" width="70" height="20" uuid="e2085931-c16a-4880-b6ff-eedbb1301cf0">
@@ -841,7 +841,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[$F{quantityaccepted} != null ? $P{decimalFormat}.format($F{quantityaccepted}).toString() : ""]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{quantityAccepted} != null ? $P{decimalFormat}.format($F{quantityAccepted}).toString() : ""]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="550" y="0" width="70" height="20" uuid="a313b3f1-4386-4e49-bc65-cf3e9cc4f4b2">
@@ -855,7 +855,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[$F{quantityreturned} != null ? $P{decimalFormat}.format($F{quantityreturned}).toString() : ""]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{quantityReturned} != null ? $P{decimalFormat}.format($F{quantityReturned}).toString() : ""]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="190" y="0" width="70" height="20" uuid="12c21d58-5a3e-4b22-be39-ae601e5baece">
@@ -908,7 +908,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[$F{vvmstatus}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[$F{vvmStatus}]]></textFieldExpression>
       </textField>
     </band>
   </detail>
@@ -940,7 +940,7 @@ ORDER BY
           <textElement verticalAlignment="Middle">
             <font size="10"/>
           </textElement>
-          <textFieldExpression><![CDATA[$F{deliveredby}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{deliveredBy}]]></textFieldExpression>
         </textField>
         <textField isStretchWithOverflow="true" isBlankWhenNull="true">
           <reportElement key="" stretchType="RelativeToTallestObject" x="299" y="20" width="251" height="15" uuid="15793880-e2bf-4c2a-b559-335cc6be8203">
@@ -955,7 +955,7 @@ ORDER BY
           <textElement verticalAlignment="Middle">
             <font size="10"/>
           </textElement>
-          <textFieldExpression><![CDATA[$F{receivedby}]]></textFieldExpression>
+          <textFieldExpression><![CDATA[$F{receivedBy}]]></textFieldExpression>
         </textField>
         <staticText>
           <reportElement x="570" y="5" width="122" height="15" uuid="ff7b9efe-95f0-4b0f-8524-c2af24d10242">
@@ -1002,7 +1002,7 @@ ORDER BY
           <textElement verticalAlignment="Middle">
             <font size="10"/>
           </textElement>
-          <textFieldExpression><![CDATA[DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{receiveddate}))]]></textFieldExpression>
+          <textFieldExpression><![CDATA[DateTimeFormatter.ofPattern($P{dateFormat}).format(LocalDate.parse($F{receivedDate}))]]></textFieldExpression>
         </textField>
         <staticText>
           <reportElement x="299" y="5" width="100" height="15" uuid="394ecbca-a192-4d4d-855f-7a2b29775a1f">
