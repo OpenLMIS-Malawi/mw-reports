@@ -204,8 +204,10 @@ public class ReportsController extends BaseController {
     params.put("dateTimeFormat", dateTimeFormat);
     params.put("timeZoneId", timeZoneId);
 
-    return jasperReportsViewService
-        .generateReport(POD_REPORT_URL, params);
+    JasperReportsMultiFormatView jasperView =
+        jasperReportsViewService.getJasperReportsView(POD_REPORT_URL);
+
+    return new ModelAndView(jasperView, params);
   }
 
   /**

@@ -179,6 +179,25 @@ public class JasperReportsViewService {
   }
 
   /**
+   * Create Jasper Report View.
+   * Create Jasper Report (".jasper" file) from bytes from Template entity.
+   * Set 'Jasper' exporter parameters, JDBC data source, web application context, url to file.
+   *
+   * @param templateUrl template url that will be used to create a view
+   * @return created jasper view.
+   * @throws JasperReportViewException if there will be any problem with creating the view.
+   */
+  public JasperReportsMultiFormatView getJasperReportsView(String templateUrl)
+      throws JasperReportViewException {
+    JasperReportsMultiFormatView view = new JasperReportsMultiFormatView();
+    view.setUrl(compileReportAndGetUrl(templateUrl));
+    view.setApplicationContext(appContext);
+    view.setJdbcDataSource(replicationDataSource);
+    view.setApplicationContext(appContext);
+    return view;
+  }
+
+  /**
    * Get application context from servlet.
    */
   public WebApplicationContext getApplicationContext(HttpServletRequest servletRequest) {
