@@ -717,7 +717,7 @@ ORDER BY
         <textElement textAlignment="Left" verticalAlignment="Middle">
           <font size="10" isBold="true"/>
         </textElement>
-        <text><![CDATA[Lot Code]]></text>
+        <text><![CDATA[Batch Number]]></text>
       </staticText>
       <staticText>
         <reportElement mode="Opaque" x="190" y="0" width="70" height="30" forecolor="#FFFFFF" backcolor="#3D3D3D" uuid="6b057f3a-3628-4b32-89a5-19424bd9a0a1">
@@ -784,7 +784,7 @@ ORDER BY
           <rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#DDDDDD"/>
         </box>
         <textElement verticalAlignment="Middle"/>
-        <textFieldExpression><![CDATA[($F{lotcode} == null) ? "No Lot Defined" : $F{lotcode}]]></textFieldExpression>
+        <textFieldExpression><![CDATA[($F{lotcode} == null) ? "No Batch Defined" : $F{lotcode}]]></textFieldExpression>
       </textField>
       <textField isStretchWithOverflow="true" isBlankWhenNull="true">
         <reportElement stretchType="RelativeToTallestObject" x="260" y="0" width="70" height="20" uuid="03b293b8-2dd4-4a9c-9f15-fc4c01005f47">
