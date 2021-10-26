@@ -213,6 +213,7 @@ public class JasperTemplateController extends BaseController {
 
     Map map = jasperTemplateService.mapRequestParametersToTemplate(
           request, template);
+    String fileName = jasperReportsViewService.getFilename(template, map);
 
     map.put("format", format);
     map.put("dateTimeFormat", dateTimeFormat);
@@ -231,7 +232,7 @@ public class JasperTemplateController extends BaseController {
 
     JasperReportsMultiFormatView jasperView =
         jasperReportsViewService.getJasperReportsView(template, request);
-    String fileName = jasperReportsViewService.getFilename(template, map);
+
     String contentDisposition = "inline; filename=" + fileName + "." + format;
 
     jasperView
