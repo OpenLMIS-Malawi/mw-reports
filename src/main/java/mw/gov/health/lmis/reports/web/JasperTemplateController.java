@@ -213,20 +213,21 @@ public class JasperTemplateController extends BaseController {
 
     Map map = jasperTemplateService.mapRequestParametersToTemplate(
           request, template);
-    String fileName = jasperReportsViewService.getFilename(template, map);
+    
+    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
+    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
+    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
+    UserDto currentUser = authenticationHelper.getCurrentUser();
 
+    String fileName = jasperReportsViewService.getFilename(template, map);
     map.put("format", format);
     map.put("dateTimeFormat", dateTimeFormat);
     map.put("dateFormat", dateFormat);
     map.put("timeZoneId", timeZoneId);
     map.put("imagesDirectory", "images/");
     map.put("timeZone", clock.getZone().getId());
-    DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
-    decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
-    DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
-    decimalFormat.setGroupingSize(Integer.parseInt(groupingSize));
     map.put("decimalFormat", decimalFormat);
-    UserDto currentUser = authenticationHelper.getCurrentUser();
     map.put("user", currentUser.printName());
     map.put(JRParameter.REPORT_VIRTUALIZER, virtualizer);
 
