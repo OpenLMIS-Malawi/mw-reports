@@ -73,7 +73,7 @@ import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiForm
 @RequestMapping("/api/reports")
 public class ReportsController extends BaseController {
 
-  private static int DISTRICT_LEVEL = 3;
+  private static int DISTRICT_LEVEL = 4;
   public static final String PRINT_PI = "Print PI";
   public static final String FORMAT = "format";
   public static final String POD_REPORT_URL = "/jasperTemplates/proofOfDelivery.jrxml";

@@ -21,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OrderDto {
 
-  public static final Integer DISTRICT_LEVEL = 3;
+  public static final Integer DISTRICT_LEVEL = 4;
   public static final Integer REGION_LEVEL = 2;
 
   @Getter
