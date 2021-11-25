@@ -77,7 +77,7 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   public void shouldGetAllDistricts() {
     // given
     GeographicZoneDto[] zones = { generateGeographicZone(), generateGeographicZone() };
-    given(geographicZoneReferenceDataService.search(3, null)).willReturn(asList(zones));
+    given(geographicZoneReferenceDataService.search(4, null)).willReturn(asList(zones));
 
     // when
     GeographicZoneDto[] result = restAssured.given()
