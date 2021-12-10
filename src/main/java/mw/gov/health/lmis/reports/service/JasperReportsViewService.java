@@ -49,7 +49,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -83,7 +82,12 @@ import javax.sql.DataSource;
 
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
+import org.springframework.web.servlet.view.jasperreports.AbstractJasperReportsView;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsCsvView;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
 import org.springframework.web.servlet.view.jasperreports.JasperReportsPdfView;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsXlsView;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsXlsxView;
 
 @SuppressWarnings("PMD.TooManyMethods")
 @Service
@@ -151,6 +155,7 @@ public class JasperReportsViewService {
   public JasperReportsMultiFormatView getJasperReportsView(
       JasperTemplate jasperTemplate, HttpServletRequest request) throws JasperReportViewException {
     JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
+    setFormatMappings(jasperView);
     jasperView.setUrl(getReportUrlForReportData(jasperTemplate));
     jasperView.setJdbcDataSource(replicationDataSource);
 
@@ -172,6 +177,7 @@ public class JasperReportsViewService {
   public JasperReportsMultiFormatView getJasperReportsView(JasperTemplate jasperTemplate)
       throws JasperReportViewException {
     JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
+    setFormatMappings(jasperView);
     jasperView.setJdbcDataSource(replicationDataSource);
     jasperView.setUrl(getReportUrlForReportData(jasperTemplate));
     jasperView.setApplicationContext(appContext);
@@ -590,5 +596,15 @@ public class JasperReportsViewService {
       throw new JasperReportViewException(
           ex, ERROR_REPORTING_CLASS_NOT_FOUND + JasperReport.class.getName());
     }
+  }
+
+  private void setFormatMappings(JasperReportsMultiFormatView jasperView) {
+    Map<String, Class<? extends AbstractJasperReportsView>> formatMappings = new HashMap<>();
+    formatMappings.put("csv", JasperReportsCsvView.class);
+    formatMappings.put("html", JasperReportsHtmlView.class);
+    formatMappings.put("pdf", JasperReportsPdfView.class);
+    formatMappings.put("xls", JasperReportsXlsView.class);
+    formatMappings.put("xlsx", JasperReportsXlsxView.class);
+    jasperView.setFormatMappings(formatMappings);
   }
 }
