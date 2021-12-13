@@ -638,7 +638,7 @@
 				<textElement>
 					<font size="6"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{template}.getColumnsMap().get("pricePerPack").getIsDisplayed() ? MoneyFormat.format(Money.of(CurrencyUnit.USD, $F{pricePerPack}), LocaleContextHolder.getLocale(), MoneyAmountStyle.ASCII_DECIMAL_POINT_GROUP3_COMMA) : null]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{template}.getColumnsMap().get("pricePerPack").getIsDisplayed() ? MoneyFormat.format(Money.of(CurrencyUnit.of("MWK"), $F{pricePerPack}), LocaleContextHolder.getLocale(), MoneyAmountStyle.ASCII_DECIMAL_POINT_GROUP3_COMMA) : null]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement key="numberOfNewPatientsAdded" x="644" y="0" width="30" height="20" uuid="fea4bade-1ea2-4739-83fa-93be949392a2">
@@ -666,7 +666,7 @@
 				<textElement>
 					<font size="6"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{template}.getColumnsMap().get("totalCost").getIsDisplayed() ? MoneyFormat.format(Money.of(CurrencyUnit.USD, $F{totalCost}), LocaleContextHolder.getLocale(), MoneyAmountStyle.ASCII_DECIMAL_POINT_GROUP3_COMMA) : null]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{template}.getColumnsMap().get("totalCost").getIsDisplayed() ? MoneyFormat.format(Money.of(CurrencyUnit.of("MWK"), $F{totalCost}), LocaleContextHolder.getLocale(), MoneyAmountStyle.ASCII_DECIMAL_POINT_GROUP3_COMMA) : null]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement key="averageConsumption" x="759" y="0" width="40" height="20" uuid="415e8964-fd1f-4c09-a7fe-7b34036549d9">
