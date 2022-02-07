@@ -131,6 +131,8 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
+   AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17' 
+   	ELSE TRUE END
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate]]>
 		</queryString>
@@ -222,6 +224,8 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
+   AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17' 
+   	ELSE TRUE END
 GROUP BY geographiczonename]]>
 		</queryString>
 		<field name="geographiczonename" class="java.lang.String"/>
@@ -287,7 +291,7 @@ GROUP BY geographiczonename]]>
 							<font isBold="true"/>
 							<paragraph firstLineIndent="0" leftIndent="10"/>
 						</textElement>
-						<text><![CDATA[Average reporting rate by month]]></text>
+						<text><![CDATA[Average reporting rate by period]]></text>
 					</staticText>
 					<frame>
 						<reportElement x="5" y="25" width="10" height="10" uuid="327ee660-5ebf-47bb-8892-70864277b4da">
