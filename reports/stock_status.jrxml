@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_status_table" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -186,6 +186,10 @@ GROUP BY periodname]]>
 	FROM
 		referencedata.geographic_zones AS z
 		INNER JOIN findChildZones AS c ON c.id = z.parentId
+), number_of_weekly_periods_in_month as (
+	select count(pp."name")::integer as number_of_periods
+	from referencedata.processing_periods pp 
+	where pp.name like concat(split_part($P{period}::varchar, ' ', 1),' Week%')
 ), records AS (
 	SELECT
 		o.fullProductName AS productName,
@@ -193,11 +197,18 @@ GROUP BY periodname]]>
 		r.id AS requisitionId,
 		rli.stockOnHand AS closingBalance,
 		f.name as facilityName,
-		rli.maxperiodsofstock as maxPeriodsOfStock,
+		ftap.maxperiodsofstock as maxPeriodsOfStock,
 		rli.totalstockoutdays as totalStockOutDays,
 		rli.beginningbalance as beginingBalance,
+		rli.averageconsumption as averageConsumption,
 		gz.name as districtName,
-		pp.name as periodName
+		pp.name as periodName,
+		case 
+			when SUM(rli.averageConsumption) != 0 then 
+			case
+				when $P{program}::varchar = 'EPI' then ROUND(SUM(rli.stockOnHand)/sum(rli.averageConsumption)/number_of_weekly_periods_in_month.number_of_periods::NUMERIC, 1)
+			else ROUND(SUM(rli.stockOnHand)/sum(rli.averageConsumption)::NUMERIC, 1) end
+		else 0 end as monthsOfStock
 	FROM
 		requisition.requisitions AS r
 		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{program}::varchar IS NULL OR p.name = $P{program}::varchar)
@@ -207,25 +218,31 @@ GROUP BY periodname]]>
 		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{period}::varchar IS NULL OR pp.name = $P{period}::varchar)
 		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
 		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId AND o.versionnumber = rli.orderableversionnumber
-		INNER JOIN referencedata.program_orderables AS po ON po.orderableId = o.id AND po.programid = p.id AND po.fullsupply IS TRUE
+		INNER JOIN referencedata.program_orderables AS po ON po.orderableId = o.id AND po.programid = p.id AND po.fullsupply IS true
+		inner join referencedata.facility_type_approved_products as ftap on ftap.orderableid = o.id and ftap.programid = p.id and ftap.facilitytypeid = f.typeid and ftap.versionnumber = o.versionnumber,
+		number_of_weekly_periods_in_month
 	WHERE
 		r.emergency IS false
-	group  by facilityName, productName, productCode, r.id, closingBalance, maxPeriodsOfStock, totalStockOutDays, beginingBalance, districtName, periodName
+	group  by facilityName, productName, productCode, r.id, closingBalance, ftap.maxPeriodsOfStock, totalStockOutDays, beginingBalance,
+	averageConsumption, districtName, periodName, number_of_weekly_periods_in_month.number_of_periods
 )
 SELECT
 	r.productName AS productName,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float AS rate,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
 	r.facilityName as facilityName,
-	case when SUM(r.maxPeriodsOfStock) is null then 0 else SUM(r.maxPeriodsOfStock) end as monthsOfStock,
+	r.averageConsumption as averageConsumption,
+	SUM(r.maxPeriodsOfStock) as maxPeriodsOfStock,
+	r.closingBalance as SOH,
+	r.monthsOfStock as monthsOfStock,
 	count(*) AS reported,
 	r.districtName as districtName,
 	r.periodName as periodName,
 	CASE
-	    WHEN SUM(r.maxPeriodsOfStock) > 6 THEN 'Overstocked'
-	    WHEN SUM(r.maxPeriodsOfStock) < 3 AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Stocked Out'
-	    WHEN SUM(r.maxPeriodsOfStock) < 3 AND SUM(r.maxPeriodsOfStock) > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Understocked'
-	    WHEN SUM(r.maxPeriodsOfStock) = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR SUM(r.maxPeriodsOfStock) = 0) THEN 'Unknown'
+	    WHEN r.monthsOfStock > r.maxPeriodsOfStock THEN 'Overstocked'
+	    WHEN r.monthsOfStock < r.maxPeriodsOfStock AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Stocked Out'
+	    WHEN r.monthsOfStock < r.maxPeriodsOfStock AND r.monthsOfStock > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Understocked'
+	    WHEN r.monthsOfStock = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Unknown'
     ELSE 'Adequately stocked' END as stockStatus
 FROM
 	records AS r
@@ -233,7 +250,7 @@ WHERE
 	($P{product}::varchar IS NULL)
 	OR ($P{product}::varchar = r.productCode)
 GROUP BY
-	productName, facilityName, districtName, periodName
+	productName, facilityName, SOH, averageConsumption, districtName, periodName, monthsOfStock, maxPeriodsOfStock
 ORDER BY
 	districtName, periodName, productName, facilityName]]>
 	</queryString>
