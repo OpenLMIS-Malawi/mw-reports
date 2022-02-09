@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportingRate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="4e1d9a97-c93a-4ad3-87e1-e305d6e7da2e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -124,7 +124,9 @@ FROM referencedata.facilities
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
     AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
-  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
+  	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
@@ -217,7 +219,9 @@ FROM referencedata.facilities
     AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
     AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
-  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change 
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes 
+  	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
