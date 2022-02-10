@@ -197,7 +197,11 @@ GROUP BY periodname]]>
 		r.id AS requisitionId,
 		rli.stockOnHand AS closingBalance,
 		f.name as facilityName,
-		ftap.maxperiodsofstock as maxPeriodsOfStock,
+		case 
+		-- for EPI program the maxperiodsofstock indicates the weekly periods, to compare it to MOS we need to multiply it to the number of weeks in month
+			when $P{program}::varchar = 'EPI' then ftap.maxperiodsofstock*number_of_weekly_periods_in_month.number_of_periods
+			else ftap.maxperiodsofstock
+		end as maximumPeriodsOfStock,
 		rli.totalstockoutdays as totalStockOutDays,
 		rli.beginningbalance as beginingBalance,
 		rli.averageconsumption as averageConsumption,
@@ -223,7 +227,7 @@ GROUP BY periodname]]>
 		number_of_weekly_periods_in_month
 	WHERE
 		r.emergency IS false
-	group  by facilityName, productName, productCode, r.id, closingBalance, ftap.maxPeriodsOfStock, totalStockOutDays, beginingBalance,
+	group  by facilityName, productName, productCode, r.id, closingBalance, maximumPeriodsOfStock, totalStockOutDays, beginingBalance,
 	averageConsumption, districtName, periodName, number_of_weekly_periods_in_month.number_of_periods
 )
 SELECT
@@ -232,17 +236,17 @@ SELECT
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
 	r.facilityName as facilityName,
 	r.averageConsumption as averageConsumption,
-	SUM(r.maxPeriodsOfStock) as maxPeriodsOfStock,
+	SUM(r.maximumPeriodsOfStock) as maximumPeriodsOfStock,
 	r.closingBalance as SOH,
 	r.monthsOfStock as monthsOfStock,
 	count(*) AS reported,
 	r.districtName as districtName,
 	r.periodName as periodName,
 	CASE
-	    WHEN r.monthsOfStock > r.maxPeriodsOfStock THEN 'Overstocked'
-	    WHEN r.monthsOfStock < r.maxPeriodsOfStock AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Stocked Out'
-	    WHEN r.monthsOfStock < r.maxPeriodsOfStock AND r.monthsOfStock > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Understocked'
-	    WHEN r.monthsOfStock = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR r.maxPeriodsOfStock = 0) THEN 'Unknown'
+	    WHEN r.monthsOfStock > r.maximumPeriodsOfStock THEN 'Overstocked'
+	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Stocked Out'
+	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND r.monthsOfStock > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Understocked'
+	    WHEN r.monthsOfStock = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Unknown'
     ELSE 'Adequately stocked' END as stockStatus
 FROM
 	records AS r
@@ -250,7 +254,7 @@ WHERE
 	($P{product}::varchar IS NULL)
 	OR ($P{product}::varchar = r.productCode)
 GROUP BY
-	productName, facilityName, SOH, averageConsumption, districtName, periodName, monthsOfStock, maxPeriodsOfStock
+	productName, facilityName, SOH, averageConsumption, districtName, periodName, monthsOfStock, maximumPeriodsOfStock
 ORDER BY
 	districtName, periodName, productName, facilityName]]>
 	</queryString>
@@ -423,7 +427,7 @@ ORDER BY
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="19" splitType="Stretch">
+		<band height="21" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<property name="com.jaspersoft.studio.layout"/>
 			<textField isStretchWithOverflow="true">
@@ -466,11 +470,11 @@ ORDER BY
 		<band height="50" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<textField>
-				<reportElement x="0" y="18" width="554" height="20" uuid="15b8c817-64da-48f4-9e9c-4861a355da7c"/>
+				<reportElement x="0" y="18" width="554" height="31" uuid="15b8c817-64da-48f4-9e9c-4861a355da7c"/>
 				<textElement>
 					<font size="7"/>
 				</textElement>
-				<textFieldExpression><![CDATA["Please note that the stock status reflected here may potentially vary from that displayed in previously circulated LMIS reports; this is because OpenLMIS allows facilities to report even beyond the deadline of the last day of the month, a time that the LMIS report is generated"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Please note that the stock status reflected here may potentially vary from that displayed in previously circulated LMIS reports; this is because OpenLMIS allows facilities to report even beyond the deadline of the last day of the month, a time that the LMIS report is generated. The 'Unknown' status is in case when facility has particular product on stock but its average consumption is not known."]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageFooter>
