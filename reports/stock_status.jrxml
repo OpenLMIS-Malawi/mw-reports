@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_status_table" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -197,11 +197,7 @@ GROUP BY periodname]]>
 		r.id AS requisitionId,
 		rli.stockOnHand AS closingBalance,
 		f.name as facilityName,
-		case 
-		-- for EPI program the maxperiodsofstock indicates the weekly periods, to compare it to MOS we need to multiply it to the number of weeks in month
-			when $P{program}::varchar = 'EPI' then ftap.maxperiodsofstock*number_of_weekly_periods_in_month.number_of_periods
-			else ftap.maxperiodsofstock
-		end as maximumPeriodsOfStock,
+		ftap.maxperiodsofstock as maximumPeriodsOfStock,
 		rli.totalstockoutdays as totalStockOutDays,
 		rli.beginningbalance as beginingBalance,
 		rli.averageconsumption as averageConsumption,
