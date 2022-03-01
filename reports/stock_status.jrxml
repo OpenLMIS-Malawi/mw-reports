@@ -240,9 +240,9 @@ SELECT
 	r.periodName as periodName,
 	CASE
 	    WHEN r.monthsOfStock > r.maximumPeriodsOfStock THEN 'Overstocked'
-	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND r.monthsOfStock > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Understocked'
-	    WHEN r.monthsOfStock = 0 AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Stocked Out'
-	    WHEN r.monthsOfStock = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Unknown'
+	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND r.monthsOfStock > 0 THEN 'Understocked'
+	    WHEN r.monthsOfStock = 0 AND r.averageConsumption = 0 THEN 'Unknown'
+	    WHEN r.monthsOfStock = 0 AND r.averageConsumption != 0 THEN 'Stocked Out'
     ELSE 'Adequately stocked' END as stockStatus
 FROM
 	records AS r
