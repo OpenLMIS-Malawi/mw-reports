@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_status_table" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="TEST SELV"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -240,8 +240,8 @@ SELECT
 	r.periodName as periodName,
 	CASE
 	    WHEN r.monthsOfStock > r.maximumPeriodsOfStock THEN 'Overstocked'
-	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Stocked Out'
 	    WHEN r.monthsOfStock < r.maximumPeriodsOfStock AND r.monthsOfStock > 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Understocked'
+	    WHEN r.monthsOfStock = 0 AND (SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Stocked Out'
 	    WHEN r.monthsOfStock = 0 AND NOT(SUM(r.closingBalance) = 0 OR SUM(r.totalStockOutDays) > 0 OR SUM(r.beginingBalance ) = 0 OR r.maximumPeriodsOfStock = 0) THEN 'Unknown'
     ELSE 'Adequately stocked' END as stockStatus
 FROM
