@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="aggregate_orders" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MalawiDEV.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="reportType" value="Aggregate Orders Report"/>
 	<property name="isDisplayed" value="false"/>
@@ -98,6 +98,8 @@ ORDER BY startdate LIMIT 1]]>
   UNION ALL
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
+select *
+from (
 SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   fulfillment.order_line_items.orderedquantity AS PacksToShip,
   fulfillment.order_line_items.id AS LineItemId,
@@ -105,6 +107,9 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   referencedata.facilities.name AS FacilityName,
   referencedata.facilities.code AS FacilityCode,
   referencedata.processing_periods.name AS PeriodName,
+  RANK () OVER (
+		PARTITION BY referencedata.orderables.id
+		ORDER BY referencedata.orderables.versionnumber DESC) AS product_version_rank,
   referencedata.orderables.code AS ProductCode,
   referencedata.orderables.netcontent AS PackSize,
   referencedata.orderables.fullproductname AS ProductName,
@@ -175,7 +180,8 @@ WHERE
     AND ch.createddate > authorized_change.createddate
     AND ch.status = 'AUTHORIZED'
    )
-ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC, LineItemId ASC]]>
+ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC, LineItemId asc) as order_data
+where order_data.product_version_rank = 1]]>
 	</queryString>
 	<field name="OrderCode" class="java.lang.String"/>
 	<field name="PacksToShip" class="java.lang.Integer"/>
@@ -251,7 +257,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 	<group name="Group1">
 		<groupExpression><![CDATA[$F{ProductName}]]></groupExpression>
 		<groupFooter>
-			<band height="23">
+			<band height="28">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[$V{PacksToShip_SUM} > 0]]></printWhenExpression>
 				<textField isStretchWithOverflow="true">
@@ -269,7 +275,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					<textFieldExpression><![CDATA[$V{VisibleRows}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
-					<reportElement style="Row" mode="Opaque" x="299" y="0" width="51" height="23" uuid="2d2ebaf8-ee4e-4d65-abc1-835f13af0b4d">
+					<reportElement style="Row" mode="Opaque" x="298" y="0" width="52" height="23" uuid="2d2ebaf8-ee4e-4d65-abc1-835f13af0b4d">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<box bottomPadding="1">
@@ -317,7 +323,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					<textFieldExpression><![CDATA[$V{TotalPrice}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true">
-					<reportElement style="Row" mode="Opaque" x="100" y="0" width="199" height="23" uuid="fbd76509-bc78-4f8d-9bb2-1b7df951011b">
+					<reportElement style="Row" mode="Opaque" x="100" y="0" width="198" height="23" uuid="fbd76509-bc78-4f8d-9bb2-1b7df951011b">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
 					<box bottomPadding="1">
@@ -524,7 +530,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="30">
+		<band height="35">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
 				<reportElement mode="Opaque" x="40" y="0" width="60" height="30" backcolor="#3D9297" uuid="d03287bf-2774-435e-ab4a-8bd2c35455c2"/>
@@ -549,7 +555,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				<text><![CDATA[Quantity (packs)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="100" y="0" width="200" height="30" backcolor="#3D9297" uuid="2169bafc-6a9b-4779-af4f-ab65e70f22a9"/>
+				<reportElement mode="Opaque" x="100" y="0" width="198" height="30" backcolor="#3D9297" uuid="2169bafc-6a9b-4779-af4f-ab65e70f22a9"/>
 				<box>
 					<bottomPen lineWidth="0.0" lineColor="#3D9297"/>
 				</box>
@@ -579,7 +585,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				<text><![CDATA[Total Price]]></text>
 			</staticText>
 			<staticText>
-				<reportElement mode="Opaque" x="300" y="0" width="50" height="30" backcolor="#3D9297" uuid="b55288d9-66f8-49d8-bee3-d3e7e77b8549"/>
+				<reportElement mode="Opaque" x="298" y="0" width="52" height="30" backcolor="#3D9297" uuid="b55288d9-66f8-49d8-bee3-d3e7e77b8549"/>
 				<box rightPadding="10">
 					<bottomPen lineWidth="0.0" lineColor="#3D9297"/>
 				</box>
