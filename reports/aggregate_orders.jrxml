@@ -98,8 +98,6 @@ ORDER BY startdate LIMIT 1]]>
   UNION ALL
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
-select *
-from (
 SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   fulfillment.order_line_items.orderedquantity AS PacksToShip,
   fulfillment.order_line_items.id AS LineItemId,
@@ -107,9 +105,6 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   referencedata.facilities.name AS FacilityName,
   referencedata.facilities.code AS FacilityCode,
   referencedata.processing_periods.name AS PeriodName,
-  RANK () OVER (
-		PARTITION BY referencedata.orderables.id
-		ORDER BY referencedata.orderables.versionnumber DESC) AS product_version_rank,
   referencedata.orderables.code AS ProductCode,
   referencedata.orderables.netcontent AS PackSize,
   referencedata.orderables.fullproductname AS ProductName,
@@ -128,11 +123,11 @@ FROM fulfillment.order_line_items
   JOIN fulfillment.orders ON
    fulfillment.order_line_items.orderid = fulfillment.orders.id
   JOIN referencedata.orderables ON
-   fulfillment.order_line_items.orderableid = referencedata.orderables.id AND fulfillment.order_line_items.orderableversionnumber = referencedata.orderables.versionnumber
+   fulfillment.order_line_items.orderableid = referencedata.orderables.id
   JOIN referencedata.programs ON
     fulfillment.orders.programid = referencedata.programs.id
   JOIN referencedata.program_orderables ON
-    referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber
+    referencedata.orderables.id = referencedata.program_orderables.orderableid
     AND referencedata.programs.id = referencedata.program_orderables.programid
   JOIN referencedata.facilities ON
     fulfillment.orders.facilityid = referencedata.facilities.id
@@ -180,8 +175,10 @@ WHERE
     AND ch.createddate > authorized_change.createddate
     AND ch.status = 'AUTHORIZED'
    )
-ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC, LineItemId asc) as order_data
-where order_data.product_version_rank = 1]]>
+   and referencedata.orderables.versionnumber = (
+   	select max(versionnumber) from referencedata.orderables o2 where o2.id = referencedata.orderables.id
+   )
+ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC, LineItemId asc]]>
 	</queryString>
 	<field name="OrderCode" class="java.lang.String"/>
 	<field name="PacksToShip" class="java.lang.Integer"/>
@@ -257,7 +254,7 @@ where order_data.product_version_rank = 1]]>
 	<group name="Group1">
 		<groupExpression><![CDATA[$F{ProductName}]]></groupExpression>
 		<groupFooter>
-			<band height="28">
+			<band height="23">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[$V{PacksToShip_SUM} > 0]]></printWhenExpression>
 				<textField isStretchWithOverflow="true">
@@ -610,11 +607,6 @@ where order_data.product_version_rank = 1]]>
 		<band height="260">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<printWhenExpression><![CDATA[$F{ProductName} != null]]></printWhenExpression>
-			<line>
-				<reportElement x="0" y="0" width="555" height="1" forecolor="#3D9297" uuid="9de2f7ba-604d-4f1e-8be4-78ed55941f73">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				</reportElement>
-			</line>
 			<staticText>
 				<reportElement x="0" y="130" width="80" height="20" uuid="446128ae-d895-43db-bf1e-62309d8bd1ff"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
@@ -1008,6 +1000,11 @@ where order_data.product_version_rank = 1]]>
 				</textElement>
 				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy h:mm:ss a").format(java.time.ZonedDateTime.ofInstant($F{AuthorizationDate}.toInstant(), java.time.ZoneId.of($P{timeZone})));]]></textFieldExpression>
 			</textField>
+			<line>
+				<reportElement x="-2" y="0" width="555" height="1" forecolor="#3D9297" uuid="9de2f7ba-604d-4f1e-8be4-78ed55941f73">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+			</line>
 		</band>
 	</summary>
 </jasperReport>
