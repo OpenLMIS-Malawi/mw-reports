@@ -20,7 +20,7 @@ INSERT INTO reports.template_parameters (id, datatype, defaultvalue, description
 (
     'f124fa08-c734-4848-8898-25140adb0a8f',
     'java.lang.String',
-    false,
+    null,
     'checkbox',
     'Expired Products',
     'expiredProducts',
@@ -78,7 +78,7 @@ INSERT INTO reports.template_parameters (id, datatype, defaultvalue, description
     'batchNumber',
     '/api/reports/lots',
     'lotCode',
-    'lotCode'
+    'lotCode',
     false,
     'f2eaef0b-0ed5-47c8-9526-181b5b6313c2'
 
@@ -92,7 +92,7 @@ INSERT INTO reports.template_parameters (id, datatype, defaultvalue, description
     'program',
     '/api/reports/programs',
     'name',
-    'name'
+    'name',
     true,
     'f2eaef0b-0ed5-47c8-9526-181b5b6313c2'
 );
