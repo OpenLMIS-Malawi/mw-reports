@@ -12,7 +12,7 @@
 	<parameter name="program" class="java.lang.String">
 		<property name="required" value="true"/>
 	</parameter>
-	<parameter name="expiredProducts" class="java.lang.Boolean" nestedType="java.lang.Boolean"/>
+	<parameter name="expiredProducts" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityTypeUpdated" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";",",")]]></defaultValueExpression>
@@ -173,7 +173,7 @@ GROUP BY soh_data.facilityName, soh_data.productFullName, soh_data.lot_code,  so
 			<textField isStretchWithOverflow="true">
 				<reportElement x="0" y="100" width="198" height="20" uuid="a8565621-bd19-4b76-bd5e-280c405039c6"/>
 				<textFieldExpression><![CDATA[$P{facilityType} == null ? 
- 	($P{facility} == null ? "" : $P{facility}.replaceAll(";", ", ")) :
+ 	($P{facility} == null ? "All" : $P{facility}.replaceAll(";", ", ")) :
  	($P{facility} == null ? $P{facilityType}.replaceAll(";", ",") :
  	($P{facilityType}+ "," +  $P{facility}).replaceAll(";", ","))]]></textFieldExpression>
 			</textField>
@@ -335,9 +335,9 @@ GROUP BY soh_data.facilityName, soh_data.productFullName, soh_data.lot_code,  so
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="41" splitType="Prevent">
+		<band height="40" splitType="Prevent">
 			<property name="com.jaspersoft.studio.layout"/>
-			<printWhenExpression><![CDATA[($F{monthsToExpire} < 0 && $P{expiredProducts} ) || ($F{monthsToExpire} > 0 && !$P{expiredProducts})]]></printWhenExpression>
+			<printWhenExpression><![CDATA[($F{monthsToExpire} < 0 && $P{expiredProducts}.equals("true")) || ($F{monthsToExpire} > 0 && $P{expiredProducts}.equals("false"))]]></printWhenExpression>
 			<rectangle>
 				<reportElement stretchType="RelativeToBandHeight" x="-1" y="0" width="802" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
