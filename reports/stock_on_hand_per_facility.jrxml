@@ -89,7 +89,7 @@ FROM (
 		(($P{facility} IS NULL OR $X{IN, facilities.name, facilityList}) OR ($P{facilityType} IS NULL OR $X{IN, facilities_types.name ,facilityTypeList}))
 		and ($P{batchNumber} IS NULL OR $X{IN, lots.lotcode, batchNumberList})
 		and ($P{productId} IS NULL OR $X{IN, products.id::varchar, productIdList})
-		AND ($P{date} IS NULL OR soh.occurreddate::varchar <= $P{date}::varchar)
+		AND (soh.occurreddate::varchar <= $P{date}::varchar)
 		AND (programs.name = $P{program})
 ) AS soh_data
 WHERE soh_data.date_rank = 1 AND soh_data.product_version_rank = 1
