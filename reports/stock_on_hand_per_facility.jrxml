@@ -449,7 +449,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 		<band height="100" splitType="Stretch">
 			<image scaleImage="FillFrame">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory}) + "MW_Standard_Footer.png"]]></imageExpression>
+				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
 			</image>
 		</band>
 	</pageFooter>
