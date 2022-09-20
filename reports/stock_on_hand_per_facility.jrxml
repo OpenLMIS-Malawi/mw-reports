@@ -86,7 +86,12 @@ FROM (
 		JOIN referencedata.programs AS programs ON programs.id = stock_cards.programid
 		JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	where
-		(($P{facility}::varchar IS NULL OR $X{IN, facilities.name, facilityList}) OR ($P{facilityType}::varchar IS NULL OR $X{IN, facilities_types.name ,facilityTypeList}))
+		(case 
+		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
+		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
+		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
+		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
+		end)
 		and ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
 		and ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 		AND (soh.occurreddate::varchar <= $P{date}::varchar)
@@ -215,7 +220,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Facility]]></text>
@@ -229,7 +234,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[District]]></text>
@@ -243,7 +248,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Product ID]]></text>
@@ -257,7 +262,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Left" verticalAlignment="Bottom">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Product Name]]></text>
@@ -271,7 +276,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Batch Number]]></text>
@@ -285,7 +290,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Expiry Date]]></text>
@@ -299,7 +304,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Stock on Hand]]></text>
@@ -313,7 +318,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Date updated]]></text>
@@ -327,7 +332,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Months to Expire]]></text>
