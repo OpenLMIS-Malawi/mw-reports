@@ -15,31 +15,31 @@
 	<parameter name="expiredProducts" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityTypeUpdated" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";",",")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="facilityTypeList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
 	</parameter>
 	<parameter name="facility" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityUpdated" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[$P{facility}.replaceAll(";",",")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[$P{facility}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="facilityList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{facilityUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList($P{facilityUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
 	</parameter>
 	<parameter name="productId" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="productIdUpdated" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[$P{productId}.replaceAll(";",",")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[$P{productId}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="productIdList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{productIdUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList($P{productIdUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
 	</parameter>
 	<parameter name="batchNumber" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="batchNumberUpdated" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[$P{batchNumber}.replaceAll(";",",")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[$P{batchNumber}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="batchNumberList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{batchNumberUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[Arrays.asList($P{batchNumberUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
 	</parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
