@@ -344,13 +344,13 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 			<property name="com.jaspersoft.studio.layout"/>
 			<printWhenExpression><![CDATA[($F{monthsToExpire} < 0 && $P{expiredProducts}.equals("true")) || ($F{monthsToExpire} > 0 && $P{expiredProducts}.equals("false"))]]></printWhenExpression>
 			<rectangle>
-				<reportElement stretchType="RelativeToBandHeight" x="-1" y="0" width="802" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="801" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
 			<textField isBlankWhenNull="true">
-				<reportElement x="-1" y="0" width="191" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
+				<reportElement x="0" y="0" width="190" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
