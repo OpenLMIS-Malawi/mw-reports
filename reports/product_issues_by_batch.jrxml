@@ -90,16 +90,16 @@ FROM
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
 ) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
 WHERE
-	 ($P{productId} IS NULL OR $X{IN, products.fullproductname, productIdList})
+	 ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
 		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
 		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
 		end)
-	AND ($P{batchNumber} IS NULL OR $X{IN, lots.lotcode, batchNumberList})
+	AND ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
 		and (reasons.reasoncategory = 'TRANSFER' and reasons.reasontype = 'DEBIT')
-	AND programs.name = $P{program}
+	AND programs.name = $P{program}::varchar
 	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
 	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity) as issues_data
@@ -154,16 +154,16 @@ FROM
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
 ) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
 WHERE
-($P{productId} IS NULL OR $X{IN, products.fullproductname, productIdList})
+($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
 		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
 		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
 		end)
-	AND ($P{batchNumber} IS NULL OR $X{IN, lots.lotcode, batchNumberList})
+	AND ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
 		and (reasons.reasoncategory = 'TRANSFER' and reasons.reasontype = 'DEBIT')
-	AND programs.name = $P{program}
+	AND programs.name = $P{program}::varchar
 	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
 	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity) as issues_data
@@ -444,13 +444,13 @@ order by sourceFacility, district, issuedDate,  productCode,fullProductName,lotC
 		<band height="40" splitType="Prevent">
 			<property name="com.jaspersoft.studio.layout"/>
 			<rectangle>
-				<reportElement stretchType="RelativeToBandHeight" x="-1" y="0" width="802" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="801" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
 			<textField isBlankWhenNull="true">
-				<reportElement style="Style1" stretchType="ContainerBottom" x="-1" y="0" width="101" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
+				<reportElement style="Style1" stretchType="ContainerBottom" x="0" y="0" width="100" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
