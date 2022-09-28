@@ -382,6 +382,7 @@ ORDER BY facilityName]]>
 	<detail>
 		<band height="40" splitType="Prevent">
 			<property name="com.jaspersoft.studio.layout"/>
+			<printWhenExpression><![CDATA[$F{credit} != 0 || $F{debit} != 0 || $F{adjustments} != 0]]></printWhenExpression>
 			<rectangle>
 				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="801" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
@@ -485,7 +486,7 @@ ORDER BY facilityName]]>
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{adjustments}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[-$F{adjustments} + $F{soh} - $F{soh_opening} + $F{debit} - $F{credit}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
