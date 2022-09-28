@@ -80,7 +80,6 @@ INSERT INTO reports.template_parameters (id, datatype, defaultvalue, description
     'lotCode',
     false,
     '564b43da-a445-47e8-b9a2-fd788820fed6'
-
 ),
 (
     '46df5822-5462-42b0-9864-e42d0ce2bc14',
