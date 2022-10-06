@@ -486,7 +486,7 @@ ORDER BY facilityName]]>
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{soh_opening} + $F{credit} - $F{debit} + $F{adjustments} == $F{soh} ? $F{adjustments} : -$F{adjustments} + $F{soh} - $F{soh_opening} + $F{debit} - $F{credit}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{soh_opening} + $F{credit} - $F{debit} + $F{adjustments} == $F{soh} ? $F{adjustments} : $F{soh} - $F{soh_opening} + $F{debit} - $F{credit}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
