@@ -42,10 +42,10 @@
 	SELECT
 		false as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		end AS sourcefacility,
 		case when reasons.reasontype='CREDIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 	    end AS destinationfacility,
 		products.fullproductname AS fullproductname,
 		lots.lotcode as batchnumber,
@@ -76,10 +76,10 @@
 	SELECT
 		true as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		end AS sourcefacility,
 		case when reasons.reasontype='CREDIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 	    end AS destinationfacility,
 		products.fullproductname AS fullproductname,
 		'subtotal' as batchnumber,
@@ -121,10 +121,10 @@ from (
 	select * FROM (
 		SELECT
 			case when reasons.reasontype='DEBIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 			end AS sourcefacility,
 			case when reasons.reasontype='CREDIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		    end AS destinationfacility,
 			products.fullproductname AS fullproductname,
 			sum(line_items.quantity) AS quantity
