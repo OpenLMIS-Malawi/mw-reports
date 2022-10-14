@@ -349,8 +349,26 @@ public class JasperReportsViewService {
           .append('_')
           .append(value.toString());
     }
-    // replace whitespaces with "_" and make the filename lowercase
-    return fileName.toString()
+    // format file name
+    return formatFileName(fileName.toString());
+  }
+
+  /**
+   * format file name.
+   *
+   * @param fileName file name which will be formatted
+   * @return formatted file name
+   */
+  public String formatFileName(String fileName) {
+    // replace whitespaces with "_", make the filename lowercase
+    //  and cut it when it has more than 96 characters
+    return fileName.length() > 96
+         ? 
+        fileName
+        .replaceAll("\\s+", "_")
+        .toLowerCase(Locale.ENGLISH)
+        .substring(0,96) :  
+        fileName
         .replaceAll("\\s+", "_")
         .toLowerCase(Locale.ENGLISH);
   }
