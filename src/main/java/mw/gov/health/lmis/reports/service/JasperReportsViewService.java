@@ -75,6 +75,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.Date;
+
+import java.text.SimpleDateFormat;  
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -342,6 +345,11 @@ public class JasperReportsViewService {
           (period != null) ? period.getName() : "",
           order.getFacility().getName()
       );
+    } else {
+      //add date of generating report to the filename if it's not the order report
+      Date date = new Date();
+      SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+      values.add(formatter.format(date));
     }
     // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
@@ -361,14 +369,7 @@ public class JasperReportsViewService {
    */
   public String formatFileName(String fileName) {
     // replace whitespaces with "_", make the filename lowercase
-    //  and cut it when it has more than 96 characters
-    return fileName.length() > 96
-         ? 
-        fileName
-        .replaceAll("\\s+", "_")
-        .toLowerCase(Locale.ENGLISH)
-        .substring(0,96) :  
-        fileName
+    return fileName
         .replaceAll("\\s+", "_")
         .toLowerCase(Locale.ENGLISH);
   }

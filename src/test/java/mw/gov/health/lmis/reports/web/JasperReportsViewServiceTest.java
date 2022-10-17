@@ -21,12 +21,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -102,24 +100,6 @@ public class JasperReportsViewServiceTest {
   }
 
   @Test
-  public void shouldGetFilenameWithProvidedParameters() {
-    // given
-    JasperTemplate template = new JasperTemplate();
-    template.setName("Some report");
-
-    Map<String, Object> params = new LinkedHashMap<>();
-    params.put("program", "Essential Meds");
-    params.put("period", "Jul2017");
-    params.put("district", "Chitipa");
-
-    // when
-    String filename = service.getFilename(template, params);
-
-    // then
-    Assert.assertEquals("some_report_essential_meds_jul2017_chitipa", filename);
-  }
-
-  @Test
   public void shouldGetFilenameForOrderReport() {
     // given
     JasperTemplate template = new JasperTemplate();
@@ -152,21 +132,4 @@ public class JasperReportsViewServiceTest {
     Assert.assertEquals("order_essential_meds_nov2017_chitipa_dho", filename);
   }
 
-  @Test
-  public void shouldGetFilenameForAggregateOrdersReport() {
-    // given
-    JasperTemplate template = new JasperTemplate();
-    template.setName("Health Centre Orders");
-    template.setType(AGGREGATE_ORDERS_REPORT);
-
-    Map<String, Object> params = new HashMap<>();
-    params.put("program", "Essential Meds");
-    params.put("period", "Nov2017");
-    params.put("district", "Chitipa");
-    // when
-    String filename = service.getFilename(template, params);
-
-    // then
-    Assert.assertEquals("health_centre_orders_dec2017_chitipa_essential_meds", filename);
-  }
 }
