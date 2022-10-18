@@ -12,8 +12,27 @@
 		<property name="selectProperty" value="name"/>
 		<property name="displayProperty" value="name"/>
 	</parameter>
-	<parameter name="sourceFacility" class="java.lang.String"/>
-	<parameter name="destinationFacility" class="java.lang.String"/>
+	<parameter name="sourceFacility" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="sourceFacilityUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{sourceFacility}.replaceAll(";",",");]]></defaultValueExpression>
+	</parameter>
+	<parameter name="sourceFacilityList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{sourceFacilityUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+	</parameter>
+	<parameter name="destinationFacility" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="destinationFacilityUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{destinationFacility}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="destinationFacilityList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Arrays.asList($P{destinationFacilityUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+	</parameter>
+	<parameter name="product" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="productUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{product}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="productList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Arrays.asList($P{productUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+	</parameter>
 	<parameter name="startDate" class="java.lang.String"/>
 	<parameter name="endDate" class="java.lang.String"/>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
@@ -23,10 +42,10 @@
 	SELECT
 		false as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		end AS sourcefacility,
 		case when reasons.reasontype='CREDIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 	    end AS destinationfacility,
 		products.fullproductname AS fullproductname,
 		lots.lotcode as batchnumber,
@@ -35,7 +54,8 @@
 		stockmanagement.stock_event_line_items AS line_items
 		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
 		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
-		LEFT JOIN referencedata.facilities AS facilities ON (facilities.id = stock_events.facilityid OR facilities.id = nodes.referenceid)
+		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
 		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
 		LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
@@ -46,59 +66,65 @@
 	AND products.versionnumber = (
 	   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
 	   )
-	AND ($P{program} IS NULL OR programs.name = $P{program}::varchar)
+	AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
 	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
 	GROUP BY sourcefacility, destinationfacility, fullproductname, batchnumber
+
 	UNION
+
 	SELECT
 		true as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		end AS sourcefacility,
 		case when reasons.reasontype='CREDIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 	    end AS destinationfacility,
 		products.fullproductname AS fullproductname,
-		'total' as batchnumber,
+		'subtotal' as batchnumber,
 		SUM(line_items.quantity) AS quantity
 	FROM
 		stockmanagement.stock_event_line_items AS line_items
-		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
 		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
 		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
-		LEFT JOIN referencedata.facilities AS facilities ON (facilities.id = stock_events.facilityid OR facilities.id = nodes.referenceid)
+		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
+		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
 		LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
+		LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
 		LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
 		LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
-	WHERE 
+	WHERE
 		reasons.reasoncategory = 'TRANSFER'
 		AND products.versionnumber = (
 		   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
 		   )
-		AND ($P{program} IS NULL OR programs.name = $P{program}::varchar)
+		AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
 		AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 		AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-		
-		
 	GROUP BY sourcefacility, destinationfacility, products.fullproductname
 	) as agg_data
-	WHERE 
-		($P{sourceFacility} IS NULL OR agg_data.sourcefacility = $P{sourceFacility}::varchar)
-		AND ($P{destinationFacility} IS NULL OR agg_data.destinationfacility = $P{destinationFacility}::varchar)
+	WHERE
+		agg_data.sourcefacility is not null
+		AND ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
+		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
+		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
+
 	UNION
-	
-	SELECT 
-	null, null, null, null, null,
+
+	SELECT
+	true, null, null, null, 'total'::text,
 	sum(agg_data_filtered.quantity) as total_quantity
 from (
 	select * FROM (
 		SELECT
 			case when reasons.reasontype='DEBIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 			end AS sourcefacility,
 			case when reasons.reasontype='CREDIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility THEN facilities."name" ELSE organizations."name" END)
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		    end AS destinationfacility,
 			products.fullproductname AS fullproductname,
 			sum(line_items.quantity) AS quantity
@@ -106,10 +132,12 @@ from (
 			stockmanagement.stock_event_line_items AS line_items
 			LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
 			LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
-			LEFT JOIN referencedata.facilities AS facilities ON (facilities.id = stock_events.facilityid OR facilities.id = nodes.referenceid)
+			LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+			left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
 			LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 			LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
 			LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
+			LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
 			LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
 			LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
 		WHERE
@@ -117,19 +145,17 @@ from (
 			AND products.versionnumber = (
 		   		SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
 		   )
-			AND ($P{program} IS NULL OR programs.name = $P{program}::varchar)
+			AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
 			AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 			AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-			
 		GROUP BY sourcefacility, destinationfacility, fullproductname
 ) as agg_data
-
-	WHERE 
-		($P{sourceFacility} IS NULL OR agg_data.sourcefacility = $P{sourceFacility}::varchar)
-		AND ($P{destinationFacility} IS NULL OR agg_data.destinationfacility = $P{destinationFacility}::varchar)
-		
+	WHERE
+		agg_data.sourcefacility is not null
+		and ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
+		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
+		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
 ) as agg_data_filtered
-	
 ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 	</queryString>
 	<field name="is_subtotal" class="java.lang.Boolean">
