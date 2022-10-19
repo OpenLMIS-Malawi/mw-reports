@@ -257,12 +257,14 @@ ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 			</textField>
 			<textField>
 				<reportElement x="180" y="100" width="220" height="20" uuid="dac935e3-a713-481b-9f69-395dcf4801a3"/>
-				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{startDate}.toString())) + " - " + 
+				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{startDate}.toString())) + " - " +
 java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{endDate}.toString()))]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="0" y="100" width="180" height="20" uuid="736345fc-b72f-4d09-8d67-399953fe74b5"/>
-				<textFieldExpression><![CDATA[($P{sourceFacility} == null) ? "All" : $P{sourceFacility}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($P{sourceFacility} == null ? "All":
+	($P{sourceFacilityList}.size() == 1 ? $P{sourceFacility} : "Multiple")
+)]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageHeader>
