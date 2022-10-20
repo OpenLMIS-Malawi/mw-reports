@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportingRate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="4e1d9a97-c93a-4ad3-87e1-e305d6e7da2e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -57,6 +57,13 @@
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="22"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="972"/>
+		<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
+		<parameter name="facilityTypeUpdated" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="facilityTypeList" class="java.util.ArrayList" nestedType="java.lang.String">
+			<defaultValueExpression><![CDATA[Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+		</parameter>
 		<parameter name="Program" class="java.lang.String">
 			<property name="displayName" value="Program"/>
 			<property name="selectExpression" value="/api/reports/programs"/>
@@ -65,12 +72,20 @@
 			<property name="required" value="true"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
-		<parameter name="Period" class="java.lang.String">
-			<property name="displayName" value="Period"/>
+		<parameter name="endPeriod" class="java.lang.String">
+			<property name="displayName" value="endPeriod"/>
 			<property name="selectExpression" value="/api/reports/processingPeriods"/>
 			<property name="displayProperty" value="name"/>
 			<property name="selectProperty" value="name"/>
 			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="startPeriod" class="java.lang.String">
+			<property name="displayName" value="startPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
 		<parameter name="GeographicZone" class="java.lang.String">
@@ -78,10 +93,6 @@
 			<property name="selectExpression" value="/api/reports/districts"/>
 			<property name="displayProperty" value="name"/>
 			<property name="selectProperty" value="name"/>
-			<property name="required" value="false"/>
-		</parameter>
-		<parameter name="DueDays" class="java.lang.String">
-			<property name="displayName" value="Due date (days)"/>
 			<property name="required" value="false"/>
 		</parameter>
 		<queryString>
@@ -94,14 +105,14 @@ findLastPeriods AS (
   SELECT pp.id, pp.name FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{Period}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{Period}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 3
 )
 SELECT
   referencedata.processing_periods.name AS periodname,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
-  COUNT(CASE WHEN referencedata.processing_periods.enddate + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate THEN 1 END) AS ontime,
+ COUNT(CASE WHEN referencedata.processing_periods.enddate + 21 >= status_change.createddate THEN 1 END) AS ontime,
   COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
   COUNT(*) as total
 FROM referencedata.facilities
@@ -128,13 +139,13 @@ FROM referencedata.facilities
   	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
   		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
    ON status_change.requisitionid = requisition.requisitions.id
+      LEFT JOIN referencedata.facility_types AS facility_types ON facilities.typeid = facility_types.id
 WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-   AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17' 
-   	ELSE TRUE END
+	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate]]>
 		</queryString>
@@ -152,6 +163,13 @@ ORDER BY referencedata.processing_periods.startdate]]>
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="388"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="603"/>
+		<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
+		<parameter name="facilityTypeUpdated" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="facilityTypeList" class="java.util.ArrayList" nestedType="java.lang.String">
+			<defaultValueExpression><![CDATA[Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+		</parameter>
 		<parameter name="Program" class="java.lang.String">
 			<property name="displayName" value="Program"/>
 			<property name="selectExpression" value="/api/reports/programs"/>
@@ -160,12 +178,20 @@ ORDER BY referencedata.processing_periods.startdate]]>
 			<property name="required" value="true"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
-		<parameter name="Period" class="java.lang.String">
-			<property name="displayName" value="Period"/>
+		<parameter name="endPeriod" class="java.lang.String">
+			<property name="displayName" value="endPeriod"/>
 			<property name="selectExpression" value="/api/reports/processingPeriods"/>
 			<property name="displayProperty" value="name"/>
 			<property name="selectProperty" value="name"/>
 			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="startPeriod" class="java.lang.String">
+			<property name="displayName" value="startPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
 			<parameterDescription><![CDATA[]]></parameterDescription>
 		</parameter>
 		<parameter name="GeographicZone" class="java.lang.String">
@@ -173,10 +199,6 @@ ORDER BY referencedata.processing_periods.startdate]]>
 			<property name="selectExpression" value="/api/reports/districts"/>
 			<property name="displayProperty" value="name"/>
 			<property name="selectProperty" value="name"/>
-			<property name="required" value="false"/>
-		</parameter>
-		<parameter name="DueDays" class="java.lang.String">
-			<property name="displayName" value="Due date (days)"/>
 			<property name="required" value="false"/>
 		</parameter>
 		<queryString>
@@ -189,14 +211,14 @@ findLastPeriods AS (
   SELECT pp.id, pp.name FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{Period}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{Period}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
-  COUNT(CASE WHEN referencedata.processing_periods.enddate + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate THEN 1 END) AS ontime,
+   COUNT(CASE WHEN referencedata.processing_periods.enddate + 21 >= status_change.createddate THEN 1 END) AS ontime,
   COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
   COUNT(*) as total
 FROM referencedata.facilities
@@ -223,13 +245,13 @@ FROM referencedata.facilities
   	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
   		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
    ON status_change.requisitionid = requisition.requisitions.id
+   LEFT JOIN referencedata.facility_types AS facility_types ON facilities.typeid = facility_types.id
 WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
    AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-   AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17' 
-   	ELSE TRUE END
+	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY geographiczonename]]>
 		</queryString>
 		<field name="geographiczonename" class="java.lang.String"/>
@@ -242,6 +264,119 @@ GROUP BY geographiczonename]]>
 			<initialValueExpression><![CDATA["%.0f%%"]]></initialValueExpression>
 		</variable>
 	</subDataset>
+	<subDataset name="ReportingRateByPeriod" uuid="88939bf7-2046-424f-97b4-4c3b2be9a465">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
+		<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
+		<parameter name="facilityTypeUpdated" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="facilityTypeList" class="java.util.ArrayList" nestedType="java.lang.String">
+			<defaultValueExpression><![CDATA[Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+		</parameter>
+		<parameter name="Program" class="java.lang.String">
+			<property name="displayName" value="Program"/>
+			<property name="selectExpression" value="/api/reports/programs"/>
+			<property name="selectProperty" value="name"/>
+			<property name="displayProperty" value="name"/>
+			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="endPeriod" class="java.lang.String">
+			<property name="displayName" value="endPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="startPeriod" class="java.lang.String">
+			<property name="displayName" value="startPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="GeographicZone" class="java.lang.String">
+			<property name="displayName" value="District"/>
+			<property name="selectExpression" value="/api/reports/districts"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
+		</parameter>
+		<queryString>
+			<![CDATA[WITH RECURSIVE findChildZones AS (
+  SELECT * FROM referencedata.geographic_zones WHERE name = $P{GeographicZone}
+  UNION ALL
+  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
+), findLastPeriods AS (SELECT pp.id, pp.name FROM referencedata.processing_periods pp
+    JOIN referencedata.processing_schedules ps ON
+    pp.processingscheduleid = ps.id
+    where CASE WHEN $P{Program}::varchar = 'EPI' then pp.enddate <= (SELECT enddate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar) else pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar) END
+	and case when $P{startPeriod}::varchar is not null then pp.startdate >= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar) else true end
+    AND case when $P{Program}::varchar = 'EPI' then ps.id != '7334754d-e226-4c05-abbc-02c27c1888a7' else ps.id = '7334754d-e226-4c05-abbc-02c27c1888a7' END
+  ORDER BY startdate desc
+  LIMIT case when $P{startPeriod}::varchar is null then 8 end)
+  select 
+  data.periodname as periodname,
+  data.completed as completed,
+  data.ontime as ontime,
+  data.missed as missed,
+  data.total as total,
+  data.completed * 100 / data.total as reportingRate
+  from 
+  (select 
+  referencedata.processing_periods.enddate  AS periodname,
+  COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
+ COUNT(CASE WHEN referencedata.processing_periods.enddate + 21 >= status_change.createddate THEN 1 END) AS ontime,
+  COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
+  COUNT(*) as total
+FROM referencedata.facilities
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.programs program ON
+   program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
+  LEFT JOIN referencedata.processing_periods ON
+   referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
+  LEFT JOIN requisition.requisitions ON
+    requisition.requisitions.facilityid = referencedata.facilities.id
+    AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
+    AND requisition.requisitions.programid = program.id
+    AND requisition.requisitions.emergency = false
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
+  	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
+   ON status_change.requisitionid = requisition.requisitions.id
+   LEFT JOIN referencedata.facility_types AS facility_types ON facilities.typeid = facility_types.id
+WHERE
+   referencedata.facilities.active = true
+   AND referencedata.facilities.enabled = true
+   AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
+   	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
+GROUP BY periodname, referencedata.processing_periods.startdate
+ORDER BY referencedata.processing_periods.startdate ) as data]]>
+		</queryString>
+		<field name="periodname" class="java.lang.String"/>
+		<field name="total" class="java.lang.Integer"/>
+		<field name="missed" class="java.lang.String"/>
+		<field name="completed" class="java.lang.Integer"/>
+		<field name="ontime" class="java.lang.Integer"/>
+		<field name="reportingRate" class="java.lang.Integer"/>
+		<variable name="PercentAndNumberFormat" class="java.lang.String">
+			<variableExpression><![CDATA["%1$.0f%% (%2$d)"]]></variableExpression>
+			<initialValueExpression><![CDATA["%.0f%%"]]></initialValueExpression>
+		</variable>
+	</subDataset>
+	<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="Program" class="java.lang.String">
 		<property name="displayName" value="Program"/>
 		<property name="selectExpression" value="/api/reports/programs"/>
@@ -250,12 +385,20 @@ GROUP BY geographiczonename]]>
 		<property name="required" value="true"/>
 		<parameterDescription><![CDATA[]]></parameterDescription>
 	</parameter>
-	<parameter name="Period" class="java.lang.String">
-		<property name="displayName" value="Period"/>
+	<parameter name="endPeriod" class="java.lang.String">
+		<property name="displayName" value="endPeriod"/>
 		<property name="selectExpression" value="/api/reports/processingPeriods"/>
 		<property name="displayProperty" value="name"/>
 		<property name="selectProperty" value="name"/>
 		<property name="required" value="true"/>
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="startPeriod" class="java.lang.String">
+		<property name="displayName" value="startPeriod"/>
+		<property name="selectExpression" value="/api/reports/processingPeriods"/>
+		<property name="displayProperty" value="name"/>
+		<property name="selectProperty" value="name"/>
+		<property name="required" value="false"/>
 		<parameterDescription><![CDATA[]]></parameterDescription>
 	</parameter>
 	<parameter name="GeographicZone" class="java.lang.String">
@@ -263,10 +406,6 @@ GROUP BY geographiczonename]]>
 		<property name="selectExpression" value="/api/reports/districts"/>
 		<property name="displayProperty" value="name"/>
 		<property name="selectProperty" value="name"/>
-		<property name="required" value="false"/>
-	</parameter>
-	<parameter name="DueDays" class="java.lang.String">
-		<property name="displayName" value="Due date (days)"/>
 		<property name="required" value="false"/>
 	</parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
@@ -398,14 +537,14 @@ GROUP BY geographiczonename]]>
 					<categoryDataset>
 						<dataset>
 							<datasetRun subDataset="ByMonth" uuid="730473c2-0fee-41ae-a064-3d608cd4f524">
-								<datasetParameter name="DueDays">
-									<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
-								</datasetParameter>
 								<datasetParameter name="GeographicZone">
 									<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
 								</datasetParameter>
-								<datasetParameter name="Period">
-									<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+								<datasetParameter name="endPeriod">
+									<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
+								</datasetParameter>
+								<datasetParameter name="startPeriod">
+									<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 								</datasetParameter>
 								<datasetParameter name="Program">
 									<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
@@ -451,14 +590,14 @@ GROUP BY geographiczonename]]>
 		</groupHeader>
 	</group>
 	<pageHeader>
-		<band height="120">
+		<band height="123">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-			<textField>
-				<reportElement x="120" y="100" width="110" height="20" uuid="5b5c1ad9-a587-4ad5-93cf-3ad3d9ea6476"/>
-				<textFieldExpression><![CDATA[$P{Period}]]></textFieldExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="100" width="170" height="20" uuid="5b5c1ad9-a587-4ad5-93cf-3ad3d9ea6476"/>
+				<textFieldExpression><![CDATA[$P{startPeriod} == null ? $P{endPeriod} : $P{startPeriod} + "-" + $P{endPeriod}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement key="" x="450" y="100" width="105" height="20" uuid="091e102a-fd8f-418a-9555-8ea6ccb278e8"/>
+				<reportElement key="x" x="450" y="100" width="105" height="20" uuid="091e102a-fd8f-418a-9555-8ea6ccb278e8"/>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("d - MMM - yy").format(java.time.ZonedDateTime.now(java.time.ZoneId.of($P{timeZone})));]]></textFieldExpression>
 			</textField>
@@ -471,26 +610,26 @@ GROUP BY geographiczonename]]>
 				</textElement>
 				<text><![CDATA[Reporting Rate]]></text>
 			</staticText>
-			<textField>
-				<reportElement x="230" y="100" width="110" height="20" uuid="c369de06-ce13-46ab-b25a-632d3693b5eb"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="380" y="100" width="70" height="20" uuid="c369de06-ce13-46ab-b25a-632d3693b5eb"/>
 				<textFieldExpression><![CDATA[$P{Program}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="80" width="120" height="20" uuid="a109178b-f19f-4b3d-a666-450d83ee599e"/>
+				<reportElement x="290" y="80" width="90" height="20" uuid="a109178b-f19f-4b3d-a666-450d83ee599e"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[District:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="230" y="80" width="110" height="20" uuid="d27c90da-6dab-4dcb-9666-be7019b8e757"/>
+				<reportElement x="380" y="80" width="70" height="20" uuid="d27c90da-6dab-4dcb-9666-be7019b8e757"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
 				<text><![CDATA[Program:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="" x="450" y="80" width="105" height="20" uuid="d64c46c1-83c6-4ddb-b814-82708af40118">
+				<reportElement key="x" x="450" y="80" width="105" height="20" uuid="d64c46c1-83c6-4ddb-b814-82708af40118">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
 				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
@@ -499,7 +638,7 @@ GROUP BY geographiczonename]]>
 				<text><![CDATA[Report Run Date:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="120" y="80" width="110" height="20" uuid="6e08bac0-3b74-444e-b551-64f12a7f83a1"/>
+				<reportElement x="0" y="80" width="171" height="20" uuid="6e08bac0-3b74-444e-b551-64f12a7f83a1"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
 					<font isBold="true"/>
 				</textElement>
@@ -526,21 +665,20 @@ GROUP BY geographiczonename]]>
 				</textElement>
 				<text><![CDATA[Ministry of Health, Malawi]]></text>
 			</staticText>
-			<textField>
-				<reportElement x="0" y="100" width="120" height="20" uuid="08ab21bc-114c-4722-8522-50ac17c1f387"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="290" y="100" width="90" height="20" uuid="08ab21bc-114c-4722-8522-50ac17c1f387"/>
 				<textFieldExpression><![CDATA[($P{GeographicZone} == null) ? "All" : $P{GeographicZone}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="340" y="80" width="110" height="20" uuid="7db639b5-4a4c-4aa2-b6f8-043eeb1f5348"/>
+				<reportElement x="171" y="80" width="119" height="20" uuid="248ab482-8f5b-43df-ade5-ed2c05d582ca"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font size="10" isBold="true"/>
+					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Due date (days):]]></text>
+				<text><![CDATA[Facility:]]></text>
 			</staticText>
-			<textField>
-				<reportElement key="" x="340" y="100" width="110" height="20" uuid="af8d0841-2731-4e7a-b534-9bedaaf61a5d"/>
-				<textElement textAlignment="Left"/>
-				<textFieldExpression><![CDATA[($P{DueDays} == null) ? "20" : $P{DueDays}]]></textFieldExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="171" y="100" width="119" height="20" uuid="297c699d-17a6-40da-aa31-f0fdd4485707"/>
+				<textFieldExpression><![CDATA[($P{facilityType} == null) ? "All" : $P{facilityType}.replaceAll(";", ", ")]]></textFieldExpression>
 			</textField>
 		</band>
 	</pageHeader>
@@ -559,17 +697,20 @@ GROUP BY geographiczonename]]>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ByMonth" uuid="6866ffed-82f9-4aa8-b38f-4caf953cd9cd">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="REPORT_PARAMETERS_MAP">
 							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
@@ -703,17 +844,20 @@ GROUP BY geographiczonename]]>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ByZone" uuid="a95f5831-2ab5-410a-abaa-ed3683b08f43">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="REPORT_PARAMETERS_MAP">
 							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
@@ -834,11 +978,11 @@ GROUP BY geographiczonename]]>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ByZone" uuid="ce2afa17-8d34-4b3a-8be3-c3ef335075ac">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
@@ -965,11 +1109,11 @@ GROUP BY geographiczonename]]>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ByMonth" uuid="1ca18116-71f4-431f-bccb-8df29deb57d3">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
@@ -1108,11 +1252,11 @@ GROUP BY geographiczonename]]>
 				</reportElement>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
 					<datasetRun subDataset="ByZone" uuid="d0410fd4-a29a-41ad-bef4-6f8773ab91b1">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[$P{DueDays}]]></datasetParameterExpression>
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{Period}]]></datasetParameterExpression>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Program">
 							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
@@ -1191,6 +1335,79 @@ GROUP BY geographiczonename]]>
 					</jr:column>
 				</jr:table>
 			</componentElement>
+		</band>
+		<band height="430">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<lineChart>
+				<chart isShowLegend="false" evaluationTime="Report">
+					<reportElement key="" positionType="Float" x="25" y="20" width="530" height="380" uuid="40d0c0e8-9e2d-4caa-9f7e-d336ab807554">
+						<property name="com.jaspersoft.studio.unit.y" value="px"/>
+						<property name="com.jaspersoft.studio.unit.height" value="px"/>
+						<property name="com.jaspersoft.studio.unit.x" value="px"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<property name="net.sf.jasperreports.chart.range.axis.integer.unit" value="true"/>
+						<property name="Apply to" value="value"/>
+						<property name="Start value" value="value"/>
+						<printWhenExpression><![CDATA[$P{Program}.equals("EPI")]]></printWhenExpression>
+					</reportElement>
+					<chartTitle>
+						<font isBold="false"/>
+						<titleExpression><![CDATA["DVS weekly reporting trend"]]></titleExpression>
+					</chartTitle>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<datasetRun subDataset="ReportingRateByPeriod" uuid="87ce4ff7-a2ef-4da5-9c39-fcf4d8603d86">
+							<datasetParameter name="GeographicZone">
+								<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="endPeriod">
+								<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="startPeriod">
+								<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="Program">
+								<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="facilityType">
+								<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["SERIES 1"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{periodname}]]></categoryExpression>
+						<valueExpression><![CDATA[Math.round( (double)$F{completed}/$F{total}*100)]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot labelRotation="64.0">
+						<seriesColor seriesOrder="0" color="#3D739B"/>
+					</plot>
+					<categoryAxisFormat labelRotation="64.0">
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" verticalTickLabels="true" axisLineColor="#000000">
+							<labelFont>
+								<font isBold="true"/>
+							</labelFont>
+							<tickLabelFont>
+								<font size="10" isBold="false"/>
+							</tickLabelFont>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisLabelExpression><![CDATA["Reporting Rate [%]"]]></valueAxisLabelExpression>
+					<valueAxisFormat>
+						<axisFormat labelColor="#000000" tickLabelColor="#000000" axisLineColor="#000000">
+							<labelFont>
+								<font isBold="false"/>
+							</labelFont>
+						</axisFormat>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
 		</band>
 	</detail>
 </jasperReport>
