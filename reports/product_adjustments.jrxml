@@ -196,7 +196,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="18" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Products Adjustments Report]]></text>
+				<text><![CDATA[Product Adjustment Report]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true">
 				<reportElement x="0" y="100" width="198" height="20" uuid="a8565621-bd19-4b76-bd5e-280c405039c6"/>
