@@ -261,9 +261,9 @@ ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{endDate}.toString()))]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="0" y="100" width="180" height="20" uuid="736345fc-b72f-4d09-8d67-399953fe74b5"/>
+				<reportElement x="0" y="100" width="160" height="40" uuid="736345fc-b72f-4d09-8d67-399953fe74b5"/>
 				<textFieldExpression><![CDATA[($P{sourceFacility} == null ? "All":
-	($P{sourceFacilityList}.size() == 1 ? $P{sourceFacility} : "Multiple")
+	($P{sourceFacility}.contains(";") ?  "Multiple" : $P{sourceFacility})
 )]]></textFieldExpression>
 			</textField>
 		</band>
