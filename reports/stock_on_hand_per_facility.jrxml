@@ -173,7 +173,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="18" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Product Stock on Hand by Batch per Facility]]></text>
+				<text><![CDATA[Stock on Hand by Batch by Facility]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true">
 				<reportElement x="0" y="100" width="198" height="20" uuid="a8565621-bd19-4b76-bd5e-280c405039c6"/>
@@ -350,7 +350,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				</graphicElement>
 			</rectangle>
 			<textField isBlankWhenNull="true">
-				<reportElement x="-1" y="0" width="191" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
+				<reportElement x="0" y="0" width="190" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
