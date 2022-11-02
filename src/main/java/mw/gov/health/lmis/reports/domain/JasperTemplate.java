@@ -61,6 +61,11 @@ public class JasperTemplate extends BaseEntity {
   @Setter
   private List<String> supportedFormats;
 
+  @Column
+  @Getter
+  @Setter
+  private String category;
+
   @OneToMany(
       mappedBy = "template",
       cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE},
@@ -87,6 +92,7 @@ public class JasperTemplate extends BaseEntity {
     jasperTemplate.setDescription(importer.getDescription());
     jasperTemplate.setIsDisplayed(importer.getIsDisplayed());
     jasperTemplate.setSupportedFormats(importer.getSupportedFormats());
+    jasperTemplate.setCategory(importer.getCategory());
     jasperTemplate.setTemplateParameters(new ArrayList<>());
 
     if (importer.getTemplateParameters() != null) {
@@ -109,6 +115,7 @@ public class JasperTemplate extends BaseEntity {
     this.type = jasperTemplate.getType();
     this.description = jasperTemplate.getDescription();
     this.isDisplayed = jasperTemplate.getIsDisplayed();
+    this.category = jasperTemplate.getCategory();
   }
 
   @PrePersist
@@ -130,6 +137,7 @@ public class JasperTemplate extends BaseEntity {
     exporter.setType(type);
     exporter.setIsDisplayed(isDisplayed);
     exporter.setSupportedFormats(supportedFormats);
+    exporter.setCategory(category);
   }
 
   private void forEachParameter(Consumer<JasperTemplateParameter> consumer) {
@@ -151,6 +159,8 @@ public class JasperTemplate extends BaseEntity {
     void setIsDisplayed(Boolean isDisplayed);
 
     void setSupportedFormats(List<String> formats);
+
+    void setCategory(String category);
   }
 
   public interface Importer {
@@ -169,5 +179,7 @@ public class JasperTemplate extends BaseEntity {
     Boolean getIsDisplayed();
 
     List<String> getSupportedFormats();
+
+    String getCategory();
   }
 }
