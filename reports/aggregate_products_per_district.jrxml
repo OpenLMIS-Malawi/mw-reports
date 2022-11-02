@@ -70,9 +70,7 @@
 	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
 	GROUP BY sourcefacility, destinationfacility, fullproductname, batchnumber
-
 	UNION
-
 	SELECT
 		true as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
@@ -111,9 +109,7 @@
 		AND ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
 		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
 		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
-
 	UNION
-
 	SELECT
 	true, null, null, null, 'total'::text,
 	sum(agg_data_filtered.quantity) as total_quantity
@@ -240,7 +236,7 @@ ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="18" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Aggregate Products Issued]]></text>
+				<text><![CDATA[Aggregate Products Issued and Received Per Facility Report]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="400" y="100" width="190" height="20" uuid="afb90928-15d1-4cf1-8f2d-0a1bfb108b89"/>
