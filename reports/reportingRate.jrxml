@@ -53,6 +53,16 @@
 			<rightPen lineWidth="0.5" lineColor="#000000"/>
 		</box>
 	</style>
+	<style name="reported" mode="Opaque" forecolor="#000000" backcolor="#FFFFFF">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$F{reported}]]></conditionExpression>
+			<style mode="Opaque" forecolor="#000000" backcolor="#C9C5C5"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[!$F{reported}]]></conditionExpression>
+			<style forecolor="#000000"/>
+		</conditionalStyle>
+	</style>
 	<subDataset name="ByMonth" uuid="a6da25d7-01b4-4f6b-870d-bbe46b496479">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="22"/>
@@ -376,6 +386,102 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 			<initialValueExpression><![CDATA["%.0f%%"]]></initialValueExpression>
 		</variable>
 	</subDataset>
+	<subDataset name="ByFacility" uuid="ef387f1a-446c-4d1e-b76a-89d5655f8639">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
+		<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
+		<parameter name="facilityTypeUpdated" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="facilityTypeList" class="java.util.ArrayList" nestedType="java.lang.String">
+			<defaultValueExpression><![CDATA[Arrays.asList($P{facilityTypeUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+		</parameter>
+		<parameter name="Program" class="java.lang.String">
+			<property name="displayName" value="Program"/>
+			<property name="selectExpression" value="/api/reports/programs"/>
+			<property name="selectProperty" value="name"/>
+			<property name="displayProperty" value="name"/>
+			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="endPeriod" class="java.lang.String">
+			<property name="displayName" value="endPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="true"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="startPeriod" class="java.lang.String">
+			<property name="displayName" value="startPeriod"/>
+			<property name="selectExpression" value="/api/reports/processingPeriods"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
+			<parameterDescription><![CDATA[]]></parameterDescription>
+		</parameter>
+		<parameter name="GeographicZone" class="java.lang.String">
+			<property name="displayName" value="District"/>
+			<property name="selectExpression" value="/api/reports/districts"/>
+			<property name="displayProperty" value="name"/>
+			<property name="selectProperty" value="name"/>
+			<property name="required" value="false"/>
+		</parameter>
+		<queryString>
+			<![CDATA[WITH RECURSIVE findChildZones AS (
+  SELECT * FROM referencedata.geographic_zones WHERE name = $P{GeographicZone}
+  UNION ALL
+  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
+),
+findLastPeriods AS (
+  SELECT pp.id, pp.name FROM referencedata.processing_periods pp
+    JOIN referencedata.processing_schedules ps ON
+    pp.processingscheduleid = ps.id
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+  ORDER BY startdate DESC LIMIT 1
+)
+SELECT
+  referencedata.geographic_zones.name AS geographiczonename,
+  referencedata.facilities."name" as facilityname,
+    CASE WHEN status_change.createddate IS NULL THEN false WHEN referencedata.processing_periods.enddate + 21 >= status_change.createddate then true END AS reported
+FROM referencedata.facilities
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.programs program ON
+   program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
+  LEFT JOIN referencedata.processing_periods ON
+   referencedata.processing_periods.id IN (SELECT id FROM findLastPeriods)
+  LEFT JOIN requisition.requisitions ON
+    requisition.requisitions.facilityid = referencedata.facilities.id
+    AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
+    AND requisition.requisitions.programid = program.id
+    AND requisition.requisitions.emergency = false
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes 
+  	WHERE CASE WHEN $P{Program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change 
+   ON status_change.requisitionid = requisition.requisitions.id
+   LEFT JOIN referencedata.facility_types AS facility_types ON facilities.typeid = facility_types.id
+WHERE
+   referencedata.facilities.active = true
+   AND referencedata.facilities.enabled = true
+   AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
+	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
+GROUP BY geographiczonename, facilityname, status_change.createddate, referencedata.processing_periods.enddate]]>
+		</queryString>
+		<field name="geographiczonename" class="java.lang.String"/>
+		<field name="facilityname" class="java.lang.String"/>
+		<field name="reported" class="java.lang.Boolean"/>
+	</subDataset>
 	<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="Program" class="java.lang.String">
 		<property name="displayName" value="Program"/>
@@ -548,6 +654,9 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 								</datasetParameter>
 								<datasetParameter name="Program">
 									<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
+								</datasetParameter>
+								<datasetParameter name="facilityType">
+									<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
 								</datasetParameter>
 								<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 							</datasetRun>
@@ -865,7 +974,7 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 					</datasetRun>
 					<jr:column width="83" uuid="78d31c95-ced7-4700-a34f-d21fb9758a98">
-						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
 						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
 							<staticText>
 								<reportElement x="0" y="0" width="83" height="30" uuid="7fa71eb4-df17-41d7-a7f4-13486a02659b"/>
@@ -884,7 +993,7 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						</jr:detailCell>
 					</jr:column>
 					<jr:column width="118" uuid="37f0c5d3-870c-44dd-b708-34760c787b36">
-						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
 						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
 							<staticText>
 								<reportElement x="0" y="0" width="118" height="30" uuid="45afdcba-545c-4700-9984-c689db69084a"/>
@@ -903,7 +1012,7 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						</jr:detailCell>
 					</jr:column>
 					<jr:column width="118" uuid="36deb7dd-0971-4930-ad82-52e69571d367">
-						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column4"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
 						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
 							<staticText>
 								<reportElement x="0" y="0" width="118" height="30" uuid="add31fc1-3b72-4458-8e3e-df1c8d8f09f9"/>
@@ -941,7 +1050,7 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						</jr:detailCell>
 					</jr:column>
 					<jr:column width="118" uuid="c6d75d3a-7411-46f3-a79f-6d1e06fb0dbd">
-						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column6"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column4"/>
 						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
 							<staticText>
 								<reportElement x="0" y="0" width="118" height="30" uuid="7ba5a6fb-2872-472e-9b81-fdf14b96c310">
@@ -989,6 +1098,9 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						</datasetParameter>
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="REPORT_PARAMETERS_MAP">
 							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
@@ -1120,6 +1232,9 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						</datasetParameter>
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="REPORT_PARAMETERS_MAP">
 							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
@@ -1264,6 +1379,9 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 						<datasetParameter name="GeographicZone">
 							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
 						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
+						</datasetParameter>
 						<datasetParameter name="REPORT_PARAMETERS_MAP">
 							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
 						</datasetParameter>
@@ -1336,11 +1454,113 @@ ORDER BY referencedata.processing_periods.startdate ) as data]]>
 				</jr:table>
 			</componentElement>
 		</band>
+		<band height="167">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="20" width="555" height="20" forecolor="#FFFFFF" backcolor="#666666" uuid="838290bc-6de3-460c-a483-26ff6c851b30">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+					<paragraph firstLineIndent="0" leftIndent="10"/>
+				</textElement>
+				<text><![CDATA[Facilities]]></text>
+			</staticText>
+			<componentElement>
+				<reportElement x="0" y="50" width="555" height="60" uuid="c47cb59e-b477-42d7-bab9-74adca456ce6">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+					<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
+					<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
+					<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
+					<property name="com.jaspersoft.studio.components.autoresize.proportional" value="true"/>
+					<property name="net.sf.jasperreports.export.headertoolbar.table.name" value="Period Table"/>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ByFacility" uuid="368d6688-6b08-4243-b5ec-c9dab0886296">
+						<datasetParameter name="endPeriod">
+							<datasetParameterExpression><![CDATA[$P{endPeriod}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="startPeriod">
+							<datasetParameterExpression><![CDATA[$P{startPeriod}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="Program">
+							<datasetParameterExpression><![CDATA[$P{Program}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="GeographicZone">
+							<datasetParameterExpression><![CDATA[$P{GeographicZone}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="facilityType">
+							<datasetParameterExpression><![CDATA[$P{facilityType}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="REPORT_PARAMETERS_MAP">
+							<datasetParameterExpression><![CDATA[$P{REPORT_PARAMETERS_MAP}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="145" uuid="9ad37992-525d-44ac-b408-53d1959042c9">
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
+						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="145" height="30" uuid="7936463c-6a04-4431-9521-4503abed6741"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<text><![CDATA[District]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement key="x" style="reported" positionType="Float" x="0" y="0" width="145" height="30" isPrintInFirstWholeBand="true" uuid="a8d4fcfa-6766-45bd-8da5-8c9bf5c78924"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{geographiczonename}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="325" uuid="041cd44d-5e88-4c90-888f-d72739754de8">
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column2"/>
+						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="325" height="30" uuid="151490e3-3a19-4f1f-8fb0-31f1b0d903e8"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<text><![CDATA[Facility Name]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement style="reported" x="0" y="0" width="325" height="30" uuid="b4c1eddb-c67b-4cf2-9df7-1b0d73f8f6a9"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{facilityname}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="85" uuid="62260552-cbda-401d-8e87-29599fa04ed4">
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column3"/>
+						<jr:columnHeader style="Table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="85" height="30" uuid="52612404-ef47-4657-8bb9-a53eae66d93b"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<text><![CDATA[Reported]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="Table_TD" height="30">
+							<textField>
+								<reportElement style="reported" x="0" y="0" width="85" height="30" uuid="bb440060-bf17-4c84-b10e-2d4b2ba9645e"/>
+								<box padding="2"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{reported} ? "Yes" : "No"]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
 		<band height="430">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
 			<lineChart>
 				<chart isShowLegend="false" evaluationTime="Report">
-					<reportElement key="" positionType="Float" x="25" y="20" width="530" height="380" uuid="40d0c0e8-9e2d-4caa-9f7e-d336ab807554">
+					<reportElement key="x" positionType="Float" x="25" y="20" width="530" height="380" uuid="40d0c0e8-9e2d-4caa-9f7e-d336ab807554">
 						<property name="com.jaspersoft.studio.unit.y" value="px"/>
 						<property name="com.jaspersoft.studio.unit.height" value="px"/>
 						<property name="com.jaspersoft.studio.unit.x" value="px"/>
