@@ -63,7 +63,7 @@ from (
     ) as cs on cs.stockcardid = soh.stockcardid and cs.max_date = soh.occurreddate
     GROUP BY orderableid, facilityid, programid
 ) as stock_cards
-join (SELECT
+full join (SELECT
         sum(soh.stockonhand) AS soh,
         stock_cards.orderableid,
         stock_cards.facilityid,
@@ -77,7 +77,7 @@ join (SELECT
         group by stockcardid
     ) as cs on cs.stockcardid = soh.stockcardid and cs.max_date = soh.occurreddate
     GROUP BY orderableid, facilityid, programid) as stock_cards_opening on stock_cards_opening.facilityid = stock_cards.facilityid and stock_cards_opening.orderableid= stock_cards.orderableid and stock_cards_opening.programid = stock_cards.programid
-join (
+full join (
     select
         coalesce(events.orderableid, inventories.orderableid) as orderableid,
         coalesce(events.programid, inventories.programid) as programid,
@@ -137,7 +137,7 @@ where productVersionRank = 1
 		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
 		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
 		end)
-group by productCode, productName, facilityName, district
+group by facilityName,  productCode, productName, district
 ORDER BY facilityName]]>
 	</queryString>
 	<field name="facilityName" class="java.lang.String"/>
@@ -401,7 +401,7 @@ ORDER BY facilityName]]>
 				<textFieldExpression><![CDATA[$F{facilityName}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="201" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
+				<reportElement positionType="Float" x="201" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
 				<box leftPadding="2">
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -453,7 +453,7 @@ ORDER BY facilityName]]>
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{soh_opening}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{soh_opening} != null ? $F{soh_opening} : 0]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="541" y="0" width="61" height="40" uuid="a1a30576-35c5-4ae3-8caa-4baf6b8e775f"/>
@@ -486,7 +486,7 @@ ORDER BY facilityName]]>
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{soh_opening} + $F{credit} - $F{debit} + $F{adjustments} == $F{soh} ? $F{adjustments} : $F{soh} - $F{soh_opening} + $F{debit} - $F{credit}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{soh_opening} != null ? ($F{soh_opening} + $F{credit} - $F{debit} + $F{adjustments} == $F{soh} ? $F{adjustments} : $F{soh} - $F{soh_opening} + $F{debit} - $F{credit}) :  ( $F{credit} - $F{debit} + $F{adjustments} == $F{soh} ? $F{adjustments} : $F{soh} + $F{debit} - $F{credit})]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
