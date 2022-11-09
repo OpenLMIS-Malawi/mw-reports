@@ -49,7 +49,7 @@ services:
     image: openlmismw/reports
 
   db:
-    image: openlmis/postgres:9.6
+    image: openlmis/postgres:12-debezium
     env_file: .env
 
   log:
