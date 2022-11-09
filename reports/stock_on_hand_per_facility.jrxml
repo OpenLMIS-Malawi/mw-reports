@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="malawi_stock_on_hand_by_facility" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5da17652-b7b6-4ee1-a741-9f6306905a99">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="malawi_stock_on_hand_by_facility" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5da17652-b7b6-4ee1-a741-9f6306905a99">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
 	<style name="Style1" forecolor="#000000" pattern="">
 		<conditionalStyle>
@@ -68,25 +68,30 @@ FROM (
 		facilities."name" as facilityName,
 		soh.occurreddate as lastUpdated,
 		zones.name as district,
-		(extract(year from age(lots.expirationdate , now())) * 12 +
-		extract(month from age(lots.expirationdate , now())) + (extract(day from age(lots.expirationdate , now())) / 30))::numeric as monthsToExpire,
+		case when lots.id notnull then (extract(year from age(lots.expirationdate , now())) * 12 +
+		extract(month from age(lots.expirationdate , now())) + (extract(day from age(lots.expirationdate , now())) / 30))::numeric else 0 end as monthsToExpire,
 		RANK () OVER (
 		PARTITION BY products.id
 		ORDER BY products.versionnumber DESC) AS product_version_rank,
-		RANK () OVER (
-		PARTITION BY products.id, lots.lotcode
-		ORDER BY soh.occurreddate desc) AS date_rank
+		max(soh.occurreddate) as max_date
 	FROM
 		stockmanagement.stock_cards AS stock_cards
-		JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+		    JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+    join (
+        SELECT stockcardid, max(occurreddate) as max_date
+        FROM stockmanagement.calculated_stocks_on_hand
+        where occurreddate::varchar <= $P{date}::varchar
+        group by stockcardid
+    ) as cs on cs.stockcardid = soh.stockcardid and cs.max_date = soh.occurreddate
 		JOIN referencedata.orderables AS products ON products.id = stock_cards.orderableid
-		LEFT JOIN referencedata.lots AS lots ON lots.id = stock_cards.lotid
+		 JOIN referencedata.lots AS lots ON lots.id = stock_cards.lotid
 		JOIN referencedata.facilities AS facilities ON facilities.id = stock_cards.facilityid
 		join referencedata.facility_types AS facilities_types ON facilities_types.id = facilities.typeid
 		JOIN referencedata.programs AS programs ON programs.id = stock_cards.programid
 		JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	where
-		(case 
+		 (programs.name = $P{program}::varchar)
+		and (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
 		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
@@ -94,10 +99,9 @@ FROM (
 		end)
 		and ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
 		and ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
-		AND (soh.occurreddate::varchar <= $P{date}::varchar)
-		AND (programs.name = $P{program}::varchar)
+		 group by products.code, products.fullproductname, lots.lotcode, lots.expirationdate, soh.stockonhand, facilities."name", soh.occurreddate, zones.name, products.versionnumber, products.id, lots.id
 ) AS soh_data
-WHERE soh_data.date_rank = 1 AND soh_data.product_version_rank = 1
+WHERE soh_data.product_version_rank = 1
 GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumber,  soh_data.productExpiryDate, soh_data.productId, soh_data.lastUpdated, soh_data.monthsToExpire, soh_data.district]]>
 	</queryString>
 	<field name="facilityName" class="java.lang.String"/>
@@ -342,7 +346,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 	<detail>
 		<band height="40" splitType="Prevent">
 			<property name="com.jaspersoft.studio.layout"/>
-			<printWhenExpression><![CDATA[($F{monthsToExpire} < 0 && $P{expiredProducts}.equals("true")) || ($F{monthsToExpire} > 0 && $P{expiredProducts}.equals("false"))]]></printWhenExpression>
+			<printWhenExpression><![CDATA[(($F{monthsToExpire} < 0 && $P{expiredProducts}.equals("true"))  || $F{productExpiryDate} == null)  || (($F{monthsToExpire} > 0 && $P{expiredProducts}.equals("false")) || $F{productExpiryDate} == null)]]></printWhenExpression>
 			<rectangle>
 				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="801" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
@@ -446,7 +450,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{monthsToExpire} > 0 ? (double)Math.round($F{monthsToExpire} * 10d) / 10d : "EXPIRED"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{monthsToExpire} != null ? ($F{monthsToExpire} > 0 ? (double)Math.round($F{monthsToExpire} * 10d) / 10d : "EXPIRED") : ""]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
