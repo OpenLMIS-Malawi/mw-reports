@@ -2,17 +2,17 @@
 <!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="malawi_stock_on_hand_by_facility" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5da17652-b7b6-4ee1-a741-9f6306905a99">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
-	<style name="Style1" forecolor="#000000" pattern="">
+	<style name="Style1">
 		<conditionalStyle>
-			<conditionExpression><![CDATA[$F{monthsToExpire} <= 3 && $F{monthsToExpire} > 0]]></conditionExpression>
-			<style forecolor="#FF0400"/>
+			<conditionExpression><![CDATA[$F{destinationFacility}.equals("")]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFFFFF" isBold="true"/>
 		</conditionalStyle>
 	</style>
-	<parameter name="date" class="java.lang.String"/>
+	<parameter name="startDate" class="java.lang.String"/>
+	<parameter name="endDate" class="java.lang.String"/>
 	<parameter name="program" class="java.lang.String">
 		<property name="required" value="true"/>
 	</parameter>
-	<parameter name="expiredProducts" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityType" class="java.lang.String" nestedType="java.lang.String"/>
 	<parameter name="facilityTypeUpdated" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[$P{facilityType}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
@@ -44,71 +44,166 @@
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[WITH RECURSIVE findChildZones AS (
-  SELECT * FROM referencedata.geographic_zones
-  UNION ALL
-  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId)
-select
-	soh_data.facilityName as facilityName,
-	soh_data.productId AS productId,
-	soh_data.productName AS productName,
-	soh_data.productBatchNumber as productBatchNumber,
-	soh_data.productExpiryDate as productExpiryDate,
-	soh_data.lastUpdated as lastUpdated,
-	SUM(soh_data.stockonhand) AS quantity,
-	soh_data.monthsToExpire AS monthsToExpire,
-	soh_data.district AS district
-FROM (
-	SELECT
-		products.code as productId,
-		products.fullproductname as productName,
-		lots.lotcode as productBatchNumber,
-		lots.expirationdate as productExpiryDate,
-		soh.stockonhand AS stockonhand,
-		facilities."name" as facilityName,
-		soh.occurreddate as lastUpdated,
-		zones.name as district,
-		(extract(year from age(lots.expirationdate , now())) * 12 +
-		extract(month from age(lots.expirationdate , now())) + (extract(day from age(lots.expirationdate , now())) / 30))::numeric as monthsToExpire,
-		RANK () OVER (
-		PARTITION BY products.id
-		ORDER BY products.versionnumber DESC) AS product_version_rank,
-		RANK () OVER (
-		PARTITION BY products.id, lots.lotcode
-		ORDER BY soh.occurreddate desc) AS date_rank
-	FROM
-		stockmanagement.stock_cards AS stock_cards
-		JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
-		JOIN referencedata.orderables AS products ON products.id = stock_cards.orderableid
-		LEFT JOIN referencedata.lots AS lots ON lots.id = stock_cards.lotid
-		JOIN referencedata.facilities AS facilities ON facilities.id = stock_cards.facilityid
-		join referencedata.facility_types AS facilities_types ON facilities_types.id = facilities.typeid
-		JOIN referencedata.programs AS programs ON programs.id = stock_cards.programid
-		JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
-	where
-		(case 
+		<![CDATA[(select 
+	issues_data.sourceFacility as sourceFacility,
+	issues_data.district as district,
+	issues_data.productCode as productCode,
+	issues_data.fullProductName as fullProductName,
+	issues_data.lotCode as lotCode,
+	issues_data.expirationDate as expirationDate,
+    '' as destinationFacility,
+	issues_data.issuedDate as issuedDate,
+	sum(issues_data.quantity) as quantity,
+	issues_data.closingBalance as closingBalance
+from (select
+	facilities."name" AS sourceFacility,
+	zones."name" as district,
+	nodes.isrefdatafacility as isRefDataFacility,
+	nodes.referenceid as destinationId,
+	products.code as productCode,
+	products.fullproductname as fullProductName,
+	lots.lotcode as lotCode,
+	lots.expirationdate as expirationDate,
+	line_items.occurreddate as issuedDate,
+	line_items.quantity AS quantity,
+	sum(stock_cards.soh) as closingBalance
+FROM
+	stockmanagement.stock_event_line_items AS line_items
+	left JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
+	left JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid)
+	left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
+	left JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
+		left JOIN (
+    select
+        id,
+        code,
+        fullproductname,
+        RANK () OVER (
+            PARTITION BY id
+            ORDER BY versionnumber DESC
+        ) AS productVersionRank
+    from referencedata.orderables
+) AS products on products.id = line_items.orderableid 
+	left join referencedata.lots as lots on lots.id = line_items.lotid
+	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
+	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+	left join (
+    SELECT
+        sum(soh.stockonhand) AS soh,
+        stock_cards.lotid as lotId,
+        stock_cards.orderableid,
+        stock_cards.facilityid,
+        stock_cards.programid,
+        soh.occurreddate as occurredDate
+    from stockmanagement.stock_cards AS stock_cards
+    JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+    GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
+) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
+WHERE
+	products.productVersionRank = 1
+	AND ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
+	AND (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
 		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
 		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
 		end)
-		and ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
-		and ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
-		AND (soh.occurreddate::varchar <= $P{date}::varchar)
-		AND (programs.name = $P{program}::varchar)
-) AS soh_data
-WHERE soh_data.date_rank = 1 AND soh_data.product_version_rank = 1
-GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumber,  soh_data.productExpiryDate, soh_data.productId, soh_data.lastUpdated, soh_data.monthsToExpire, soh_data.district]]>
+	AND ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
+		and (reasons.reasoncategory = 'TRANSFER' and reasons.reasontype = 'DEBIT')
+	AND programs.name = $P{program}::varchar
+	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
+	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity) as issues_data
+	left join referencedata.facilities as facilities on facilities.id = issues_data.destinationId
+	left JOIN stockmanagement.organizations AS organizations ON organizations.id = issues_data.destinationId
+	GROUP BY issues_data.sourceFacility, issues_data.district, issues_data.productCode, issues_data.fullProductName,issues_data.issuedDate,issues_data.lotCode,issues_data.expirationDate, issues_data.closingBalance)
+union 
+(select 
+	issues_data.sourceFacility as sourceFacility,
+	issues_data.district as district,
+	issues_data.productCode as productCode,
+	issues_data.fullProductName as fullProductName,
+	issues_data.lotCode as lotCode,
+	issues_data.expirationDate as expirationDate,
+    case when issues_data.isRefDataFacility then facilities."name" else organizations."name" end 
+ as destinationFacility,
+	issues_data.issuedDate as issuedDate,
+	issues_data.quantity as quantity,
+	issues_data.closingBalance as closingBalance
+from (select
+	facilities."name" AS sourceFacility,
+	zones."name" as district,
+	nodes.isrefdatafacility as isRefDataFacility,
+	nodes.referenceid as destinationId,
+	products.code as productCode,
+	products.fullproductname as fullProductName,
+	lots.lotcode as lotCode,
+	lots.expirationdate as expirationDate,
+	line_items.occurreddate as issuedDate,
+	line_items.quantity AS quantity,
+	sum(stock_cards.soh) as closingBalance
+FROM
+	stockmanagement.stock_event_line_items AS line_items
+	left JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
+	left JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid)
+	left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
+	left JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
+left JOIN (
+    select
+        id,
+        code,
+        fullproductname,
+        RANK () OVER (
+            PARTITION BY id
+            ORDER BY versionnumber DESC
+        ) AS productVersionRank
+    from referencedata.orderables
+) AS products on products.id = line_items.orderableid 
+	left join referencedata.lots as lots on lots.id = line_items.lotid
+	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
+	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+	left join (
+    SELECT
+        sum(soh.stockonhand) AS soh,
+        stock_cards.lotid as lotId,
+        stock_cards.orderableid,
+        stock_cards.facilityid,
+        stock_cards.programid,
+        soh.occurreddate as occurredDate
+    from stockmanagement.stock_cards AS stock_cards
+    JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+    GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
+) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
+WHERE
+products.productVersionRank = 1
+AND ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
+	AND (case 
+		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
+		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
+		when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, facilities_types.name ,facilityTypeList} OR $X{IN, facilities.name ,facilityList} )
+		else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
+		end)
+	AND ($P{batchNumber}::varchar IS NULL OR $X{IN, lots.lotcode, batchNumberList})
+		and (reasons.reasoncategory = 'TRANSFER' and reasons.reasontype = 'DEBIT')
+	AND programs.name = $P{program}::varchar
+	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
+	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity) as issues_data
+	left join referencedata.facilities as facilities on facilities.id = issues_data.destinationId
+	left JOIN stockmanagement.organizations AS organizations ON organizations.id = issues_data.destinationId
+	GROUP BY issues_data.sourceFacility,issues_data.destinationId, issues_data.district, facilities.id, issues_data.productCode, issues_data.fullProductName,issues_data.issuedDate,issues_data.lotCode, issues_data.quantity, issues_data.expirationDate, issues_data.isRefDataFacility, organizations.name, issues_data.closingBalance)
+order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotCode, destinationFacility DESC]]>
 	</queryString>
-	<field name="facilityName" class="java.lang.String"/>
+	<field name="sourceFacility" class="java.lang.String"/>
+	<field name="destinationFacility" class="java.lang.String"/>
 	<field name="district" class="java.lang.String"/>
-	<field name="productId" class="java.lang.String"/>
-	<field name="productName" class="java.lang.String"/>
-	<field name="productBatchNumber" class="java.lang.String"/>
-	<field name="productExpiryDate" class="java.lang.String"/>
-	<field name="lastUpdated" class="java.lang.String"/>
+	<field name="productCode" class="java.lang.String"/>
+	<field name="fullProductName" class="java.lang.String"/>
+	<field name="lotCode" class="java.lang.String"/>
+	<field name="expirationDate" class="java.lang.String"/>
+	<field name="issuedDate" class="java.lang.String"/>
 	<field name="quantity" class="java.lang.Long"/>
-	<field name="monthsToExpire" class="java.lang.Double"/>
+	<field name="closingBalance" class="java.lang.Long"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -149,7 +244,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="10" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Stock on Day:]]></text>
+				<text><![CDATA[Report Period:]]></text>
 			</staticText>
 			<staticText>
 				<reportElement key="" x="640" y="80" width="161" height="20" uuid="4b505859-702c-4523-b9ee-567234bef054">
@@ -173,7 +268,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="18" isBold="true"/>
 				</textElement>
-				<text><![CDATA[Stock on Hand by Batch by Facility]]></text>
+				<text><![CDATA[Product Issues by Batch per Facility]]></text>
 			</staticText>
 			<textField isStretchWithOverflow="true">
 				<reportElement x="0" y="100" width="198" height="20" uuid="a8565621-bd19-4b76-bd5e-280c405039c6"/>
@@ -184,7 +279,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 			</textField>
 			<textField>
 				<reportElement x="210" y="100" width="208" height="20" uuid="36f32e3f-b43e-458c-8724-9ea5571e0369"/>
-				<textFieldExpression><![CDATA[$P{date}]]></textFieldExpression>
+				<textFieldExpression><![CDATA["From " + $P{startDate} + " to " + $P{endDate}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="418" y="100" width="222" height="20" uuid="afb90928-15d1-4cf1-8f2d-0a1bfb108b89"/>
@@ -212,7 +307,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="0" width="190" height="30" uuid="c9afe000-7909-4d5c-9026-f51a2676c8a9"/>
+				<reportElement x="0" y="0" width="150" height="30" uuid="c9afe000-7909-4d5c-9026-f51a2676c8a9"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -223,10 +318,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Facility]]></text>
+				<text><![CDATA[Source Facility]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="190" y="0" width="69" height="30" uuid="3b8ce0a0-f9e6-4753-904c-ce2776bec05a"/>
+				<reportElement x="150" y="0" width="69" height="30" uuid="3b8ce0a0-f9e6-4753-904c-ce2776bec05a"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -240,7 +335,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<text><![CDATA[District]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="259" y="0" width="70" height="30" uuid="74a64681-460b-4be8-b151-be5f9cf70633"/>
+				<reportElement x="219" y="0" width="71" height="30" uuid="74a64681-460b-4be8-b151-be5f9cf70633"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -248,13 +343,13 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Product ID]]></text>
+				<text><![CDATA[Product Code]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="329" y="0" width="141" height="30" uuid="db05e5bd-2535-4de6-85ad-1952eed636dd"/>
+				<reportElement x="290" y="0" width="100" height="30" uuid="db05e5bd-2535-4de6-85ad-1952eed636dd"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -268,7 +363,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<text><![CDATA[Product Name]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="470" y="0" width="70" height="30" uuid="4cd2a7bb-4661-496c-935b-5027dea9f202"/>
+				<reportElement x="390" y="0" width="70" height="30" uuid="4cd2a7bb-4661-496c-935b-5027dea9f202"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -282,7 +377,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<text><![CDATA[Batch Number]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="540" y="0" width="60" height="30" uuid="df0df775-dc98-42ef-8365-953232c5ce03"/>
+				<reportElement x="460" y="0" width="60" height="30" uuid="df0df775-dc98-42ef-8365-953232c5ce03"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -296,7 +391,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<text><![CDATA[Expiry Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="600" y="0" width="60" height="30" uuid="1a7908df-eb69-4140-8744-5b4d49d71352"/>
+				<reportElement x="627" y="0" width="61" height="30" uuid="1a7908df-eb69-4140-8744-5b4d49d71352"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -307,24 +402,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Stock on Hand]]></text>
+				<text><![CDATA[Issued Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="660" y="0" width="78" height="30" uuid="02246c16-fa94-48c2-bd1a-8880f460a64a"/>
-				<box padding="2">
-					<pen lineWidth="1.0" lineColor="#80C7E8"/>
-					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font isBold="true"/>
-				</textElement>
-				<text><![CDATA[Date updated]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="738" y="0" width="63" height="30" uuid="68fc94e1-93e5-4e96-8815-697aa84848e3"/>
+				<reportElement x="688" y="0" width="62" height="30" uuid="68fc94e1-93e5-4e96-8815-697aa84848e3"/>
 				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -335,14 +416,41 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Months to Expire]]></text>
+				<text><![CDATA[Issued Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="750" y="0" width="51" height="30" uuid="39862643-f4b3-4e54-81a8-50ad57c74ce8"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Closing Balance]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="520" y="0" width="107" height="30" uuid="4c7bafb9-b07e-4f7a-ad56-3bc591332cca"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Destination Facility]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
 		<band height="40" splitType="Prevent">
 			<property name="com.jaspersoft.studio.layout"/>
-			<printWhenExpression><![CDATA[($F{monthsToExpire} < 0 && $P{expiredProducts}.equals("true")) || ($F{monthsToExpire} > 0 && $P{expiredProducts}.equals("false"))]]></printWhenExpression>
 			<rectangle>
 				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="801" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69"/>
 				<graphicElement>
@@ -350,7 +458,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				</graphicElement>
 			</rectangle>
 			<textField isBlankWhenNull="true">
-				<reportElement x="0" y="0" width="190" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
+				<reportElement style="Style1" stretchType="ContainerBottom" x="0" y="0" width="150" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -358,10 +466,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{facilityName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{sourceFacility}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="190" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
+				<reportElement style="Style1" x="150" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
 				<box leftPadding="2">
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -372,7 +480,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textFieldExpression><![CDATA[$F{district}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="259" y="0" width="70" height="40" uuid="18e7a1cd-a945-4fb7-803f-97fccd8c2256"/>
+				<reportElement style="Style1" x="219" y="0" width="71" height="40" uuid="18e7a1cd-a945-4fb7-803f-97fccd8c2256"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -380,10 +488,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{productId}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{productCode}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="329" y="0" width="141" height="40" uuid="ab42938c-4f7b-46c9-bf11-f7b13edd26c9"/>
+				<reportElement style="Style1" x="290" y="0" width="100" height="40" uuid="ab42938c-4f7b-46c9-bf11-f7b13edd26c9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -391,10 +499,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="AtLeast"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{fullProductName}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="470" y="0" width="70" height="40" uuid="78e963fe-1d67-4d4f-b70b-6005eaabf0dc"/>
+				<reportElement style="Style1" x="390" y="0" width="70" height="40" uuid="78e963fe-1d67-4d4f-b70b-6005eaabf0dc"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -402,10 +510,10 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{productBatchNumber}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{lotCode}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="540" y="0" width="60" height="40" uuid="5008306e-d65e-4e8f-b915-f7a3aa7d9328"/>
+				<reportElement style="Style1" x="460" y="0" width="60" height="40" uuid="5008306e-d65e-4e8f-b915-f7a3aa7d9328"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -413,10 +521,21 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{productExpiryDate}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{expirationDate}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="600" y="0" width="60" height="40" uuid="484c46c2-05e8-461f-8d10-d36048f6e909"/>
+				<reportElement style="Style1" x="627" y="0" width="61" height="40" uuid="21120906-fdf5-4390-8c5b-3ce6c89d2ae7"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issuedDate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement style="Style1" x="688" y="0" width="62" height="40" uuid="473feb79-6b09-4347-8a2a-c177ddf54daa"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -427,7 +546,7 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="660" y="0" width="78" height="40" uuid="43937821-4a3c-4faf-a0a3-f6fa9bf15a52"/>
+				<reportElement style="Style1" x="750" y="0" width="51" height="40" uuid="6a65ae59-8554-4e4f-aecc-e1b30ac4f64e"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -435,18 +554,18 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{lastUpdated}.substring(0,10)]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? $F{closingBalance}  : null]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement style="Style1" stretchType="RelativeToTallestObject" x="738" y="0" width="63" height="40" uuid="befae801-c558-45bb-8e17-c57af01a1cdd"/>
+				<reportElement style="Style1" x="520" y="0" width="107" height="40" uuid="32238ea5-25e3-47ad-ad2d-e9cd8ea04b05"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{monthsToExpire} > 0 ? (double)Math.round($F{monthsToExpire} * 10d) / 10d : "EXPIRED"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

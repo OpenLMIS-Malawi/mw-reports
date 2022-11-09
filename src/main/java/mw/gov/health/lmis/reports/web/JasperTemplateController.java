@@ -112,7 +112,7 @@ public class JasperTemplateController extends BaseController {
     if (jasperTemplateToUpdate == null) {
       LOGGER.debug("Creating new template");
       jasperTemplateToUpdate = new JasperTemplate(
-          name, null, CONSISTENCY_REPORT, true, description, null, null);
+          name, null, CONSISTENCY_REPORT, true, description, null, null, null);
       jasperTemplateService.validateFileAndInsertTemplate(jasperTemplateToUpdate, file);
     } else {
       LOGGER.debug("Template found, updating template");

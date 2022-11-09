@@ -8,7 +8,6 @@ import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
-import static mw.gov.health.lmis.reports.web.ReportTypes.AGGREGATE_ORDERS_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 import static org.apache.commons.io.FileUtils.writeByteArrayToFile;
 
@@ -75,6 +74,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.Date;
+
+import java.text.SimpleDateFormat;  
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -315,21 +317,6 @@ public class JasperReportsViewService {
     StringBuilder fileName = new StringBuilder(template.getName());
     // add all the params that report takes to the value list
     List<Object> values = new ArrayList<>();
-    for (Map.Entry<String, Object> param : params.entrySet()) {
-      // if it's Aggregate Orders report, add ordering period instead of reporting period
-      if (param.getKey().equals("period") && AGGREGATE_ORDERS_REPORT.equals(templateType)) {
-        String periodName = (String) param.getValue();
-        if (periodName != null) {
-          // find the period by name
-          ProcessingPeriodDto nextPeriod = findNextPeriod(periodName);
-          if (nextPeriod != null) {
-            values.add(nextPeriod.getName());
-          }
-        }
-      } else {
-        values.add(param.getValue());
-      }
-    }
     // if it's Order report, add filename parts manually
     if (ORDER_REPORT.equals(templateType)) {
       OrderDto order = orderService.findOne(
@@ -342,6 +329,11 @@ public class JasperReportsViewService {
           (period != null) ? period.getName() : "",
           order.getFacility().getName()
       );
+    } else {
+      //add date of generating report to the filename if it's not the order report
+      Date date = new Date();
+      SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+      values.add(formatter.format(date));
     }
     // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
@@ -349,8 +341,19 @@ public class JasperReportsViewService {
           .append('_')
           .append(value.toString());
     }
-    // replace whitespaces with "_" and make the filename lowercase
-    return fileName.toString()
+    // format file name
+    return formatFileName(fileName.toString());
+  }
+
+  /**
+   * format file name.
+   *
+   * @param fileName file name which will be formatted
+   * @return formatted file name
+   */
+  public String formatFileName(String fileName) {
+    // replace whitespaces with "_", make the filename lowercase
+    return fileName
         .replaceAll("\\s+", "_")
         .toLowerCase(Locale.ENGLISH);
   }

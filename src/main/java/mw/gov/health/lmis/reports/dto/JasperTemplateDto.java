@@ -62,6 +62,10 @@ public class JasperTemplateDto implements JasperTemplate.Importer, JasperTemplat
   @Setter
   private List<String> supportedFormats;
 
+  @Getter
+  @Setter
+  private String category;
+
   @Setter
   private List<JasperTemplateParameterDto> templateParameters;
 

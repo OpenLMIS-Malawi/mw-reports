@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="malawi_stock_on_hand_by_facility" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5da17652-b7b6-4ee1-a741-9f6306905a99">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Angola_dev"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="463"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="527"/>
+	<parameter name="program" class="java.lang.String" nestedType="java.lang.String">
+		<property name="required" value="true"/>
+		<property name="displayName" value="Program Name"/>
+		<property name="selectExpression" value="/api/reports/programs"/>
+		<property name="selectProperty" value="name"/>
+		<property name="displayProperty" value="name"/>
+	</parameter>
+	<parameter name="sourceFacility" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="sourceFacilityUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{sourceFacility}.replaceAll(";",",");]]></defaultValueExpression>
+	</parameter>
+	<parameter name="sourceFacilityList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new ArrayList(Arrays.asList($P{sourceFacilityUpdated}.split("\\s*,\\s*")));]]></defaultValueExpression>
+	</parameter>
+	<parameter name="destinationFacility" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="destinationFacilityUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{destinationFacility}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="destinationFacilityList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Arrays.asList($P{destinationFacilityUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+	</parameter>
+	<parameter name="product" class="java.lang.String" nestedType="java.lang.String"/>
+	<parameter name="productUpdated" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{product}.replaceAll(";;","COMMA").replaceAll(";",",")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="productList" class="java.util.ArrayList" nestedType="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[Arrays.asList($P{productUpdated}.split("\\s*,\\s*")).stream().map(el -> el.replaceAll("COMMA", ",")).collect(java.util.stream.Collectors.toCollection(ArrayList::new));]]></defaultValueExpression>
+	</parameter>
+	<parameter name="startDate" class="java.lang.String"/>
+	<parameter name="endDate" class="java.lang.String"/>
+	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
+	<queryString language="plsql">
+		<![CDATA[SELECT * FROM (
+	SELECT
+		false as is_subtotal,
+		case when reasons.reasontype='DEBIT' then facilities."name"
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+		end AS sourcefacility,
+		case when reasons.reasontype='CREDIT' then facilities."name"
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+	    end AS destinationfacility,
+		products.fullproductname AS fullproductname,
+		lots.lotcode as batchnumber,
+		sum(line_items.quantity) AS quantity
+	FROM
+		stockmanagement.stock_event_line_items AS line_items
+		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
+		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
+		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
+		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
+		LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
+		LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
+		LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
+		LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
+	WHERE reasons.reasoncategory = 'TRANSFER'
+	AND products.versionnumber = (
+	   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
+	   )
+	AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
+	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
+	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+	GROUP BY sourcefacility, destinationfacility, fullproductname, batchnumber
+	UNION
+	SELECT
+		true as is_subtotal,
+		case when reasons.reasontype='DEBIT' then facilities."name"
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+		end AS sourcefacility,
+		case when reasons.reasontype='CREDIT' then facilities."name"
+		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+	    end AS destinationfacility,
+		products.fullproductname AS fullproductname,
+		'subtotal' as batchnumber,
+		SUM(line_items.quantity) AS quantity
+	FROM
+		stockmanagement.stock_event_line_items AS line_items
+		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
+		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
+		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
+		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
+		LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
+		LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
+		LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
+		LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
+	WHERE
+		reasons.reasoncategory = 'TRANSFER'
+		AND products.versionnumber = (
+		   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
+		   )
+		AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
+		AND line_items.occurreddate::varchar >= $P{startDate}::varchar
+		AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+	GROUP BY sourcefacility, destinationfacility, products.fullproductname
+	) as agg_data
+	WHERE
+		agg_data.sourcefacility is not null
+		AND ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
+		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
+		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
+	UNION
+	SELECT
+	true, null, null, null, 'total'::text,
+	sum(agg_data_filtered.quantity) as total_quantity
+from (
+	select * FROM (
+		SELECT
+			case when reasons.reasontype='DEBIT' then facilities."name"
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+			end AS sourcefacility,
+			case when reasons.reasontype='CREDIT' then facilities."name"
+			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
+		    end AS destinationfacility,
+			products.fullproductname AS fullproductname,
+			sum(line_items.quantity) AS quantity
+		FROM
+			stockmanagement.stock_event_line_items AS line_items
+			LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
+			LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
+			LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
+			left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
+			LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+			LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
+			LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
+			LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
+			LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
+			LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
+		WHERE
+			reasons.reasoncategory = 'TRANSFER'
+			AND products.versionnumber = (
+		   		SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
+		   )
+			AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
+			AND line_items.occurreddate::varchar >= $P{startDate}::varchar
+			AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+		GROUP BY sourcefacility, destinationfacility, fullproductname
+) as agg_data
+	WHERE
+		agg_data.sourcefacility is not null
+		and ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
+		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
+		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
+) as agg_data_filtered
+ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
+	</queryString>
+	<field name="is_subtotal" class="java.lang.Boolean">
+		<property name="com.jaspersoft.studio.field.label" value="is_subtotal"/>
+	</field>
+	<field name="sourceFacility" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="sourceFacility"/>
+	</field>
+	<field name="destinationFacility" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="destinationFacility"/>
+	</field>
+	<field name="fullProductName" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="fullProductName"/>
+	</field>
+	<field name="batchNumber" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="batchNumber"/>
+	</field>
+	<field name="quantity" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="quantity"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="2" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="150" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
+				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="261" y="10" width="280" height="39" uuid="8e830df2-45ad-4be4-b2a0-f3b2882d6203">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18"/>
+				</textElement>
+				<text><![CDATA[Ministry of Health, Malawi]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="80" width="180" height="20" uuid="c99c8f1c-d3d3-4020-8541-2da7e1a48466"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Facility:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="400" y="80" width="190" height="20" uuid="3d6d8c2b-1701-483b-a24d-2905dbe52231"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Program:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="180" y="80" width="220" height="20" uuid="48e7b132-74de-44e8-9a1f-5ab8e86adeb5"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Reporting period:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="" x="590" y="80" width="211" height="20" uuid="4b505859-702c-4523-b9ee-567234bef054">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Report Run Date:]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement x="0" y="53" width="801" height="27" backcolor="#C0C0C0" uuid="1d9034c0-77df-4000-920e-06594b2ebeb6">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="0" y="53" width="801" height="28" forecolor="#FFFFFF" uuid="105ff9af-17db-4b74-a575-9ce26c6cc21f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Aggregate Products Issued and Received Per Facility Report]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="400" y="100" width="190" height="20" uuid="afb90928-15d1-4cf1-8f2d-0a1bfb108b89"/>
+				<textFieldExpression><![CDATA[($P{program} == null) ? "All" : $P{program}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="590" y="100" width="210" height="20" uuid="1a79bec9-bcf9-40b7-9530-86290dcd415f"/>
+				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.now());]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Master">
+				<reportElement x="701" y="3" width="100" height="30" uuid="f1db7f67-876a-48ce-a6d2-2fdf4b475085"/>
+				<textElement textAlignment="Right" verticalAlignment="Top"/>
+				<textFieldExpression><![CDATA["Page " + $V{MASTER_CURRENT_PAGE} + " of " + $V{MASTER_TOTAL_PAGES}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="180" y="100" width="220" height="20" uuid="dac935e3-a713-481b-9f69-395dcf4801a3"/>
+				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{startDate}.toString())) + " - " +
+java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.LocalDate.parse($P{endDate}.toString()))]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="100" width="160" height="40" uuid="736345fc-b72f-4d09-8d67-399953fe74b5"/>
+				<textFieldExpression><![CDATA[($P{sourceFacility} == null ? "All":
+	($P{sourceFacility}.contains(";") ?  "Multiple" : $P{sourceFacility})
+)]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="31" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="800" height="30" backcolor="#C0C0C0" uuid="5ef622da-a8e3-4110-ba9e-b2b9f14d8eaa">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="180" y="0" width="180" height="30" uuid="3b8ce0a0-f9e6-4753-904c-ce2776bec05a"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Destination]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="360" y="0" width="200" height="30" uuid="db05e5bd-2535-4de6-85ad-1952eed636dd"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Product Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="560" y="0" width="120" height="30" uuid="4cd2a7bb-4661-496c-935b-5027dea9f202"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Batch Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="680" y="0" width="120" height="30" uuid="1a7908df-eb69-4140-8744-5b4d49d71352"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quantity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="180" height="30" uuid="a14f04be-8770-4c70-9927-c22a1a707ec1"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Source]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="40" splitType="Prevent">
+			<property name="com.jaspersoft.studio.layout"/>
+			<rectangle>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="800" height="40" backcolor="#F0F0F0" uuid="2de367b0-e3ff-42e2-b474-e9accdcd1c69">
+					<printWhenExpression><![CDATA[!$F{is_subtotal}]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="180" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2" leftIndent="3" rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{is_subtotal} ) ? "": $F{sourceFacility}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="680" y="0" width="120" height="40" uuid="484c46c2-05e8-461f-8d10-d36048f6e909"/>
+				<box>
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="180" y="0" width="180" height="40" uuid="23d673f0-21ce-4659-b121-e346066f19cc"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2" leftIndent="3" rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{is_subtotal} ) ? "": $F{destinationFacility}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="360" y="0" width="200" height="40" uuid="ccacacf3-2099-4fda-ab3f-0ce1046ea8c4"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2" leftIndent="3" rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{is_subtotal} ) ? "": $F{fullProductName}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="560" y="0" width="120" height="40" uuid="c4ed95ad-4b79-44f7-8c6b-2ff2922c681d"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{is_subtotal} ) ? "": $F{batchNumber}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="100" splitType="Stretch">
+			<image scaleImage="FillFrame">
+				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
+				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
+			</image>
+		</band>
+	</pageFooter>
+</jasperReport>
