@@ -54,7 +54,8 @@
     lot_codes.expirationdate as expirationDate,
     events.adjustmentType as adjustmentType,
     events.adjustmentDate as adjustmentDate,
-    events.adjustmentAmount as adjustmentAmount
+    events.adjustmentAmount as adjustmentAmount,
+        events.reasonfreetext as adjustmentReason
 FROM (
     select
         coalesce(adjustments.orderableid, inventories.orderableid) as orderableid,
@@ -63,9 +64,11 @@ FROM (
         coalesce(adjustments.adjustmentAmount, 0) as adjustmentAmount,
         adjustments.adjustmentType as adjustmentType,
         adjustments.adjustmentDate as adjustmentDate,
-        adjustments.lotid as lotid
+        adjustments.lotid as lotid,
+                adjustments.reasonfreetext as reasonfreetext
     from (
         select
+                line_items.reasonfreetext,
         	line_items.lotid,
             line_items.orderableid,
             stock_events.programid,
@@ -79,7 +82,7 @@ FROM (
         left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
         where line_items.occurreddate::varchar >= $P{startDate}::varchar
             AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-        group by orderableid, programid, facilityid, adjustmentType, adjustmentDate, line_items.lotid
+        group by orderableid, programid, facilityid, adjustmentType, adjustmentDate, line_items.lotid, line_items.reasonfreetext
     ) as adjustments
     full join (
         select
@@ -132,6 +135,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 	<field name="adjustmentType" class="java.lang.String"/>
 	<field name="adjustmentDate" class="java.lang.String"/>
 	<field name="adjustmentAmount" class="java.lang.Long"/>
+	<field name="adjustmentReason" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -235,7 +239,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</graphicElement>
 			</rectangle>
 			<staticText>
-				<reportElement x="0" y="0" width="180" height="30" uuid="c9afe000-7909-4d5c-9026-f51a2676c8a9"/>
+				<reportElement x="0" y="0" width="150" height="30" uuid="c9afe000-7909-4d5c-9026-f51a2676c8a9"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -249,7 +253,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Facility]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="180" y="0" width="69" height="30" uuid="3b8ce0a0-f9e6-4753-904c-ce2776bec05a"/>
+				<reportElement x="150" y="0" width="69" height="30" uuid="3b8ce0a0-f9e6-4753-904c-ce2776bec05a"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -263,7 +267,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[District]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="249" y="0" width="71" height="30" uuid="74a64681-460b-4be8-b151-be5f9cf70633"/>
+				<reportElement x="219" y="0" width="60" height="30" uuid="74a64681-460b-4be8-b151-be5f9cf70633"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -277,7 +281,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Product Code]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="320" y="0" width="120" height="30" uuid="db05e5bd-2535-4de6-85ad-1952eed636dd"/>
+				<reportElement x="279" y="0" width="120" height="30" uuid="db05e5bd-2535-4de6-85ad-1952eed636dd"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -291,7 +295,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Product Name]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="440" y="0" width="70" height="30" uuid="4cd2a7bb-4661-496c-935b-5027dea9f202"/>
+				<reportElement x="399" y="0" width="70" height="30" uuid="4cd2a7bb-4661-496c-935b-5027dea9f202"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -305,7 +309,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Batch Number]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="510" y="0" width="60" height="30" uuid="df0df775-dc98-42ef-8365-953232c5ce03"/>
+				<reportElement x="469" y="0" width="60" height="30" uuid="df0df775-dc98-42ef-8365-953232c5ce03"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -319,7 +323,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Expiry Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="650" y="0" width="74" height="30" uuid="1a7908df-eb69-4140-8744-5b4d49d71352"/>
+				<reportElement x="609" y="0" width="74" height="30" uuid="1a7908df-eb69-4140-8744-5b4d49d71352"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -333,7 +337,7 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<text><![CDATA[Adjustment Date]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="724" y="0" width="77" height="30" uuid="02246c16-fa94-48c2-bd1a-8880f460a64a"/>
+				<reportElement x="683" y="0" width="57" height="30" uuid="02246c16-fa94-48c2-bd1a-8880f460a64a"/>
 				<box padding="2">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -344,10 +348,10 @@ ORDER BY facility, adjustmentDate DESC]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Adjustment Amount]]></text>
+				<text><![CDATA[Amount]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="570" y="0" width="80" height="30" uuid="4c7bafb9-b07e-4f7a-ad56-3bc591332cca"/>
+				<reportElement x="529" y="0" width="80" height="30" uuid="4c7bafb9-b07e-4f7a-ad56-3bc591332cca"/>
 				<box leftPadding="2" bottomPadding="1">
 					<pen lineWidth="1.0" lineColor="#80C7E8"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -360,6 +364,20 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<text><![CDATA[Adjustment Type]]></text>
 			</staticText>
+			<staticText>
+				<reportElement x="740" y="0" width="61" height="30" uuid="7db61775-cc1f-488d-86bf-27cfa8c8d522"/>
+				<box padding="2">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Adjustment reason]]></text>
+			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
@@ -371,8 +389,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 					<pen lineWidth="0.0"/>
 				</graphicElement>
 			</rectangle>
-			<textField isBlankWhenNull="true">
-				<reportElement stretchType="ContainerBottom" x="0" y="0" width="180" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerBottom" x="0" y="0" width="150" height="40" uuid="22c747ca-ce9b-42ff-883b-ba6d9bcce6c2"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -382,8 +400,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{facility}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="180" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="150" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
 				<box leftPadding="2">
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -393,8 +411,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{district}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="249" y="0" width="71" height="40" uuid="18e7a1cd-a945-4fb7-803f-97fccd8c2256"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="219" y="0" width="60" height="40" isPrintInFirstWholeBand="true" uuid="18e7a1cd-a945-4fb7-803f-97fccd8c2256"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -404,8 +422,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{productCode}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="320" y="0" width="120" height="40" uuid="ab42938c-4f7b-46c9-bf11-f7b13edd26c9"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="279" y="0" width="120" height="40" uuid="ab42938c-4f7b-46c9-bf11-f7b13edd26c9"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -415,8 +433,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{fullProductName}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="440" y="0" width="70" height="40" uuid="78e963fe-1d67-4d4f-b70b-6005eaabf0dc"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="399" y="0" width="70" height="40" uuid="78e963fe-1d67-4d4f-b70b-6005eaabf0dc"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -426,8 +444,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{lotCode}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="510" y="0" width="60" height="40" uuid="5008306e-d65e-4e8f-b915-f7a3aa7d9328"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="469" y="0" width="60" height="40" uuid="5008306e-d65e-4e8f-b915-f7a3aa7d9328"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -437,8 +455,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{expirationDate}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="650" y="0" width="74" height="40" uuid="21120906-fdf5-4390-8c5b-3ce6c89d2ae7"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="609" y="0" width="74" height="40" uuid="21120906-fdf5-4390-8c5b-3ce6c89d2ae7"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -448,8 +466,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{adjustmentDate}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="724" y="0" width="77" height="40" uuid="25664484-b345-478c-82fc-944deb334a28"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="683" y="0" width="57" height="40" uuid="25664484-b345-478c-82fc-944deb334a28"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -459,8 +477,8 @@ ORDER BY facility, adjustmentDate DESC]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{adjustmentAmount}]]></textFieldExpression>
 			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="570" y="0" width="80" height="40" uuid="32238ea5-25e3-47ad-ad2d-e9cd8ea04b05"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" x="529" y="0" width="80" height="40" uuid="32238ea5-25e3-47ad-ad2d-e9cd8ea04b05"/>
 				<box>
 					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
 				</box>
@@ -469,6 +487,21 @@ ORDER BY facility, adjustmentDate DESC]]>
 					<paragraph leftIndent="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{adjustmentType}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement stretchType="ContainerHeight" isPrintRepeatedValues="false" x="740" y="0" width="61" height="40" isPrintInFirstWholeBand="true" uuid="cb3b3315-d7c0-44a8-9744-93219876a2d7"/>
+				<box padding="1">
+					<pen lineWidth="0.25" lineColor="#D2D2D2"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#D2D2D2"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#D2D2D2"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#D2D2D2"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#D2D2D2"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{adjustmentReason}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
