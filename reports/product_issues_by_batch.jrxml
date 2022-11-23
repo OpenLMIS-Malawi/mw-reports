@@ -466,7 +466,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{sourceFacility}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{sourceFacility}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="150" y="0" width="69" height="40" uuid="be6466f8-ba72-4edc-818c-2957b510aa63"/>
@@ -477,7 +477,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{district}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{district}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="219" y="0" width="71" height="40" uuid="18e7a1cd-a945-4fb7-803f-97fccd8c2256"/>
@@ -488,7 +488,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{productCode}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{productCode}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="290" y="0" width="100" height="40" uuid="ab42938c-4f7b-46c9-bf11-f7b13edd26c9"/>
@@ -499,7 +499,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="AtLeast"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{fullProductName}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{fullProductName}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="390" y="0" width="70" height="40" uuid="78e963fe-1d67-4d4f-b70b-6005eaabf0dc"/>
@@ -510,7 +510,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{lotCode}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{lotCode}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="460" y="0" width="60" height="40" uuid="5008306e-d65e-4e8f-b915-f7a3aa7d9328"/>
@@ -521,7 +521,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{expirationDate}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{expirationDate}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="627" y="0" width="61" height="40" uuid="21120906-fdf5-4390-8c5b-3ce6c89d2ae7"/>
@@ -532,7 +532,7 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{issuedDate}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "Daily Total*" : $F{issuedDate}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement style="Style1" x="688" y="0" width="62" height="40" uuid="473feb79-6b09-4347-8a2a-c177ddf54daa"/>
@@ -565,16 +565,30 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 					<font isBold="false"/>
 					<paragraph lineSpacing="1_1_2"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{destinationFacility}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{destinationFacility}.equals("") ? "" : $F{destinationFacility}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
 	<pageFooter>
-		<band height="100" splitType="Stretch">
+		<band height="154" splitType="Stretch">
 			<image scaleImage="FillFrame">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
 				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
 			</image>
+			<staticText>
+				<reportElement x="0" y="120" width="801" height="30" uuid="8c389e2c-6403-4800-8625-8a49c995ce57"/>
+				<box leftPadding="2" bottomPadding="1">
+					<pen lineWidth="1.0" lineColor="#80C7E8"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[*The issued amount represents the aggregated sum of issued particular batch and source facility in ‘Issued Date’, the closing balance is the calculated stock on hand for particular batch and source facility in ‘Issued Date']]></text>
+			</staticText>
 		</band>
 	</pageFooter>
 </jasperReport>
