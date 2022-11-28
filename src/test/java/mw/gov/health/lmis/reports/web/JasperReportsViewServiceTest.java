@@ -29,7 +29,7 @@ import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("PMD.TooManyMethods")
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.AvoidDuplicateLiterals"})
 @RunWith(MockitoJUnitRunner.class)
 public class JasperReportsViewServiceTest {
 
@@ -130,5 +130,57 @@ public class JasperReportsViewServiceTest {
 
     // then
     Assert.assertEquals("order_essential_meds_nov2017_chitipa_dho", filename);
+  }
+
+  @Test
+  public void shouldGetFilenameWithPeriodParameter() {
+    // given
+    JasperTemplate template = new JasperTemplate();
+    template.setName("Some report");
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("program", "Essential Meds");
+    params.put("period", "Jul2017");
+
+    // when
+    String filename = service.getFilename(template, params);
+
+    // then
+    Assert.assertEquals("some_report_essential_meds_jul2017", filename);
+  }
+
+  @Test
+  public void shouldGetFilenameWithStartDateAndEndDateParameter() {
+    // given
+    JasperTemplate template = new JasperTemplate();
+    template.setName("Some report");
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("program", "Essential Meds");
+    params.put("startDate", "2022-11-15");
+    params.put("endDate", "2022-11-24");
+
+    // when
+    String filename = service.getFilename(template, params);
+
+    // then
+    Assert.assertEquals("some_report_essential_meds_2022-11-15_2022-11-24", filename);
+  }
+
+  @Test
+  public void shouldGetFilenameWithSingleDateParameter() {
+    // given
+    JasperTemplate template = new JasperTemplate();
+    template.setName("Some report");
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("program", "Essential Meds");
+    params.put("date", "2022-11-15");
+
+    // when
+    String filename = service.getFilename(template, params);
+
+    // then
+    Assert.assertEquals("some_report_essential_meds_2022-11-15", filename);
   }
 }

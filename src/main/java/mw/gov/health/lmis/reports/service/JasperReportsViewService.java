@@ -74,9 +74,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.Date;
-
-import java.text.SimpleDateFormat;  
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -330,10 +327,16 @@ public class JasperReportsViewService {
           order.getFacility().getName()
       );
     } else {
-      //add date of generating report to the filename if it's not the order report
-      Date date = new Date();
-      SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-      values.add(formatter.format(date));
+      values.add(params.get("program"));
+
+      if (params.containsKey("period")) {
+        values.add(params.get("period"));
+      } else if (params.containsKey("startDate") & params.containsKey("endDate")) {
+        values.add(params.get("startDate"));
+        values.add(params.get("endDate"));
+      } else if (params.containsKey("date")) {
+        values.add(params.get("date"));
+      }
     }
     // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
