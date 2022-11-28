@@ -327,10 +327,14 @@ public class JasperReportsViewService {
           order.getFacility().getName()
       );
     } else {
-      values.add(params.get("program"));
+      if (params.containsKey("program")) {
+        values.add(params.get("program"));
+      }
 
       if (params.containsKey("period")) {
-        values.add(params.get("period"));
+        List<Object> period = Arrays.asList(params.get("period"));
+        period.remove("-");
+        values.addAll(period);
       } else if (params.containsKey("startDate") & params.containsKey("endDate")) {
         values.add(params.get("startDate"));
         values.add(params.get("endDate"));
