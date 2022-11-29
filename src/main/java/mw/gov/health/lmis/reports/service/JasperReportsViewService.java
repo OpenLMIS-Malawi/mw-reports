@@ -333,7 +333,6 @@ public class JasperReportsViewService {
 
       if (params.containsKey("period")) {
         List<Object> period = Arrays.asList(params.get("period"));
-        period.remove("-");
         values.addAll(period);
       } else if (params.containsKey("startDate") & params.containsKey("endDate")) {
         values.add(params.get("startDate"));
