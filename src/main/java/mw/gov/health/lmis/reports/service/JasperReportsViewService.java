@@ -327,6 +327,12 @@ public class JasperReportsViewService {
           order.getFacility().getName()
       );
     } else {
+      if (params.containsKey("district")) {
+        values.add(params.get("district"));
+      } else if (params.containsKey("geographicZone")) {
+        values.add(params.get("geographicZone"));
+      }
+
       if (params.containsKey("program")) {
         values.add(params.get("program"));
       }
