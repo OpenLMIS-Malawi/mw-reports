@@ -139,6 +139,7 @@ public class JasperReportsViewServiceTest {
     template.setName("Some report");
 
     Map<String, Object> params = new HashMap<>();
+    params.put("district", "Balaka");
     params.put("program", "Essential Meds");
     params.put("period", "Jul2017");
 
@@ -146,7 +147,7 @@ public class JasperReportsViewServiceTest {
     String filename = service.getFilename(template, params);
 
     // then
-    Assert.assertEquals("some_report_essential_meds_jul2017", filename);
+    Assert.assertEquals("some_report_balaka_essential_meds_jul2017", filename);
   }
 
   @Test
@@ -156,6 +157,7 @@ public class JasperReportsViewServiceTest {
     template.setName("Some report");
 
     Map<String, Object> params = new HashMap<>();
+    params.put("district", "Balaka");
     params.put("program", "Essential Meds");
     params.put("startDate", "2022-11-15");
     params.put("endDate", "2022-11-24");
@@ -164,7 +166,7 @@ public class JasperReportsViewServiceTest {
     String filename = service.getFilename(template, params);
 
     // then
-    Assert.assertEquals("some_report_essential_meds_2022-11-15_2022-11-24", filename);
+    Assert.assertEquals("some_report_balaka_essential_meds_2022-11-15_2022-11-24", filename);
   }
 
   @Test
@@ -174,6 +176,7 @@ public class JasperReportsViewServiceTest {
     template.setName("Some report");
 
     Map<String, Object> params = new HashMap<>();
+    params.put("district", "Balaka");
     params.put("program", "Essential Meds");
     params.put("date", "2022-11-15");
 
@@ -181,6 +184,6 @@ public class JasperReportsViewServiceTest {
     String filename = service.getFilename(template, params);
 
     // then
-    Assert.assertEquals("some_report_essential_meds_2022-11-15", filename);
+    Assert.assertEquals("some_report_balaka_essential_meds_2022-11-15", filename);
   }
 }
