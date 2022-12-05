@@ -337,8 +337,8 @@ public class JasperReportsViewService {
       // district name
       if (params.containsKey(DISTRICT_PARAMETER)) {
         values.add(params.get(DISTRICT_PARAMETER));
-      } else if (params.containsKey(GEOGRAPHIC_ZONE_PARAMETER)) {
-        values.add(params.get(GEOGRAPHIC_ZONE_PARAMETER));
+      } else {
+        values.add(params.getOrDefault(GEOGRAPHIC_ZONE_PARAMETER, null));
       }
       // program name
       values.add(params.getOrDefault(PROGRAM_PARAMETER, null));
@@ -350,10 +350,12 @@ public class JasperReportsViewService {
               & params.containsKey(END_DATE_PARAMETER)) {
         values.add(params.get(START_DATE_PARAMETER));
         values.add(params.get(END_DATE_PARAMETER));
-      } else if (params.containsKey(DATE_PARAMETER)) {
-        values.add(params.get(DATE_PARAMETER));
+      } else {
+        values.add(params.getOrDefault(DATE_PARAMETER, null));
       }
     }
+    // remove empty records
+    values.removeAll(Collections.singleton(null));
     // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
       fileName
