@@ -86,6 +86,7 @@ FROM
 ) AS products on products.id = line_items.orderableid 
 	left join referencedata.lots as lots on lots.id = line_items.lotid
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
+	left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	left join (
     SELECT
@@ -161,6 +162,7 @@ left JOIN (
 ) AS products on products.id = line_items.orderableid 
 	left join referencedata.lots as lots on lots.id = line_items.lotid
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
+		left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	left join (
     SELECT
