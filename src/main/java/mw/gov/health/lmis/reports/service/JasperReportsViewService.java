@@ -98,6 +98,13 @@ public class JasperReportsViewService {
           "/jasperTemplates/requisitionLines.jrxml";
   private static final String DATASOURCE = "datasource";
   static final String PI_LINES_REPORT_URL = "/jasperTemplates/physicalinventoryLines.jrxml";
+  private static final String DISTRICT_PARAMETER = "district";
+  private static final String GEOGRAPHIC_ZONE_PARAMETER = "geographicZone";
+  private static final String PROGRAM_PARAMETER = "program";
+  private static final String PERIOD_PARAMETER = "period";
+  private static final String START_DATE_PARAMETER = "startDate";
+  private static final String END_DATE_PARAMETER = "endDate";
+  private static final String DATE_PARAMETER = "date";
 
   @Autowired
   private ApplicationContext appContext;
@@ -327,20 +334,28 @@ public class JasperReportsViewService {
           order.getFacility().getName()
       );
     } else {
-      if (params.containsKey("program")) {
-        values.add(params.get("program"));
+      // district name
+      if (params.containsKey(DISTRICT_PARAMETER)) {
+        values.add(params.get(DISTRICT_PARAMETER));
+      } else {
+        values.add(params.getOrDefault(GEOGRAPHIC_ZONE_PARAMETER, null));
       }
-
-      if (params.containsKey("period")) {
-        List<Object> period = Arrays.asList(params.get("period"));
+      // program name
+      values.add(params.getOrDefault(PROGRAM_PARAMETER, null));
+      // reporting period
+      if (params.containsKey(PERIOD_PARAMETER)) {
+        List<Object> period = Arrays.asList(params.get(PERIOD_PARAMETER));
         values.addAll(period);
-      } else if (params.containsKey("startDate") & params.containsKey("endDate")) {
-        values.add(params.get("startDate"));
-        values.add(params.get("endDate"));
-      } else if (params.containsKey("date")) {
-        values.add(params.get("date"));
+      } else if (params.containsKey(START_DATE_PARAMETER)
+              & params.containsKey(END_DATE_PARAMETER)) {
+        values.add(params.get(START_DATE_PARAMETER));
+        values.add(params.get(END_DATE_PARAMETER));
+      } else {
+        values.add(params.getOrDefault(DATE_PARAMETER, null));
       }
     }
+    // remove empty records
+    values.removeAll(Collections.singleton(null));
     // add all the parts to the filename and separate them by "_"
     for (Object value : values) {
       fileName
