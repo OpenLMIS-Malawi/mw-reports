@@ -66,7 +66,7 @@ from (select
 	lots.expirationdate as expirationDate,
 	line_items.occurreddate as issuedDate,
 	line_items.quantity AS quantity,
-	sum(stock_cards.soh) as closingBalance
+	stock_cards.soh as closingBalance
 FROM
 	stockmanagement.stock_event_line_items AS line_items
 	left JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
@@ -90,7 +90,7 @@ FROM
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	left join (
     SELECT
-        sum(soh.stockonhand) AS soh,
+        soh.stockonhand AS soh,
         stock_cards.lotid as lotId,
         stock_cards.orderableid,
         stock_cards.facilityid,
@@ -98,7 +98,7 @@ FROM
         soh.occurreddate as occurredDate
     from stockmanagement.stock_cards AS stock_cards
     JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
-    GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
+    GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate, soh
 ) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
 WHERE
 	products.productVersionRank = 1
@@ -114,10 +114,10 @@ WHERE
 	AND programs.name = $P{program}::varchar
 	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
 	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity) as issues_data
+	group by facilities."name", zones."name", nodes.isrefdatafacility, nodes.referenceid, products.code, products.fullproductname, lots.lotcode, lots.expirationdate, line_items.occurreddate, line_items.quantity, stock_cards.soh) as issues_data
 	left join referencedata.facilities as facilities on facilities.id = issues_data.destinationId
 	left JOIN stockmanagement.organizations AS organizations ON organizations.id = issues_data.destinationId
-	GROUP BY issues_data.sourceFacility, issues_data.district, issues_data.productCode, issues_data.fullProductName,issues_data.issuedDate,issues_data.lotCode,issues_data.expirationDate, issues_data.closingBalance)
+	GROUP BY issues_data.sourceFacility, issues_data.district, issues_data.productCode, issues_data.fullProductName,issues_data.issuedDate,issues_data.lotCode,issues_data.expirationDate, issues_data.closingBalance )
 union 
 (select 
 	issues_data.sourceFacility as sourceFacility,
