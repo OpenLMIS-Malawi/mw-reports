@@ -97,6 +97,14 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
   ORDER BY startdate DESC LIMIT 3
+),
+findLastPeriodStartDate AS (
+  SELECT pp.startdate FROM referencedata.processing_periods pp
+    JOIN referencedata.processing_schedules ps ON
+    pp.processingscheduleid = ps.id
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.processing_periods.name AS periodname,
@@ -127,7 +135,7 @@ FROM referencedata.facilities
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
   	WHERE CASE WHEN $P{program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
   		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change
-   ON status_change.requisitionid = requisition.requisitions.id
+  		ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
    AND referencedata.facilities.enabled = true
@@ -136,6 +144,8 @@ WHERE
    AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17'
    	ELSE TRUE END
    AND referencedata.facilities.typeid != 'cc21e502-5918-4495-9b6e-c2d6852821ac'
+   AND sp.startdate notnull
+   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate]]>
 		</queryString>
@@ -193,6 +203,14 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
   ORDER BY startdate DESC LIMIT 1
+),
+findLastPeriodStartDate AS (
+  SELECT pp.startdate FROM referencedata.processing_periods pp
+    JOIN referencedata.processing_schedules ps ON
+    pp.processingscheduleid = ps.id
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
@@ -229,6 +247,8 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
+   AND sp.startdate notnull
+   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
    AND CASE WHEN program.name = 'EPI' THEN referencedata.facilities.typeid = 'd6a1542d-bdd4-45c1-888a-bd9104793b17'
    	ELSE TRUE END
    	  AND referencedata.facilities.typeid != 'cc21e502-5918-4495-9b6e-c2d6852821ac'
