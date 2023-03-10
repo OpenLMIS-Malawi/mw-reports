@@ -118,14 +118,6 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 3
-),
-findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.processing_periods.name AS periodname,
@@ -163,8 +155,6 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-   AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate]]>
@@ -234,14 +224,6 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-),
-findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
@@ -279,8 +261,6 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-   AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY geographiczonename]]>
 		</queryString>
@@ -346,15 +326,7 @@ GROUP BY geographiczonename]]>
 	and case when $P{startPeriod}::varchar is not null then pp.startdate >= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar) else true end
     AND case when $P{program}::varchar = 'EPI' then ps.id != '7334754d-e226-4c05-abbc-02c27c1888a7' else ps.id = '7334754d-e226-4c05-abbc-02c27c1888a7' END
   ORDER BY startdate desc
-  LIMIT case when $P{startPeriod}::varchar is null then 8 end),
-findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-  ORDER BY startdate DESC LIMIT 1
-)
+  LIMIT case when $P{startPeriod}::varchar is null then 8 end)
   select 
   data.periodname as periodname,
   data.completed as completed,
@@ -399,8 +371,6 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-      AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
    	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY periodname, referencedata.processing_periods.startdate
 ORDER BY referencedata.processing_periods.startdate ) as data]]>
@@ -470,14 +440,6 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-),
-findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
@@ -513,8 +475,6 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-      AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY geographiczonename, facilityname, status_change.createddate, referencedata.processing_periods.enddate]]>
 		</queryString>
