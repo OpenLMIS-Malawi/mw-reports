@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.4.3.final using JasperReports Library version 6.4.3  -->
+<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="timeliness" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="341cf801-7355-4499-bd5c-182e5275caa1">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -65,14 +65,6 @@
   SELECT * FROM referencedata.geographic_zones WHERE name = $P{district}::varchar
   UNION ALL
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
-),
-findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
-  ORDER BY startdate DESC LIMIT 1
 )
 SELECT
   referencedata.processing_periods.name AS period,
@@ -110,8 +102,6 @@ WHERE
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND status_change IS NULL
    AND sp.active = true
-    AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
    ORDER BY referencedata.facilities.code;]]>
 	</queryString>
 	<field name="period" class="java.lang.String"/>
