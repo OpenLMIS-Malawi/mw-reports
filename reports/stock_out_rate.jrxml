@@ -230,7 +230,7 @@ GROUP BY periodname]]>
 	WHERE
 		code IN ('FP004100', 'FP003700')
 ), records AS (
-	SELECT
+	SELECT DISTINCT
 		o.fullProductName AS productName,
 		o.code AS productCode,
 		r.id AS requisitionId,
@@ -255,7 +255,7 @@ SELECT
 	r.productName AS productName,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) / count(*)::float AS rate,
 	sum(CASE WHEN r.closingBalance = 0 THEN 1 ELSE 0 END) AS stockedOut,
-	count(distinct(r.facilityId)) AS reported
+	count(*) AS reported
 FROM
 	records AS r
 WHERE
