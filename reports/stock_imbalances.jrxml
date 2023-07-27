@@ -164,54 +164,54 @@ GROUP BY periodname]]>
   UNION ALL
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
-SELECT referencedata.facilities.name AS facilityname,
-  referencedata.processing_periods.name AS periodname,
-  requisition.requisition_line_items.stockonhand AS soh,
-  requisition.requisition_line_items.averageconsumption AS amc,
-  requisition.requisition_line_items.totalreceivedquantity AS qtyReceived,
-  requisition.requisition_line_items.totalconsumedquantity AS qtyUsed,
+SELECT 
+    facilities.name AS facilityname,
+    periods.name AS periodname,
+    rli.stockonhand AS soh,
+    rli.averageconsumption AS amc,
+    rli.totalreceivedquantity AS qtyReceived,
+    rli.totalconsumedquantity AS qtyUsed,
     orderable.code AS productcode,
-  orderable.fullproductname AS productname,
-  referencedata.geographic_zones.name AS geographiczonename,
-  program.name AS programname,
-  rli.MonthsOfStock as mos,
-  CASE
-      WHEN rli.MonthsOfStock = 0 THEN 'Stocked out'
-      WHEN rli.MonthsOfStock < ftap.minperiodsofstock THEN 'Understocked'
-      WHEN rli.MonthsOfStock >= ftap.maxperiodsofstock THEN 'Overstocked'
-      ELSE 'OK'
-  END AS stockstatus
-FROM requisition.requisition_line_items
-  JOIN (SELECT id,
-  CASE WHEN averageconsumption = 0 THEN NULL ELSE stockonhand::float / averageconsumption
-  END AS MonthsOfStock
-  FROM requisition.requisition_line_items) AS rli ON requisition.requisition_line_items.id=rli.id
-  JOIN referencedata.orderables AS orderable ON
-   requisition.requisition_line_items.orderableid = orderable.id AND requisition.requisition_line_items.orderableversionnumber = orderable.versionnumber
-  JOIN requisition.requisitions ON
-   requisition.requisition_line_items.requisitionid = requisition.requisitions.id
-  JOIN referencedata.programs AS program ON
-   requisition.requisitions.programid = program.id
-  JOIN referencedata.facilities ON
-   requisition.requisitions.facilityid = referencedata.facilities.id
-  JOIN referencedata.facility_types ON
-   referencedata.facilities.typeid = referencedata.facility_types.id
-  JOIN referencedata.facility_type_approved_products AS ftap ON
-   requisition.requisition_line_items.facilitytypeapprovedproductid = ftap.id AND requisition.requisition_line_items.facilitytypeapprovedproductversionnumber = ftap.versionnumber
-  JOIN referencedata.processing_periods ON
-   requisition.requisitions.processingperiodid = referencedata.processing_periods.id
-  JOIN referencedata.geographic_zones ON
-   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
-  JOIN referencedata.geographic_levels ON
-  referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
-WHERE
-   program.name = $P{program}::varchar
-   AND referencedata.processing_periods.name = $P{period}::varchar
-   AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-  AND referencedata.facilities.active = true
-  AND (requisition.requisitions.status = 'SUBMITTED' OR requisition.requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisition.requisitions.status = 'RELEASED')
-ORDER BY referencedata.facilities.name DESC,
-  orderable.fullproductname DESC]]>
+    orderable.fullproductname AS productname,
+    zones.name AS geographiczonename,
+    program.name AS programname,
+    rli.MonthsOfStock as mos,
+    CASE
+        WHEN rli.MonthsOfStock = 0 THEN 'Stocked out'
+        WHEN rli.MonthsOfStock < ftap.minperiodsofstock THEN 'Understocked'
+        WHEN rli.MonthsOfStock >= ftap.maxperiodsofstock THEN 'Overstocked'
+        ELSE 'OK'
+    END AS stockstatus
+FROM 
+    (SELECT id,
+        CASE 
+            WHEN averageconsumption = 0 THEN NULL 
+            ELSE stockonhand::float / averageconsumption
+        END AS MonthsOfStock,
+        stockonhand,
+        averageconsumption,
+        totalreceivedquantity,
+        totalconsumedquantity,
+        requisitionid,
+        orderableid,
+        orderableversionnumber,
+        facilitytypeapprovedproductid,
+        facilitytypeapprovedproductversionnumber
+    FROM requisition.requisition_line_items) AS rli
+JOIN requisition.requisitions AS req ON rli.requisitionid = req.id
+JOIN referencedata.programs AS program ON req.programid = program.id AND program.name = $P{program}::varchar
+JOIN referencedata.processing_periods AS periods ON req.processingperiodid = periods.id AND periods.name = $P{period}::varchar
+JOIN referencedata.facilities AS facilities ON req.facilityid = facilities.id AND facilities.active = true
+JOIN referencedata.geographic_zones AS zones ON facilities.geographiczoneid = zones.id
+JOIN referencedata.facility_types AS facility_types ON facilities.typeid = facility_types.id
+JOIN referencedata.facility_type_approved_products AS ftap ON rli.facilitytypeapprovedproductid = ftap.id AND rli.facilitytypeapprovedproductversionnumber = ftap.versionnumber
+JOIN referencedata.orderables AS orderable ON rli.orderableid = orderable.id AND rli.orderableversionnumber = orderable.versionnumber
+JOIN referencedata.geographic_levels AS levels ON zones.levelid = levels.id
+WHERE 
+    req.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED')
+AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
+ORDER BY 
+    facilities.name DESC, orderable.fullproductname DESC;]]>
 	</queryString>
 	<field name="facilityname" class="java.lang.String"/>
 	<field name="periodname" class="java.lang.String"/>

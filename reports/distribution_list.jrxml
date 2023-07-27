@@ -172,53 +172,53 @@ GROUP BY periodname]]>
   UNION ALL
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 ), findPreviousPeriods AS (
-	SELECT * FROM referencedata.processing_periods AS periods
-	WHERE periods.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
-	AND periods.processingscheduleid = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
-	ORDER BY startdate DESC
+  SELECT id, ROW_NUMBER() OVER (ORDER BY startdate DESC) as rn
+  FROM referencedata.processing_periods AS periods
+  WHERE periods.startdate <= (
+    SELECT startdate 
+    FROM referencedata.processing_periods 
+    WHERE name = $P{period}::varchar
+  ) AND periods.processingscheduleid = (
+    SELECT processingscheduleid 
+    FROM referencedata.processing_periods 
+    WHERE name = $P{period}::varchar
+  )
 )
 SELECT
-	periods.name AS periodname,
-	facilities.name AS facilityname,
-	facilities.code AS facilitycode,
-	productcategories.displayname AS productcategory,
-	dispensingunit.value AS dispensingunit,
-	products.fullproductname AS productname,
-	products.code AS productcode,
-	zones.name AS zonename,
-	facility_types.name AS facilitytype,
-	facility_operators.code AS facilityoperator,
-  	CASE
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1) THEN 1
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1 OFFSET 1) THEN 2
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1 OFFSET 2) THEN 3
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1 OFFSET 3) THEN 4
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1 OFFSET 4) THEN 5
-		WHEN periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 1 OFFSET 5) THEN 6
-	END AS periodnumber,
-	lineitems.stockonhand AS stockonhand,
-	lineitems.approvedquantity AS approvedquantity,
-	lineitems.totalconsumedquantity AS consumedquantity
+  periods.name AS periodname,
+  facilities.name AS facilityname,
+  facilities.code AS facilitycode,
+  productcategories.displayname AS productcategory,
+  dispensingunit.value AS dispensingunit,
+  products.fullproductname AS productname,
+  products.code AS productcode,
+  zones.name AS zonename,
+  facility_types.name AS facilitytype,
+  facility_operators.code AS facilityoperator,
+  prev_periods.rn AS periodnumber,
+  lineitems.stockonhand AS stockonhand,
+  lineitems.approvedquantity AS approvedquantity,
+  lineitems.totalconsumedquantity AS consumedquantity
 FROM
-	requisition.requisition_line_items AS lineitems
-	JOIN requisition.requisitions AS requisitions ON requisitions.id = lineitems.requisitionid
-	JOIN referencedata.processing_periods AS periods ON periods.id = requisitions.processingperiodid
-	JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
-	JOIN referencedata.facility_types AS facility_types ON facility_types.id = facilities.typeid
-	LEFT JOIN referencedata.facility_operators AS facility_operators ON facility_operators.id = facilities.operatedbyid
-	JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
-	JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid AND products.versionnumber = lineitems.orderableversionnumber
-	JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id AND programproducts.orderableversionnumber = products.versionnumber
-		AND programproducts.programid = requisitions.programid
-	JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
+  requisition.requisition_line_items AS lineitems
+  JOIN requisition.requisitions AS requisitions ON requisitions.id = lineitems.requisitionid
+  JOIN referencedata.processing_periods AS periods ON periods.id = requisitions.processingperiodid
+  JOIN findPreviousPeriods AS prev_periods ON prev_periods.id = periods.id AND prev_periods.rn <= 6
+  JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
+  JOIN referencedata.facility_types AS facility_types ON facility_types.id = facilities.typeid
+  LEFT JOIN referencedata.facility_operators AS facility_operators ON facility_operators.id = facilities.operatedbyid
+  JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
+  JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid AND products.versionnumber = lineitems.orderableversionnumber
+  JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id AND programproducts.orderableversionnumber = products.versionnumber
+    AND programproducts.programid = requisitions.programid
+  JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
     LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
-	JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+  JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 WHERE
-	programs.name = $P{program}::varchar
-	AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
-	AND periods.id IN (SELECT id FROM findPreviousPeriods LIMIT 6)
-  	AND (requisitions.status = 'SUBMITTED' OR requisitions.status = 'AUTHORIZED' OR requisitions.status = 'IN_APPROVAL' OR requisitions.status = 'APPROVED' OR requisitions.status = 'RELEASED')
-	AND facilities.active = TRUE
+  programs.name = $P{program}::varchar
+  AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
+  AND (requisitions.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED'))
+  AND facilities.active = TRUE
     AND (lineitems.skipped IS FALSE)
 ORDER BY facilitycode, productcategory, productcode]]>
 	</queryString>
