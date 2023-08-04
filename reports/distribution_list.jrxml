@@ -67,35 +67,43 @@
 		</parameter>
 		<queryString>
 			<![CDATA[WITH RECURSIVE findChildZones AS (
-  SELECT id FROM referencedata.geographic_zones WHERE name = $P{GeographicZone}
+  SELECT * FROM referencedata.geographic_zones WHERE name = $P{GeographicZone}
   UNION ALL
-  SELECT gz.id FROM referencedata.geographic_zones gz JOIN findChildZones fc ON fc.id = gz.parentId
+  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
 SELECT
-  pp.name AS periodname,
-  COUNT(status_change.createddate IS NOT NULL) AS completed,
-  COUNT(pp.enddate + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate) AS ontime,
-  COUNT(status_change.createddate IS NULL) AS missed,
-  COUNT(*) AS total
-FROM referencedata.facilities f
-JOIN referencedata.geographic_zones gz ON f.geographiczoneid = gz.id
-JOIN referencedata.programs program ON $P{Program}::varchar IS NULL OR program.name = $P{Program}::varchar
-JOIN referencedata.requisition_group_members rgm ON f.id = rgm.facilityid
-JOIN referencedata.requisition_groups rg ON rgm.requisitiongroupid = rg.id
-JOIN referencedata.requisition_group_program_schedules rgps ON rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
-JOIN referencedata.supported_programs sp ON sp.programid = program.id AND sp.facilityid = f.id
-LEFT JOIN referencedata.processing_periods pp ON pp.name = $P{Period}::varchar
-LEFT JOIN requisition.requisitions req ON req.facilityid = f.id AND req.processingperiodid = pp.id AND req.programid = program.id AND req.emergency = false
-LEFT JOIN (
-  SELECT DISTINCT ON (requisitionid) requisitionid, createddate
-  FROM requisition.status_changes
-  WHERE requisition.status_changes.status = 'SUBMITTED'
-) status_change ON status_change.requisitionid = req.id
+  referencedata.processing_periods.name AS periodname,
+  COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
+  COUNT(CASE WHEN referencedata.processing_periods.enddate + (CASE WHEN $P{DueDays}::varchar IS NULL THEN 20 ELSE $P{DueDays}::int END) + 1 >= status_change.createddate THEN 1 END) AS ontime,
+  COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
+  COUNT(*) as total
+FROM referencedata.facilities
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+   JOIN referencedata.programs program ON
+   $P{Program}::varchar IS NULL OR program.name = $P{Program}::varchar
+  JOIN referencedata.requisition_group_members rgm ON
+   facilityid = referencedata.facilities.id
+  JOIN referencedata.requisition_groups rg ON
+    rgm.requisitiongroupid = rg.id
+  JOIN referencedata.requisition_group_program_schedules rgps ON
+    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
+  JOIN referencedata.supported_programs sp ON
+    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
+  LEFT JOIN referencedata.processing_periods ON
+   referencedata.processing_periods.name = $P{Period}::varchar
+  LEFT JOIN requisition.requisitions ON
+    requisition.requisitions.facilityid = referencedata.facilities.id
+    AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
+    AND requisition.requisitions.programid = program.id
+    AND requisition.requisitions.emergency = false
+  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change
+   ON status_change.requisitionid = requisition.requisitions.id
 WHERE
-  f.active = true
-  AND f.enabled = true
-  AND ($P{GeographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
-  AND sp.active = true
+   referencedata.facilities.active = true
+   AND referencedata.facilities.enabled = true
+   AND ($P{GeographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+   AND sp.active = true
 GROUP BY periodname]]>
 		</queryString>
 		<field name="periodname" class="java.lang.String"/>
