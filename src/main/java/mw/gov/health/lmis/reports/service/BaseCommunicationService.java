@@ -9,8 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestOperations;
@@ -205,11 +207,14 @@ public abstract class BaseCommunicationService<T> {
         .setAll(parameters)
         .set(ACCESS_TOKEN, authorizationService.obtainAccessToken());
 
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
     try {
       ResponseEntity<PageImplRepresentation<P>> response = restTemplate.exchange(
               createUri(url, params),
               method,
-              (payload != null) ? new HttpEntity<>(payload) : null,
+              (payload != null) ? new HttpEntity<>(payload, headers) : null,
               new DynamicPageTypeReference<>(type)
       );
       return response.getBody();
