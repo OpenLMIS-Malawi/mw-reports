@@ -110,7 +110,7 @@ WHERE
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND status_change IS NULL
    AND sp.active = true
-    AND sp.startdate notnull
+   AND sp.startdate notnull
    AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
    ORDER BY referencedata.facilities.code;]]>
 	</queryString>
