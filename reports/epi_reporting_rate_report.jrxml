@@ -399,7 +399,7 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-      AND sp.startdate notnull
+   AND sp.startdate notnull
    AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
    	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY periodname, referencedata.processing_periods.startdate
@@ -513,7 +513,7 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-      AND sp.startdate notnull
+   AND sp.startdate notnull
    AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY geographiczonename, facilityname, status_change.createddate, referencedata.processing_periods.enddate]]>
