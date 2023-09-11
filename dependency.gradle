@@ -19,8 +19,9 @@ dependencies {
     compile "org.openlmis:openlmis-service-util:3.0.0"
 
     compile "com.github.tomakehurst:wiremock:1.58"
-    compile "commons-codec:commons-codec:1.10"
-    compile "commons-io:commons-io:2.4"
+    compile "commons-codec:commons-codec:1.15"
+    compile "commons-io:commons-io:2.11.0"
+    compile "org.apache.logging.log4j:log4j-api:2.17.1"
     compile "net.sf.jasperreports:jasperreports:6.20.5"
     compile "org.apache.commons:commons-lang3:3.5"
     compile "org.flywaydb:flyway-core:4.0.3"
@@ -29,8 +30,8 @@ dependencies {
     compile "org.projectlombok:lombok:1.16.8"
     compile "org.webjars:swagger-ui:2.2.6"
 
-    compile "org.apache.poi:poi:3.16"
-    compile "org.apache.poi:poi-ooxml:3.16"
+    compile "org.apache.poi:poi:5.2.2"
+    compile "org.apache.poi:poi-ooxml:5.2.2"
 
     testCompile "com.github.tomakehurst:wiremock:1.58"
     testCompile "com.jayway.restassured:rest-assured:2.7.0"
