@@ -2,7 +2,7 @@ version: "2"
 services:
 
   builder:
-    image: openlmis/dev:3
+    image: openlmis/dev:2
     links:
       - db
       - log
@@ -17,7 +17,7 @@ services:
     env_file: .env
 
   demo-data:
-    image: openlmis/dev:3
+    image: openlmis/dev:2
     links:
       - db
       - log
@@ -32,7 +32,7 @@ services:
     env_file: .env
 
   sonar:
-    image: openlmis/dev:3
+    image: openlmis/dev:2
     volumes:
       - '.:/app'
     entrypoint:

@@ -2,7 +2,7 @@ version: "2"
 services:
 
   reports:
-    image: openlmis/dev:3
+    image: openlmis/dev:2
     ports:
       - "5005:5005"
       - "8080:8080"
