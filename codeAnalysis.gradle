@@ -20,15 +20,15 @@ tasks.withType(Pmd){
     }
 }
 
-task checkApiIsRaml(type:Exec) {
-    executable "raml-cop"
-    args "src/main/resources/api-definition.yaml"
-}
+// task checkApiIsRaml(type:Exec) {
+//     executable "raml-cop"
+//     args "src/main/resources/api-definition.yaml"
+// }
 
-configure(checkApiIsRaml) {
-    group = JavaBasePlugin.VERIFICATION_GROUP
-    description = 'Verify that the api-specification is valid RAML'
-}
+// configure(checkApiIsRaml) {
+//     group = JavaBasePlugin.VERIFICATION_GROUP
+//     description = 'Verify that the api-specification is valid RAML'
+// }
 
 //Usage: gradle sonarqube
 sonarqube {

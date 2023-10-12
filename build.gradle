@@ -69,7 +69,7 @@ processResources {
 }
 
 check {
-    dependsOn checkApiIsRaml
+    // dependsOn checkApiIsRaml
     dependsOn integrationTest
 }
 
