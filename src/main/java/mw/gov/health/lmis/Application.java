@@ -18,7 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
-import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
@@ -37,7 +38,9 @@ import java.util.Locale;
 
 @SpringBootApplication
 @ImportResource("applicationContext.xml")
-@EntityScan(basePackageClasses = {BaseEntity.class, ConfigurationSetting.class},
+@ComponentScan(basePackageClasses = {BaseEntity.class, ConfigurationSetting.class},
+    basePackages = "org.openlmis.util.converter")
+@EnableJpaRepositories(basePackageClasses = {BaseEntity.class, ConfigurationSetting.class},
     basePackages = "org.openlmis.util.converter")
 public class Application {
   private static Logger LOGGER = LoggerFactory.getLogger(Application.class);
