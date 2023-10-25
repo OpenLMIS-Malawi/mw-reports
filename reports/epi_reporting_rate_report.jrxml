@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportingRate" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="4e1d9a97-c93a-4ad3-87e1-e305d6e7da2e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="UAT Malawi"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -123,10 +123,10 @@ findLastPeriodStartDate AS (
   SELECT pp.startdate FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-)
+  )
 SELECT
   referencedata.processing_periods.name AS periodname,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
@@ -234,15 +234,14 @@ findLastPeriods AS (
     WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-),
-findLastPeriodStartDate AS (
+),findLastPeriodStartDate AS (
   SELECT pp.startdate FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-)
+  )
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
@@ -351,10 +350,10 @@ findLastPeriodStartDate AS (
   SELECT pp.startdate FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
-)
+  )
   select 
   data.periodname as periodname,
   data.completed as completed,
@@ -475,8 +474,8 @@ findLastPeriodStartDate AS (
   SELECT pp.startdate FROM referencedata.processing_periods pp
     JOIN referencedata.processing_schedules ps ON
     pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
-    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{startPeriod}::varchar)
+    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
+    AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{endPeriod}::varchar)
   ORDER BY startdate DESC LIMIT 1
 )
 SELECT
@@ -513,7 +512,7 @@ WHERE
    AND referencedata.facilities.enabled = true
    AND ($P{geographicZone}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND sp.active = true
-   AND sp.startdate notnull
+    AND sp.startdate notnull
    AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
 	AND ($P{facilityType}::varchar IS NULL OR $X{IN,facility_types.name, facilityTypeList} )
 GROUP BY geographiczonename, facilityname, status_change.createddate, referencedata.processing_periods.enddate]]>
