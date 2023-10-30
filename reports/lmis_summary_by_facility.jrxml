@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.2  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="lmis_sumary_by_facility" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="03f89d37-6dd5-4a05-a39e-8088f6a884a6">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi_uat"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="313"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="683"/>
@@ -26,69 +26,6 @@
 	<property name="net.sf.jasperreports.export.csv.field.enclosure">
 		<![CDATA["]]>
 	</property>
-	<style name="Crosstab_CH" mode="Opaque" backcolor="#F0F8FF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Crosstab_CG" mode="Opaque" backcolor="#BFE1FF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Crosstab_CT" mode="Opaque" backcolor="#005FB3">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Crosstab_CD" mode="Opaque" backcolor="#FFFFFF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Table_TH" mode="Opaque" backcolor="#F0F8FF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Table_CH" mode="Opaque" backcolor="#BFE1FF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
-	<style name="Table_TD" mode="Opaque" backcolor="#FFFFFF">
-		<box>
-			<pen lineWidth="0.5" lineColor="#000000"/>
-			<topPen lineWidth="0.5" lineColor="#000000"/>
-			<leftPen lineWidth="0.5" lineColor="#000000"/>
-			<bottomPen lineWidth="0.5" lineColor="#000000"/>
-			<rightPen lineWidth="0.5" lineColor="#000000"/>
-		</box>
-	</style>
 	<subDataset name="ReportingRate" uuid="34fb96d5-1547-43a8-ad90-aa770a11b2f3">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="388"/>
@@ -170,6 +107,14 @@ GROUP BY periodname]]>
 			<variableExpression><![CDATA["%1$.0f%%"]]></variableExpression>
 			<initialValueExpression><![CDATA["%.0f%%"]]></initialValueExpression>
 		</variable>
+		<variable name="completed" class="java.lang.Integer" resetType="None">
+			<variableExpression><![CDATA[$F{completed}]]></variableExpression>
+			<initialValueExpression><![CDATA[0]]></initialValueExpression>
+		</variable>
+		<variable name="total" class="java.lang.Integer" resetType="None">
+			<variableExpression><![CDATA[$F{total}]]></variableExpression>
+			<initialValueExpression><![CDATA[0]]></initialValueExpression>
+		</variable>
 	</subDataset>
 	<parameter name="program" class="java.lang.String">
 		<property name="displayName" value="Program Name"/>
@@ -196,52 +141,52 @@ GROUP BY periodname]]>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<queryString language="plsql">
 		<![CDATA[WITH RECURSIVE findChildZones AS (
-  SELECT * FROM referencedata.geographic_zones WHERE name = $P{district}::varchar
-  UNION ALL
-  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
+SELECT * FROM referencedata.geographic_zones WHERE name = $P{district}::varchar
+UNION ALL
+SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
 SELECT
-  referencedata.facilities.name AS facilityname,
-  referencedata.facilities.code AS facilitycode,
-  referencedata.facility_types.name AS facilitytypename,
-  referencedata.facility_operators.name AS facilityoperatorname,
-  referencedata.orderable_display_categories.displayname AS category,
-  referencedata.orderables.code AS productcode,
-  referencedata.orderables.fullproductname AS productname,
-  dispensingunit.value AS unitofissue,
-  requisition.requisition_line_items.stockonhand AS balanceonhand,
-  requisition.requisition_line_items.totalconsumedquantity AS quantityused,
-  requisition.requisition_line_items.totalreceivedquantity AS quantityreceived,
-  requisition.requisition_line_items.requestedquantity AS quantityrequired,
-  requisition.requisition_line_items.approvedquantity AS approvedquantity,
-  requisition.requisition_line_items.totallossesandadjustments AS totallossesandadjustments,
-  requisition.requisition_line_items.averageconsumption AS averageconsumption,
-  requisition.requisition_line_items.totalstockoutdays AS totalstockoutdays,
-  referencedata.geographic_zones.name AS geographiczone,
-  requisition.requisitions.emergency AS ordertype
+    referencedata.facilities.name AS facilityname,
+    referencedata.facilities.code AS facilitycode,
+    referencedata.facility_types.name AS facilitytypename,
+    referencedata.facility_operators.name AS facilityoperatorname,
+    referencedata.orderable_display_categories.displayname AS category,
+    referencedata.orderables.code AS productcode,
+    referencedata.orderables.fullproductname AS productname,
+    dispensingunit.value AS unitofissue,
+    requisition.requisition_line_items.stockonhand AS balanceonhand,
+    requisition.requisition_line_items.totalconsumedquantity AS quantityused,
+    requisition.requisition_line_items.totalreceivedquantity AS quantityreceived,
+    requisition.requisition_line_items.requestedquantity AS quantityrequired,
+    requisition.requisition_line_items.approvedquantity AS approvedquantity,
+    requisition.requisition_line_items.totallossesandadjustments AS totallossesandadjustments,
+    requisition.requisition_line_items.averageconsumption AS averageconsumption,
+    requisition.requisition_line_items.totalstockoutdays AS totalstockoutdays,
+    referencedata.geographic_zones.name AS geographiczone,
+    requisition.requisitions.emergency AS ordertype
 FROM
-  requisition.requisition_line_items
-  JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status in ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED') AND requisition.requisitions.emergency IS FALSE)
-  JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
-  JOIN referencedata.program_orderables ON referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber and referencedata.program_orderables.programid = requisition.requisitions.programid
-  JOIN referencedata.orderable_display_categories ON referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
-  LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
-  JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id and referencedata.programs.name = $P{program}::varchar
-  JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id
-  JOIN referencedata.facility_types ON referencedata.facilities.typeid = referencedata.facility_types.id
-  JOIN referencedata.facility_operators ON referencedata.facilities.operatedbyid = referencedata.facility_operators.id 
-  JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
-  JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-  JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
+	requisition.requisition_line_items
+	JOIN requisition.requisitions ON requisition.requisition_line_items.requisitionid = requisition.requisitions.id AND (requisition.requisitions.status in ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED') AND requisition.requisitions.emergency IS FALSE)
+	JOIN referencedata.orderables ON requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
+	JOIN referencedata.program_orderables ON referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber and referencedata.program_orderables.programid = requisition.requisitions.programid
+	JOIN referencedata.orderable_display_categories ON referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
+	LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
+	JOIN referencedata.programs ON requisition.requisitions.programid = referencedata.programs.id and referencedata.programs.name = $P{program}::varchar
+	JOIN referencedata.facilities ON requisition.requisitions.facilityid = referencedata.facilities.id
+	JOIN referencedata.facility_types ON referencedata.facilities.typeid = referencedata.facility_types.id
+	JOIN referencedata.facility_operators ON referencedata.facilities.operatedbyid = referencedata.facility_operators.id
+	JOIN referencedata.processing_periods ON requisition.requisitions.processingperiodid = referencedata.processing_periods.id AND referencedata.processing_periods.name = $P{period}::varchar
+	JOIN referencedata.geographic_zones ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+	JOIN referencedata.geographic_levels ON referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
-  referencedata.program_orderables.fullSupply IS TRUE
-  AND requisition.requisition_line_items.skipped IS FALSE
+  	referencedata.program_orderables.fullSupply IS TRUE
+  	AND requisition.requisition_line_items.skipped IS FALSE
     AND (NOT (requisition.requisition_line_items.stockOnHand = 0 AND requisition.requisition_line_items.totalConsumedQuantity = 0 AND requisition.requisition_line_items.averageConsumption = 0 AND requisition.requisition_line_items.totalReceivedQuantity = 0)) OR NOT (requisition.requisition_line_items.requestedquantity = 0)
 ORDER BY
-  referencedata.facilities.name DESC,
-  referencedata.orderable_display_categories.displayorder ASC,
-  referencedata.program_orderables.displayorder ASC,
-  referencedata.orderables.fullproductname DESC]]>
+	referencedata.facilities.name DESC,
+    referencedata.orderable_display_categories.displayorder ASC,
+    referencedata.program_orderables.displayorder ASC,
+    referencedata.orderables.fullproductname DESC]]>
 	</queryString>
 	<field name="facilityname" class="java.lang.String"/>
 	<field name="facilitycode" class="java.lang.String"/>
@@ -261,13 +206,25 @@ ORDER BY
 	<field name="geographiczone" class="java.lang.String"/>
 	<field name="approvedquantity" class="java.lang.String"/>
 	<field name="ordertype" class="java.lang.Boolean"/>
+	<variable name="COMPLETED_GLOBAL" class="java.lang.Integer" resetType="None">
+		<variableExpression><![CDATA[$V{COMPLETED_GLOBAL}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="TOTAL_GLOBAL" class="java.lang.Integer" resetType="None">
+		<variableExpression><![CDATA[$V{TOTAL_GLOBAL}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="PercentAndNumberFormat" class="java.lang.String">
+		<variableExpression><![CDATA["%1$.0f%%"]]></variableExpression>
+		<initialValueExpression><![CDATA["%.0f%%"]]></initialValueExpression>
+	</variable>
 	<group name="Group1" isReprintHeaderOnEachPage="true">
 		<groupExpression><![CDATA[$F{facilityname}]]></groupExpression>
 		<groupHeader>
 			<band height="65">
 				<property name="com.jaspersoft.studio.unit.height" value="px"/>
 				<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-				<textField isBlankWhenNull="true">
+				<textField evaluationTime="Report" isBlankWhenNull="true">
 					<reportElement mode="Opaque" x="0" y="0" width="280" height="15" backcolor="#BDBDBD" uuid="ca5f7836-1b08-4226-858d-08cea1f0328e">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 						<printWhenExpression><![CDATA[$F{facilityname} != null]]></printWhenExpression>
@@ -481,6 +438,75 @@ ORDER BY
 	<background>
 		<band splitType="Stretch"/>
 	</background>
+	<title>
+		<band>
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
+			<componentElement>
+				<reportElement positionType="FixRelativeToBottom" stretchType="ElementGroupHeight" x="0" y="0" width="0" height="0" uuid="e10c0374-0df8-4b30-9267-e8ce0f2e8266">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
+					<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
+					<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
+					<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
+				</reportElement>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ReportingRate" uuid="a720d559-f6fe-4a8e-b764-65c86a7584bb">
+						<datasetParameter name="DueDays">
+							<datasetParameterExpression><![CDATA[5]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="GeographicZone">
+							<datasetParameterExpression><![CDATA[$P{district}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="Period">
+							<datasetParameterExpression><![CDATA[$P{period}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="Program">
+							<datasetParameterExpression><![CDATA[$P{program}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<returnValue fromVariable="completed" toVariable="COMPLETED_GLOBAL"/>
+						<returnValue fromVariable="total" toVariable="TOTAL_GLOBAL"/>
+					</datasetRun>
+					<jr:column width="0" uuid="608dbf3e-5d29-4158-9708-911fc27c4bd3">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<property name="com.jaspersoft.studio.components.table.model.column.name" value="Column1"/>
+						<jr:detailCell height="0">
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<box>
+								<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement x="0" y="0" width="0" height="0" uuid="d008b045-fb73-48d6-b9b7-ed5ea3a9d0c1">
+									<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+									<property name="com.jaspersoft.studio.unit.width" value="px"/>
+									<property name="com.jaspersoft.studio.unit.x" value="px"/>
+									<property name="com.jaspersoft.studio.unit.y" value="px"/>
+								</reportElement>
+								<box leftPadding="0">
+									<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+									<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+								</box>
+								<textElement>
+									<font fontName="SansSerif" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA["Reporting rate: " + String.format($V{PercentAndNumberFormat}, (double)$V{completed}/$V{total}*100)]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</title>
 	<pageHeader>
 		<band height="130" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
@@ -561,63 +587,24 @@ ORDER BY
 				</textElement>
 				<text><![CDATA[Ministry of Health, Malawi]]></text>
 			</staticText>
-			<componentElement>
-				<reportElement positionType="FixRelativeToBottom" stretchType="ElementGroupHeight" x="435" y="39" width="120" height="18" uuid="dcd0a9e2-31a8-4a2a-83b2-552b1fa2ef7a">
-					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.VerticalRowLayout"/>
-					<property name="com.jaspersoft.studio.table.style.table_header" value="Table_TH"/>
-					<property name="com.jaspersoft.studio.table.style.column_header" value="Table_CH"/>
-					<property name="com.jaspersoft.studio.table.style.detail" value="Table_TD"/>
-					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+			<textField>
+				<reportElement x="390" y="40" width="165" height="18" uuid="97e95bf6-32cf-4816-88d0-1cc750630bbc">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
-				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-					<datasetRun subDataset="ReportingRate" uuid="215712f7-28ed-451c-a137-3b1412e4e0fb">
-						<datasetParameter name="DueDays">
-							<datasetParameterExpression><![CDATA[20]]></datasetParameterExpression>
-						</datasetParameter>
-						<datasetParameter name="GeographicZone">
-							<datasetParameterExpression><![CDATA[$P{district}]]></datasetParameterExpression>
-						</datasetParameter>
-						<datasetParameter name="Period">
-							<datasetParameterExpression><![CDATA[$P{period}]]></datasetParameterExpression>
-						</datasetParameter>
-						<datasetParameter name="Program">
-							<datasetParameterExpression><![CDATA[$P{program}]]></datasetParameterExpression>
-						</datasetParameter>
-						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-					</datasetRun>
-					<jr:column width="155" uuid="211df735-0875-4afb-bc5c-c0f0fa30a489">
-						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-						<jr:detailCell style="Table_TD" height="18">
-							<property name="com.jaspersoft.studio.unit.width" value="px"/>
-							<property name="com.jaspersoft.studio.unit.height" value="px"/>
-							<box>
-								<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-							</box>
-							<textField>
-								<reportElement x="0" y="0" width="155" height="18" uuid="bbafcd3e-a9f8-4c7d-9e3d-d3e2acda3d2b">
-									<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-									<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-								</reportElement>
-								<box leftPadding="0">
-									<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-									<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-									<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-									<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-								</box>
-								<textElement>
-									<font fontName="SansSerif" size="12" isBold="true"/>
-								</textElement>
-								<textFieldExpression><![CDATA["Reporting rate: " + String.format($V{PercentAndNumberFormat}, (double)$F{completed}/$F{total}*100)]]></textFieldExpression>
-							</textField>
-						</jr:detailCell>
-					</jr:column>
-				</jr:table>
-			</componentElement>
+				<box leftPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Reporting rate: " + String.format($V{PercentAndNumberFormat}, (double)$V{COMPLETED_GLOBAL}/$V{TOTAL_GLOBAL}*100)]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageHeader>
 	<columnHeader>
@@ -927,7 +914,7 @@ ORDER BY
 		<band height="15" splitType="Stretch">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
-			<textField isStretchWithOverflow="true">
+			<textField textAdjust="StretchHeight">
 				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="50" height="15" uuid="790bc7ec-8ac7-4e37-bbf8-637803eaaccd">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
@@ -945,7 +932,7 @@ ORDER BY
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{ordertype} ? "Emergency" : "Normal"]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true">
+			<textField textAdjust="StretchHeight">
 				<reportElement stretchType="RelativeToTallestObject" x="110" y="0" width="55" height="15" uuid="e551397e-cb09-466d-8082-28298fe9a398">
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
@@ -953,14 +940,14 @@ ORDER BY
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{productcode}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true">
+			<textField textAdjust="StretchHeight">
 				<reportElement stretchType="RelativeToTallestObject" x="165" y="0" width="90" height="15" uuid="b78d8dc7-9081-48ab-a7ae-0d6294ccc9da">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 				</reportElement>
 				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="">
+			<textField textAdjust="StretchHeight" pattern="">
 				<reportElement stretchType="RelativeToTallestObject" x="255" y="0" width="60" height="15" uuid="cbfd5572-bcc6-43a5-97c4-814411847371">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
@@ -968,25 +955,25 @@ ORDER BY
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[$F{unitofissue}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField textAdjust="StretchHeight" pattern="#,##0.###;#,-##0.###">
 				<reportElement stretchType="RelativeToTallestObject" x="315" y="0" width="60" height="15" uuid="2180998a-bb86-470f-b078-84e24c1d8312"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{quantityreceived}  == null) ? "-" : $F{quantityreceived}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField textAdjust="StretchHeight" pattern="#,##0.###;#,-##0.###">
 				<reportElement stretchType="RelativeToTallestObject" x="375" y="0" width="60" height="15" uuid="45c414cf-2e2f-436b-b1b4-8dee782ea31e"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{quantityused} == null) ? "-" : $F{quantityused}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField textAdjust="StretchHeight" pattern="#,##0.###;#,-##0.###">
 				<reportElement stretchType="RelativeToTallestObject" x="435" y="0" width="60" height="15" uuid="8087e8ff-3bb4-4fba-bf70-33d48f601427"/>
 				<box rightPadding="0"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[($F{balanceonhand} == null) ? "-" : $F{balanceonhand}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" pattern="#,##0.###;#,-##0.###">
+			<textField textAdjust="StretchHeight" pattern="#,##0.###;#,-##0.###">
 				<reportElement stretchType="RelativeToTallestObject" x="495" y="0" width="60" height="15" uuid="9bafa0da-3f3e-40ac-9527-44626f78005e">
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 				</reportElement>
