@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="aggregate_orders" pageWidth="800" pageHeight="800" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="800" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Dev.xml"/>
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.2  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="pick_work_sheet" pageWidth="800" pageHeight="800" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="800" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi_uat"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="isDisplayed" value="true"/>
@@ -13,23 +13,18 @@
 	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
-	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
 	<property name="supportedFormats" value="csv,xlsx"/>
-	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
-	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
-	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+	<property name="net.sf.jasperreports.export.xlsx.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xlsx.auto.fit.column" value="true"/>
+	<property name="net.sf.jasperreports.export.xlsx.sheet.name" value="pick_work_sheet"/>
+	<property name="net.sf.jasperreports.export.xlsx.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xlsx.detect.cell.type" value="true"/>
 	<property name="net.sf.jasperreports.export.csv.one.page.per.sheet" value="false"/>
-	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
-	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
 	<property name="net.sf.jasperreports.export.csv.remove.empty.space.between.rows" value="true"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="pageHeader"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.2" value=""/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value=""/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.3" value=""/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value=""/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.4" value=""/>
 	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value=""/>
 	<style name="Crosstab_CH" mode="Opaque" backcolor="#F0F8FF">
 		<box>
@@ -140,7 +135,7 @@ referencedata.facilities.name DESC]]>
 	<field name="ProductName" class="java.lang.String"/>
 	<field name="ProgramName" class="java.lang.String"/>
 	<field name="PricePerPack" class="java.lang.Double"/>
-	<field name="TotalCost" class="java.lang.Integer"/>
+	<field name="TotalCost" class="java.lang.Double"/>
 	<field name="PackRoundingThreshold" class="java.lang.Long"/>
 	<field name="NetContent" class="java.lang.Long"/>
 	<field name="RoundToZero" class="java.lang.Boolean"/>
@@ -169,7 +164,7 @@ referencedata.facilities.name DESC]]>
 					<cellContents mode="Opaque" style="Crosstab_CH">
 						<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
 						<staticText>
-							<reportElement key="" style="Crosstab_CG" mode="Transparent" x="500" y="0" width="50" height="50" backcolor="#FFFFFF" uuid="04dd5bc1-0151-432c-8ba6-e3f05a4cf0ce">
+							<reportElement key="" style="Crosstab_CG" mode="Transparent" x="520" y="0" width="30" height="50" backcolor="#FFFFFF" uuid="04dd5bc1-0151-432c-8ba6-e3f05a4cf0ce">
 								<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -206,7 +201,7 @@ referencedata.facilities.name DESC]]>
 							<text><![CDATA[Pack Rounding Threshold]]></text>
 						</staticText>
 						<staticText>
-							<reportElement key="" style="Crosstab_CG" mode="Transparent" x="475" y="0" width="25" height="50" backcolor="#FFFFFF" uuid="aa964e10-4614-4235-85e0-d46710ad7ac5">
+							<reportElement key="" style="Crosstab_CG" mode="Transparent" x="475" y="0" width="45" height="50" backcolor="#FFFFFF" uuid="aa964e10-4614-4235-85e0-d46710ad7ac5">
 								<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 							</reportElement>
@@ -246,11 +241,11 @@ referencedata.facilities.name DESC]]>
 								<textFieldExpression><![CDATA[$V{PackRoundingThreshold}]]></textFieldExpression>
 							</textField>
 							<textField isBlankWhenNull="true">
-								<reportElement key="" style="Crosstab_CH" mode="Transparent" x="475" y="0" width="25" height="20" backcolor="#FFFFFF" uuid="3b03c967-f3b9-4823-a035-5043165001ff"/>
+								<reportElement key="" style="Crosstab_CH" mode="Transparent" x="475" y="0" width="45" height="20" backcolor="#FFFFFF" uuid="3b03c967-f3b9-4823-a035-5043165001ff"/>
 								<textFieldExpression><![CDATA[$V{RoundToZero}]]></textFieldExpression>
 							</textField>
 							<textField isBlankWhenNull="true">
-								<reportElement key="" style="Crosstab_CH" mode="Transparent" x="500" y="0" width="50" height="20" backcolor="#FFFFFF" uuid="d6bc6767-4d3b-42f9-98fe-f283091844fa">
+								<reportElement key="" style="Crosstab_CH" mode="Transparent" x="520" y="0" width="30" height="20" backcolor="#FFFFFF" uuid="d6bc6767-4d3b-42f9-98fe-f283091844fa">
 									<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 								</reportElement>
 								<textFieldExpression><![CDATA[$V{NetContent}]]></textFieldExpression>
@@ -306,7 +301,7 @@ referencedata.facilities.name DESC]]>
 						</cellContents>
 					</crosstabTotalColumnHeader>
 				</columnGroup>
-				<measure name="TotalCost" class="java.lang.Integer">
+				<measure name="TotalCost" class="java.lang.Double">
 					<measureExpression><![CDATA[$F{TotalCost}]]></measureExpression>
 				</measure>
 				<measure name="PricePerPack" class="java.lang.Double">
@@ -345,8 +340,8 @@ referencedata.facilities.name DESC]]>
 						</textField>
 						<textField pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
 							<reportElement style="Crosstab_CH" mode="Transparent" x="60" y="0" width="70" height="20" backcolor="#FFFFFF" uuid="2524dd4f-d8aa-4a5f-9ca3-9c278b5060d0">
-								<property name="net.sf.jasperreports.export.xls.formula">
-									<![CDATA[IF(LEN(TRIM(INDIRECT(ADDRESS(ROW(),COLUMN()-1)))),IF(INDIRECT(ADDRESS(ROW(),COLUMN()-1))=0,0,INDIRECT(ADDRESS(ROW(),6))*IF(MOD(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))>INDIRECT(ADDRESS(ROW(),3)),QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))+1,IF(AND(QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))=0,INDIRECT(ADDRESS(ROW(),4))=0),1,QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))))), "-")]]>
+								<property name="net.sf.jasperreports.export.xlsx.formula">
+									<![CDATA[IF(LEN(TRIM(INDIRECT(ADDRESS(ROW(),COLUMN()-1)))),IF(INDIRECT(ADDRESS(ROW(),COLUMN()-1))=0,0,INDIRECT(ADDRESS(ROW(),6))*IF(MOD(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))>INDIRECT(ADDRESS(ROW(),3)),QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))+1,IF(AND(QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))=0,INDIRECT(ADDRESS(ROW(),4))=0),1,QUOTIENT(INDIRECT(ADDRESS(ROW(),COLUMN()-1)),INDIRECT(ADDRESS(ROW(),5)))))), "-"]]>
 								</property>
 								<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -361,7 +356,7 @@ referencedata.facilities.name DESC]]>
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 						<textField isBlankWhenNull="true">
 							<reportElement style="Crosstab_CT" positionType="FixRelativeToBottom" x="0" y="0" width="80" height="20" forecolor="#FFFFFF" backcolor="#005FB3" uuid="7fd2d723-ca39-46ce-be28-2ee150f30029">
-								<property name="net.sf.jasperreports.export.xls.formula" value="SUMPRODUCT(--(MOD(COLUMN(INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-1)))-COLUMN(INDIRECT(ADDRESS(ROW(),7)))+1,2)=1),INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-1)))"/>
+								<property name="net.sf.jasperreports.export.xlsx.formula" value="SUMPRODUCT(--(MOD(COLUMN(INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-1)))-COLUMN(INDIRECT(ADDRESS(ROW(),7)))+1,2)=1),INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-1)))"/>
 							</reportElement>
 							<textFieldExpression><![CDATA[$V{TotalQuantity}]]></textFieldExpression>
 						</textField>
@@ -370,7 +365,7 @@ referencedata.facilities.name DESC]]>
 								<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
-								<property name="net.sf.jasperreports.export.xls.formula" value="SUMPRODUCT(--(MOD(COLUMN(INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-2)))-COLUMN(INDIRECT(ADDRESS(ROW(),7)))+1,2)=0),INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-2)))"/>
+								<property name="net.sf.jasperreports.export.xlsx.formula" value="SUMPRODUCT(--(MOD(COLUMN(INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-2)))-COLUMN(INDIRECT(ADDRESS(ROW(),7)))+1,2)=0),INDIRECT(ADDRESS(ROW(),7)):INDIRECT(ADDRESS(ROW(),COLUMN()-2)))"/>
 							</reportElement>
 							<textFieldExpression><![CDATA[$V{TotalPrice}]]></textFieldExpression>
 						</textField>
@@ -390,7 +385,7 @@ referencedata.facilities.name DESC]]>
 								<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 								<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
-								<property name="net.sf.jasperreports.export.xls.formula" value="SUM(INDIRECT(ADDRESS(2,COLUMN())):INDIRECT(ADDRESS(ROW()-1,COLUMN())))"/>
+								<property name="net.sf.jasperreports.export.xlsx.formula" value="SUM(INDIRECT(ADDRESS(2,COLUMN())):INDIRECT(ADDRESS(ROW()-1,COLUMN())))"/>
 							</reportElement>
 							<textFieldExpression><![CDATA[$V{TotalPrice_ProductName_FacilityName_ALL}]]></textFieldExpression>
 						</textField>
