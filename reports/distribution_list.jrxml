@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.5-3efcf2e67f959db3888d79f73dde2dbd7acb4f8e  -->
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.2  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="distribution_list" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="548a4d5f-1cb0-4fa0-b5f9-40a07c579f42">
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="UAT malawi"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Malawi_uat"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -20,20 +20,12 @@
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
 	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
-	<property name="net.sf.jasperreports.export.csv.one.page.per.sheet" value="false"/>
 	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.keep.first.band.1" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.csv.one.page.per.sheet" value="false"/>
 	<property name="net.sf.jasperreports.export.csv.remove.empty.space.between.rows" value="true"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.2" value="pageFooter"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.3" value="title"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.4" value="summary"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.3" value="columnHeader"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="pageHeader"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value="title"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value="summary"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.1" value="pageHeader"/>
 	<subDataset name="ReportingRate" uuid="d7d8400c-361b-486f-bf56-fa1fc662b1b0">
 		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
 		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="388"/>
@@ -305,7 +297,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 		<groupHeader>
 			<band height="30">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				<printWhenExpression><![CDATA[Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				<printWhenExpression><![CDATA[Arrays.asList("xlsx", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField>
 					<reportElement x="477" y="0" width="55" height="25" uuid="16691718-95ca-484b-950a-79bcde12e5a3">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -457,7 +449,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 		<groupHeader>
 			<band height="20">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<rectangle>
 					<reportElement x="0" y="0" width="802" height="20" backcolor="#C0C0C0" uuid="86b6a127-d143-49c9-9754-dcf9664f20a0">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -481,7 +473,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 		<groupExpression><![CDATA[$F{productcategory}]]></groupExpression>
 		<groupHeader>
 			<band height="20">
-				<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField isBlankWhenNull="true">
 					<reportElement x="60" y="1" width="369" height="19" uuid="5d95c411-8223-407c-8d54-204efccaeb40"/>
 					<box topPadding="4"/>
@@ -494,7 +486,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 		<groupExpression><![CDATA[$F{productcode}]]></groupExpression>
 		<groupFooter>
 			<band height="15">
-				<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 					<reportElement stretchType="RelativeToTallestObject" x="65" y="0" width="270" height="15" uuid="ab1b8c7f-242a-46ae-9653-cde39128ce71"/>
 					<box rightPadding="5">
@@ -638,7 +630,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 				</textField>
 			</band>
 			<band height="20">
-				<printWhenExpression><![CDATA[Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+				<printWhenExpression><![CDATA[Arrays.asList("xlsx", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 				<textField pattern="#,##0.###;(#,##0.###-)" isBlankWhenNull="true">
 					<reportElement x="577" y="0" width="45" height="15" uuid="ca012d96-765d-4ad1-99dc-1e83ad39af72">
 						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -1055,7 +1047,7 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 	</pageHeader>
 	<columnHeader>
 		<band height="25">
-			<printWhenExpression><![CDATA[!Arrays.asList("xls", "csv").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+			<printWhenExpression><![CDATA[Arrays.asList("pdf", "html").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 			<staticText>
 				<reportElement x="0" y="0" width="70" height="25" uuid="5700da4a-3546-46d9-8b06-8c9974587906">
 					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
