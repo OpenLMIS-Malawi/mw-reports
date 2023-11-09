@@ -13,16 +13,16 @@
 	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
 	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
 	<property name="net.sf.jasperreports.export.csv.remove.empty.space.between.rows" value="true"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.2" value="pageFooter"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.3" value="title"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.4" value="summary"/>
-	<property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.3" value="columnHeader"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="pageHeader"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value="title"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.4" value="summary"/>
-	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.3" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.band.1" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.band.2" value="title"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.band.3" value="summary"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.keep.first.band.1" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.xlsx.exclude.origin.keep.first.band.2" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="title"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value="summary"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.1" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.keep.first.band.2" value="pageHeader"/>
 	<property name="net.sf.jasperreports.export.csv.field.enclosure">
 		<![CDATA["]]>
 	</property>
@@ -610,7 +610,7 @@ ORDER BY
 	<columnHeader>
 		<band height="30">
 			<property name="com.jaspersoft.studio.unit.height" value="px"/>
-			<printWhenExpression><![CDATA[Arrays.asList("csv", "xls").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+			<printWhenExpression><![CDATA[Arrays.asList("csv", "xlsx").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 			<staticText>
 				<reportElement mode="Opaque" x="0" y="0" width="32" height="30" backcolor="#F0F0F0" uuid="9cdb75eb-17cb-448c-93dc-c6f31127d9d4">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
@@ -984,7 +984,7 @@ ORDER BY
 		</band>
 		<band height="15">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-			<printWhenExpression><![CDATA[Arrays.asList("csv", "xls").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
+			<printWhenExpression><![CDATA[Arrays.asList("csv", "xlsx").contains($P{REPORT_PARAMETERS_MAP}.get("format"))]]></printWhenExpression>
 			<textField>
 				<reportElement x="0" y="0" width="32" height="15" uuid="7219b778-1d8b-4fa1-ad76-26a7beddd284">
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
