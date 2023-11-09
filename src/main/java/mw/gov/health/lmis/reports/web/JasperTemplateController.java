@@ -241,10 +241,16 @@ public class JasperTemplateController extends BaseController {
         .setProperty(format, contentDisposition);
 
     String templateType = template.getType();
+
+    ModelAndView returnView;
     if (ORDER_REPORT.equals(templateType)) {
-      return jasperReportsViewService.getOrderJasperReportView(jasperView, map);
+      returnView = jasperReportsViewService.getOrderJasperReportView(jasperView, map);
     } else {
-      return new ModelAndView(jasperView, map);
+      returnView = new ModelAndView(jasperView, map);
     }
+
+    virtualizer.cleanup();
+    return returnView;
   }
+
 }
