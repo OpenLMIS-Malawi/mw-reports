@@ -162,7 +162,7 @@ GROUP BY periodname]]>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
-	<parameter name="district" class="java.lang.String">
+	<parameter name="geographicZone" class="java.lang.String">
 		<property name="displayName" value="District"/>
 		<property name="selectExpression" value="/api/reports/districts"/>
 		<property name="selectProperty" value="name"/>
@@ -185,7 +185,7 @@ GROUP BY periodname]]>
 	FROM
 		referencedata.geographic_zones
 	WHERE
-		name = $P{district}
+		name = $P{geographicZone}
 	UNION ALL
 	SELECT
 		z.id
@@ -219,7 +219,7 @@ GROUP BY periodname]]>
 		requisition.requisitions AS r
 		INNER JOIN referencedata.programs AS p ON p.id = r.programId AND ($P{program}::varchar IS NULL OR p.name = $P{program}::varchar)
 		INNER JOIN referencedata.facilities AS f ON f.id = r.facilityId
-		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{district}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
+		INNER JOIN referencedata.geographic_zones AS gz ON gz.id = f.geographicZoneId AND ($P{geographicZone}::varchar IS NULL OR gz.id IN (SELECT id FROM findChildZones))
 		INNER JOIN referencedata.supported_programs AS sp ON sp.facilityId = f.id AND sp.programId = p.id AND sp.active IS TRUE
 		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{period}::varchar IS NULL OR pp.name = $P{period}::varchar)
 		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
@@ -331,7 +331,7 @@ ORDER BY
 							<datasetParameterExpression><![CDATA[20]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="GeographicZone">
-							<datasetParameterExpression><![CDATA[$P{district}]]></datasetParameterExpression>
+							<datasetParameterExpression><![CDATA[$P{geographicZone}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="Period">
 							<datasetParameterExpression><![CDATA[$P{period}]]></datasetParameterExpression>
@@ -407,7 +407,7 @@ ORDER BY
 			</textField>
 			<textField>
 				<reportElement x="0" y="100" width="140" height="20" uuid="bcbebeb1-9779-44a1-85c6-e6ace61cda27"/>
-				<textFieldExpression><![CDATA[($P{district} == null) ? "All" : $P{district}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[($P{geographicZone} == null) ? "All" : $P{geographicZone}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement x="0" y="80" width="140" height="20" uuid="ef29af37-a2a5-4f68-b2ee-c6440393385d"/>
@@ -459,7 +459,7 @@ ORDER BY
 				<text><![CDATA[Ministry of Health, Malawi]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="0" y="0" width="155" height="18" uuid="bbafcd3e-a9f8-4c7d-9e3d-d3e2acda3d2b">
+				<reportElement x="400" y="39" width="155" height="18" uuid="bbafcd3e-a9f8-4c7d-9e3d-d3e2acda3d2b">
 					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="px"/>
 					<property name="com.jaspersoft.studio.unit.x" value="px"/>
