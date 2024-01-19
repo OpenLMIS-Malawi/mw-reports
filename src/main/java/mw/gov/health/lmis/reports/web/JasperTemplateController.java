@@ -212,8 +212,8 @@ public class JasperTemplateController extends BaseController {
     JRVirtualizationHelper.setThreadVirtualizer(virtualizer);
 
     Map map = jasperTemplateService.mapRequestParametersToTemplate(
-          request, template);
-    
+        request, template);
+
     DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
     decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
     DecimalFormat decimalFormat = new DecimalFormat("", decimalFormatSymbols);
@@ -242,10 +242,17 @@ public class JasperTemplateController extends BaseController {
 
     String templateType = template.getType();
 
+    ModelAndView modelAndView;
     if (ORDER_REPORT.equals(templateType)) {
-      return jasperReportsViewService.getOrderJasperReportView(jasperView, map);
+      modelAndView = jasperReportsViewService.getOrderJasperReportView(jasperView, map);
     } else {
-      return new ModelAndView(jasperView, map);
+      modelAndView = new ModelAndView(jasperView, map);
+    }
+
+    try {
+      return modelAndView;
+    } finally {
+      virtualizer.cleanup();
     }
   }
 
