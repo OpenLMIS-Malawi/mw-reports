@@ -7,6 +7,7 @@ import static mw.gov.health.lmis.reports.web.ReportTypes.CONSISTENCY_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 
 import mw.gov.health.lmis.reports.dto.external.UserDto;
+import mw.gov.health.lmis.reports.service.JasperVirtualizerCleanupView;
 import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.utils.AuthenticationHelper;
 import net.sf.jasperreports.engine.JRParameter;
@@ -249,11 +250,8 @@ public class JasperTemplateController extends BaseController {
       modelAndView = new ModelAndView(jasperView, map);
     }
 
-    try {
-      return modelAndView;
-    } finally {
-      virtualizer.cleanup();
-    }
+    modelAndView.setView(new JasperVirtualizerCleanupView(jasperView, virtualizer));
+    return modelAndView;
   }
 
 }
