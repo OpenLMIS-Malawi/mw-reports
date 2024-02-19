@@ -12,7 +12,7 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-data-rest"
     compile "org.springframework.boot:spring-boot-starter-web"
     compile "org.springframework.boot:spring-boot-starter-security"
-    compile "org.springframework.security.oauth:spring-security-oauth2"
+    compile "org.springframework.security.oauth:spring-security-oauth2:2.3.6.RELEASE"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4"
 
@@ -21,13 +21,16 @@ dependencies {
     compile "com.github.tomakehurst:wiremock:1.58"
     compile "commons-codec:commons-codec:1.15"
     compile "commons-io:commons-io:2.11.0"
-    compile "org.apache.logging.log4j:log4j-api:2.17.1"
+    compile 'org.apache.logging.log4j:log4j-api:2.12.1'
+    compile 'org.apache.logging.log4j:log4j-core:2.12.1'
     compile "net.sf.jasperreports:jasperreports:6.20.5"
+    // compile 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
     compile "org.apache.commons:commons-lang3:3.5"
     compile "org.flywaydb:flyway-core:4.0.3"
     compile "org.javers:javers-spring-boot-starter-sql:2.8.1"
     compile "org.postgresql:postgresql:42.0.0"
-    compile "org.projectlombok:lombok:1.16.8"
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
     compile "org.webjars:swagger-ui:2.2.6"
 
     compile "org.apache.poi:poi:5.2.2"
