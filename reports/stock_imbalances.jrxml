@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.5-3efcf2e67f959db3888d79f73dde2dbd7acb4f8e  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi-dev.xml"/>
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.2  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock_imbalances" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f732ae30-fa4e-431f-89b3-5a7a1138e87e">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="net.sf.jasperreports.export.html.embed.image" value="true"/>
 	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
@@ -55,7 +54,7 @@
 		<queryString>
 			<![CDATA[WITH RECURSIVE findChildZones AS (
   SELECT * FROM referencedata.geographic_zones WHERE name = $P{GeographicZone}
-  UNION ALL
+  UNION ALL 
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
 SELECT
@@ -233,7 +232,7 @@ ORDER BY
 						<pen lineWidth="0.0" lineColor="#B3B3B3"/>
 						<topPen lineWidth="1.0" lineColor="#D4D4D4"/>
 					</box>
-					<textFieldExpression><![CDATA[$F{facilityname} + " (" + $F{geographiczonename} + ")"]]></textFieldExpression>
+					<textFieldExpression><![CDATA[($F{facilityname} == null) ? "-" : $F{facilityname} + " (" + $F{geographiczonename} + ")"]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupHeader>
