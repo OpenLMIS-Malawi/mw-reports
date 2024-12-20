@@ -109,8 +109,18 @@ findLastPeriodStartDate AS (
 SELECT
   referencedata.processing_periods.name AS periodname,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
-  COUNT(CASE WHEN status_change.createddate <= (CASE WHEN $P{dueDays}::varchar IS NULL THEN referencedata.processing_periods.enddate + INTERVAL '10 days'
-  ELSE referencedata.processing_periods.enddate + ($P{dueDays}::int || ' days')::interval END) THEN 1 END) AS ontime,
+  COUNT(
+    CASE
+        WHEN DATE(status_change.createddate) <= (
+            CASE
+                WHEN $P{dueDays}::varchar IS NULL
+                THEN DATE(referencedata.processing_periods.enddate + INTERVAL '10 days')
+                ELSE DATE(referencedata.processing_periods.enddate + ($P{dueDays}::int || ' days')::interval)
+            END
+        )
+        THEN 1
+    END
+) AS ontime,
   COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
   COUNT(*) as total
 FROM referencedata.facilities
