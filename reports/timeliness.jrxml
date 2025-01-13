@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.5-3efcf2e67f959db3888d79f73dde2dbd7acb4f8e  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="timeliness" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="341cf801-7355-4499-bd5c-182e5275caa1">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="malawi/dev.xml"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -64,13 +64,15 @@
 		<![CDATA[WITH RECURSIVE findChildZones AS (
   SELECT * FROM referencedata.geographic_zones WHERE name = $P{district}::varchar
   UNION ALL
-  SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
+  SELECT referencedata.geographic_zones.* 
+  FROM referencedata.geographic_zones 
+  JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 ),
 findLastPeriodStartDate AS (
-  SELECT pp.startdate FROM referencedata.processing_periods pp
-    JOIN referencedata.processing_schedules ps ON
-    pp.processingscheduleid = ps.id
-    WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
+  SELECT pp.startdate 
+  FROM referencedata.processing_periods pp
+  JOIN referencedata.processing_schedules ps ON pp.processingscheduleid = ps.id
+  WHERE pp.startdate <= (SELECT startdate FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
     AND ps.id = (SELECT processingscheduleid FROM referencedata.processing_periods WHERE name = $P{period}::varchar)
   ORDER BY startdate DESC LIMIT 1
 )
@@ -81,38 +83,35 @@ SELECT
   referencedata.facility_types.name AS type,
   referencedata.geographic_zones.name AS zone
 FROM referencedata.facilities
-  JOIN referencedata.geographic_zones ON
-   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
-   JOIN referencedata.programs program ON
-   program.name = $P{program}::varchar
-  JOIN referencedata.requisition_group_members rgm ON
-   facilityid = referencedata.facilities.id
-  JOIN referencedata.requisition_groups rg ON
-    rgm.requisitiongroupid = rg.id
-  JOIN referencedata.requisition_group_program_schedules rgps ON
-    rgps.requisitiongroupid = rg.id AND rgps.programid = program.id
-  JOIN referencedata.supported_programs sp ON
-    sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
-   LEFT JOIN referencedata.facility_types ON
-   referencedata.facilities.typeid = referencedata.facility_types.id
-  LEFT JOIN referencedata.processing_periods ON
-   referencedata.processing_periods.name = $P{period}::varchar
-  LEFT JOIN requisition.requisitions ON
-    requisition.requisitions.facilityid = referencedata.facilities.id
-    AND requisition.requisitions.processingperiodid =  referencedata.processing_periods.id
-    AND ($P{program}::varchar IS NULL OR requisition.requisitions.programid = program.id)
+  JOIN referencedata.geographic_zones 
+    ON referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.programs program 
+    ON program.name = $P{program}::varchar
+  JOIN referencedata.supported_programs sp 
+    ON sp.programid = program.id AND sp.facilityid = referencedata.facilities.id
+  LEFT JOIN referencedata.facility_types 
+    ON referencedata.facilities.typeid = referencedata.facility_types.id
+  LEFT JOIN referencedata.processing_periods 
+    ON referencedata.processing_periods.name = $P{period}::varchar
+  LEFT JOIN requisition.requisitions 
+    ON requisition.requisitions.facilityid = referencedata.facilities.id
+    AND requisition.requisitions.processingperiodid = referencedata.processing_periods.id
+    AND requisition.requisitions.programid = program.id
     AND requisition.requisitions.emergency = false
-  LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes WHERE requisition.status_changes.status = 'SUBMITTED') status_change
-   ON status_change.requisitionid = requisition.requisitions.id
+  LEFT JOIN (
+    SELECT DISTINCT ON (requisitionid) requisitionid, createddate 
+    FROM requisition.status_changes
+    WHERE requisition.status_changes.status = 'SUBMITTED'
+  ) status_change
+    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
-   referencedata.facilities.active = true
-   AND referencedata.facilities.enabled = true
-   AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
-   AND status_change IS NULL
-   AND sp.active = true
-   AND sp.startdate notnull
-   AND sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate)
-   ORDER BY referencedata.facilities.code;]]>
+  referencedata.facilities.active = true
+  AND referencedata.facilities.enabled = true
+  AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
+  AND status_change IS NULL
+  AND sp.active = true
+  AND (sp.startdate IS NULL OR sp.startdate <= (SELECT startdate FROM findLastPeriodStartDate))
+ORDER BY referencedata.facilities.code;]]>
 	</queryString>
 	<field name="period" class="java.lang.String"/>
 	<field name="code" class="java.lang.String"/>
