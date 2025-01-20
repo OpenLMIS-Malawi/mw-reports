@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.5-3efcf2e67f959db3888d79f73dde2dbd7acb4f8e  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="aggregate_orders" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="843ea716-ea72-47f8-bbd7-b9050b973ed0">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="MalawiDEV.xml"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -89,6 +89,10 @@ ORDER BY startdate LIMIT 1]]>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
+	<parameter name="includeEmergency" class="java.lang.String">
+		<property name="displayName" value="Include Emergency Orders"/>
+		<property name="required" value="true"/>
+	</parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="user" class="java.lang.String" isForPrompting="false"/>
@@ -99,6 +103,8 @@ ORDER BY startdate LIMIT 1]]>
   SELECT referencedata.geographic_zones.* FROM referencedata.geographic_zones JOIN findChildZones ON findChildZones.id = referencedata.geographic_zones.parentId
 )
 SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
+  referencedata.facility_types.name,
+  fulfillment.orders.emergency,
   fulfillment.order_line_items.orderedquantity AS PacksToShip,
   fulfillment.order_line_items.id AS LineItemId,
   fulfillment.orders.ordercode AS OrderCode,
@@ -117,8 +123,8 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   COALESCE(authorizer.firstname || ' ' || authorizer.lastname, authorizer.username) || COALESCE(' (' || authorizer.email || ')', '') AS AuthorizerName,
   COALESCE(approver.firstname || ' ' || approver.lastname, approver.username) || COALESCE(' (' || approver.email || ')', '') AS ApproverName,
   COALESCE(releaser.firstname || ' ' || releaser.lastname, releaser.username) || COALESCE(' (' || releaser.email || ')', '') AS ReleaserName,
-referencedata.programs.code AS ProgramCode,
-zone.code AS ZoneCode
+  referencedata.programs.code AS ProgramCode,
+  zone.code AS ZoneCode
 FROM fulfillment.order_line_items
   JOIN fulfillment.orders ON
    fulfillment.order_line_items.orderid = fulfillment.orders.id
@@ -152,22 +158,19 @@ FROM fulfillment.order_line_items
   LEFT JOIN referencedata.geographic_zones AS zone ON
   zone.name = $P{district}::varchar
 WHERE
-    fulfillment.orders.emergency = false
-   AND referencedata.facilities.active = true
-   AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
-   			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
+   referencedata.facilities.active = true
+   AND (
+       $P{includeEmergency} = 'true'
+       OR fulfillment.orders.emergency = false
+   )
+   AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND ($P{program}::varchar IS NULL OR referencedata.programs.name = $P{program}::varchar)
    AND referencedata.processing_periods.name = $P{period}::varchar
    AND ($P{district}::varchar IS NULL OR referencedata.geographic_zones.id IN (SELECT id FROM findChildZones))
    AND fulfillment.order_line_items.orderedquantity > 0
-   AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
-   			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
-   AND ((referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'Central Hospital', 'District Health Office p', 'Central Hospital p', 'Mental Hospital'] )
-   	 		AND referencedata.programs.name = 'TB')
-   	 OR (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital', 'District Health Office p', 'Central Hospital p', 'Mental Hospital'] )
-   	 		AND referencedata.programs.name <> 'TB')
-     OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
-   			AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'true'))
+   AND ((referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'Central Hospital', 'District Health Office p', 'Central Hospital p', 'Mental Hospital'] ) AND referencedata.programs.name = 'TB')
+   	 OR (referencedata.facility_types.name <> ALL ( ARRAY['Private Clinic', 'Private Hospital', 'District Health Office', 'CHAM', 'Central Hospital', 'District Health Office p', 'Central Hospital p', 'Mental Hospital'] ) AND referencedata.programs.name <> 'TB')
+     OR (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'true'))
    AND NOT EXISTS (
     SELECT *
     FROM fulfillment.status_changes ch
@@ -254,10 +257,10 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 	<group name="Group1">
 		<groupExpression><![CDATA[$F{ProductName}]]></groupExpression>
 		<groupFooter>
-			<band height="23">
+			<band height="27">
 				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 				<printWhenExpression><![CDATA[$V{PacksToShip_SUM} > 0]]></printWhenExpression>
-				<textField isStretchWithOverflow="true">
+				<textField textAdjust="StretchHeight">
 					<reportElement style="Row" mode="Opaque" x="-1" y="0" width="40" height="23" uuid="fe7ef7b6-048c-4d22-a5d5-944da2c110ff"/>
 					<box bottomPadding="1">
 						<pen lineColor="#3D9297"/>
@@ -271,7 +274,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$V{VisibleRows}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField textAdjust="StretchHeight">
 					<reportElement style="Row" mode="Opaque" x="298" y="0" width="52" height="23" uuid="2d2ebaf8-ee4e-4d65-abc1-835f13af0b4d">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -287,7 +290,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PackSize}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField textAdjust="StretchHeight">
 					<reportElement style="Row" mode="Opaque" x="39" y="0" width="61" height="23" uuid="1149e8e1-3073-4450-bdf6-bfa15d0302ba">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -303,7 +306,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$F{ProductCode}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<textField textAdjust="StretchHeight" pattern="#,##0.###;(#,##0.###-)">
 					<reportElement style="Row" mode="Opaque" x="465" y="0" width="90" height="23" uuid="5454bd52-8abc-4e75-a9d0-8d17ef2630dd">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -319,7 +322,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$V{TotalPrice}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true">
+				<textField textAdjust="StretchHeight">
 					<reportElement style="Row" mode="Opaque" x="100" y="0" width="198" height="23" uuid="fbd76509-bc78-4f8d-9bb2-1b7df951011b">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -335,7 +338,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$F{ProductName}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<textField textAdjust="StretchHeight" pattern="#,##0.###;(#,##0.###-)">
 					<reportElement style="Row" mode="Opaque" x="405" y="0" width="60" height="23" uuid="f1f75eb0-8d25-4582-b9b4-f15d27f6d4f3">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -351,7 +354,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$F{PricePerPack}]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<textField textAdjust="StretchHeight" pattern="#,##0.###;(#,##0.###-)">
 					<reportElement style="Row" mode="Opaque" x="350" y="0" width="55" height="23" uuid="8adee168-70fa-4d05-bc70-b12c83a95d21">
 						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 					</reportElement>
@@ -367,6 +370,11 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					</textElement>
 					<textFieldExpression><![CDATA[$V{PacksToShip_SUM}]]></textFieldExpression>
 				</textField>
+				<line>
+					<reportElement x="0" y="25" width="555" height="1" forecolor="#3D9297" uuid="9de2f7ba-604d-4f1e-8be4-78ed55941f73">
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					</reportElement>
+				</line>
 			</band>
 		</groupFooter>
 	</group>
@@ -459,7 +467,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</reportElement>
 				<textFieldExpression><![CDATA["This Batch order incorporates the quantities ordered by the " + $V{UniqueFacilities}.size() + " facilities in " + $P{district}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="60" y="120" width="180" height="15" isPrintWhenDetailOverflows="true" uuid="632decf6-43e5-4e2a-abb5-0a5924367ecd">
 					<printWhenExpression><![CDATA[$F{PeriodName} != null]]></printWhenExpression>
 				</reportElement>
@@ -527,7 +535,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 		</band>
 	</pageHeader>
 	<columnHeader>
-		<band height="35">
+		<band height="55">
 			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<staticText>
 				<reportElement mode="Opaque" x="40" y="0" width="60" height="30" backcolor="#3D9297" uuid="d03287bf-2774-435e-ab4a-8bd2c35455c2"/>
@@ -600,6 +608,16 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					<font size="11"/>
 				</textElement>
 				<text><![CDATA[Unit Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" mode="Transparent" x="170" y="30" width="220" height="20" forecolor="#000000" uuid="d5ac5426-34dd-41c4-acde-4510f82e3add">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<printWhenExpression><![CDATA[$F{ProductName} == null]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No records Found]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
@@ -825,7 +843,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</textElement>
 				<text><![CDATA[Date: ]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="417" y="80" width="138" height="20" uuid="e606cfbc-3a2c-41c1-bc52-ed11dddead4e"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -850,7 +868,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 					<font size="10"/>
 				</textElement>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="109" y="40" width="255" height="20" uuid="356f96f8-030b-4522-8702-f44cba8f98c2"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -904,7 +922,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</textElement>
 				<text><![CDATA[Printed By: ]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="417" y="60" width="138" height="20" uuid="397233d4-bbd7-4be6-a811-53ae9b35c4df"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -950,7 +968,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</textElement>
 				<textFieldExpression><![CDATA[$P{user}]]></textFieldExpression>
 			</textField>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="417" y="40" width="138" height="20" uuid="2f8a87ea-4eef-4bc5-aaf3-87fff7387a53"/>
 				<box>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -984,7 +1002,7 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</textElement>
 				<text><![CDATA[Authorized by: ]]></text>
 			</staticText>
-			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+			<textField textAdjust="StretchHeight" isBlankWhenNull="true">
 				<reportElement key="" x="417" y="20" width="138" height="20" uuid="93576e49-df34-4bc8-abe2-3a505a2f1344">
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
@@ -1000,11 +1018,6 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				</textElement>
 				<textFieldExpression><![CDATA[java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy h:mm:ss a").format(java.time.ZonedDateTime.ofInstant($F{AuthorizationDate}.toInstant(), java.time.ZoneId.of($P{timeZone})));]]></textFieldExpression>
 			</textField>
-			<line>
-				<reportElement x="-2" y="0" width="555" height="1" forecolor="#3D9297" uuid="9de2f7ba-604d-4f1e-8be4-78ed55941f73">
-					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
-				</reportElement>
-			</line>
 		</band>
 	</summary>
 </jasperReport>
