@@ -89,6 +89,10 @@ ORDER BY startdate LIMIT 1]]>
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
+	<parameter name="includeEmergency" class="java.lang.String">
+		<property name="displayName" value="Include Emergency Orders"/>
+		<property name="required" value="true"/>
+	</parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="user" class="java.lang.String" isForPrompting="false"/>
@@ -155,6 +159,7 @@ FROM fulfillment.order_line_items
   zone.name = $P{district}::varchar
 WHERE
    referencedata.facilities.active = true
+   AND fulfillment.orders.emergency = ($P{includeEmergency} = 'true')
    AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND ($P{program}::varchar IS NULL OR referencedata.programs.name = $P{program}::varchar)
    AND referencedata.processing_periods.name = $P{period}::varchar
