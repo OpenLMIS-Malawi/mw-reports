@@ -159,7 +159,10 @@ FROM fulfillment.order_line_items
   zone.name = $P{district}::varchar
 WHERE
    referencedata.facilities.active = true
-   AND fulfillment.orders.emergency = ($P{includeEmergency} = 'true')
+   AND (
+       $P{includeEmergency} = 'true'
+       OR fulfillment.orders.emergency = false
+   )
    AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND ($P{program}::varchar IS NULL OR referencedata.programs.name = $P{program}::varchar)
    AND referencedata.processing_periods.name = $P{period}::varchar
