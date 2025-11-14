@@ -93,6 +93,10 @@
 		<property name="displayProperty" value="name"/>
 		<property name="required" value="true"/>
 	</parameter>
+    <parameter name="includeEmergency" class="java.lang.String">
+        <property name="displayName" value="Include Emergency Orders"/>
+        <property name="required" value="true"/>
+    </parameter>
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<queryString language="plsql">
@@ -140,8 +144,11 @@ FROM fulfillment.order_line_items
   LEFT JOIN referencedata.users ON
   fulfillment.status_changes.authorid = referencedata.users.id
 WHERE
-    fulfillment.orders.emergency = false
-   AND referencedata.facilities.active = true
+   referencedata.facilities.active = true
+   AND (
+       $P{includeEmergency} = 'true'
+       OR fulfillment.orders.emergency = false
+   )
    AND NOT (referencedata.facilities.extraData -> 'AggregateOrderMember' IS NOT NULL
         AND LOWER(referencedata.facilities.extraData ->> 'AggregateOrderMember') = 'false')
    AND ($P{program}::varchar IS NULL OR referencedata.programs.name = $P{program}::varchar)
