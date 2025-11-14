@@ -19,6 +19,7 @@ import lombok.Setter;
 public abstract class BaseEntity {
   protected static final String TEXT_COLUMN_DEFINITION = "text";
   protected static final String UUID_COLUMN_DEFINITION = "pg-uuid";
+  protected static final String BOOLEAN_COLUMN_DEFINITION = "boolean";
 
   @Id
   @GeneratedValue(generator = "uuid-gen")

@@ -1,24 +1,23 @@
 package mw.gov.health.lmis.reports.repository;
 
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import mw.gov.health.lmis.reports.domain.BaseEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import mw.gov.health.lmis.Application;
-import mw.gov.health.lmis.reports.domain.BaseEntity;
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ActiveProfiles("test")
-@SpringApplicationConfiguration(Application.class)
 @Transactional
+@SpringBootTest
+@DirtiesContext
+@ActiveProfiles("test")
+@RunWith(SpringRunner.class)
 public abstract class BaseCrudRepositoryIntegrationTest<T extends BaseEntity> {
 
   abstract CrudRepository<T, UUID> getRepository();
@@ -29,7 +28,7 @@ public abstract class BaseCrudRepositoryIntegrationTest<T extends BaseEntity> {
    */
   abstract T generateInstance();
 
-  private AtomicInteger instanceNumber = new AtomicInteger(0);
+  private final AtomicInteger instanceNumber = new AtomicInteger(0);
 
   int getNextInstanceNumber() {
     return this.instanceNumber.incrementAndGet();

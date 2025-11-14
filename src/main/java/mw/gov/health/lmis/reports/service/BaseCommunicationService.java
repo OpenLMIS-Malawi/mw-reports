@@ -251,4 +251,21 @@ public abstract class BaseCommunicationService<T> {
         ex.getStatusCode(),
         ex.getResponseBodyAsString());
   }
+
+  protected <P> void runWithTokenRetry(HttpTask<P> task) {
+    try {
+      task.run();
+    } catch (HttpStatusCodeException ex) {
+      if (HttpStatus.UNAUTHORIZED == ex.getStatusCode()) {
+        task.run();
+        return;
+      }
+      throw ex;
+    }
+  }
+
+  @FunctionalInterface
+  protected interface HttpTask<T> {
+    void run();
+  }
 }

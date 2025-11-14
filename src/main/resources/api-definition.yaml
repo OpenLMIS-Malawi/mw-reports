@@ -6,10 +6,17 @@ baseUri: "@baseUrl@"
 protocols: [ HTTP, HTTPS ]
 
 documentation:
-    - title: Getting Started
-      content: Welcome to the OpenLMIS Malawi reports-service documentation.
+  - title: Getting Started
+    content: Welcome to the OpenLMIS Malawi reports-service documentation.
 
 schemas:
+  - dashboardReportDto: !include schemas/dashboardReportDto.json
+
+  - dashboardReportDtoPage: !include schemas/dashboardReportDtoPage.json
+
+  - reportCategoryDto: !include schemas/reportCategoryDto.json
+
+  - reportCategoryDtoPage: !include schemas/reportCategoryDtoPage.json
 
   - configurationSetting: !include schemas/configurationSetting.json
 
@@ -432,7 +439,191 @@ resourceTypes:
                               body:
                                 application/json:
                                     schema: localizedMessage
-
+      /dashboardReports:
+        displayName: Dashboard reports
+        get:
+          is: [ secured, paginated ]
+          description: Get all dashboard reports matching certain criteria.
+          responses:
+            200:
+              body:
+                application/json:
+                  schema: dashboardReportDtoPage
+            403:
+              body:
+                application/json:
+                  schema: localizedMessage
+        post:
+          is: [ secured ]
+          description: Create dashboard report.
+          body:
+            application/json:
+              schema: dashboardReportDto
+          responses:
+            200:
+              body:
+                application/json:
+                  schema: dashboardReportDto
+            403:
+              body:
+                application/json:
+                  schema: localizedMessage
+        put:
+          is: [ secured ]
+          description: Update dashboard report.
+          body:
+            application/json:
+              schema: dashboardReportDto
+          responses:
+            200:
+              body:
+                application/json:
+                  schema: dashboardReportDto
+            404:
+              body:
+                application/json:
+                  schema: localizedMessage
+        /{id}:
+          uriParameters:
+            id:
+              displayName: id
+              type: string
+              required: true
+              repeat: false
+          get:
+            is: [ secured ]
+            description: Get chosen dashboard report.
+            responses:
+              200:
+                body:
+                  application/json:
+                    schema: dashboardReportDto
+              401:
+                body:
+                  application/json:
+                    schema: localizedMessage
+              403:
+                body:
+                  application/json:
+                    schema: localizedMessage
+              404:
+                body:
+                  application/json:
+                    schema: localizedMessage
+          delete:
+            is: [ secured ]
+            description: Delete chosen dashboard report.
+            responses:
+              204:
+              403:
+                body:
+                  application/json:
+                    schema: localizedMessage
+              404:
+                body:
+                  application/json:
+                    schema: localizedMessage
+        /availableReports:
+          get:
+            is: [ secured ]
+            description: Get dashboard reports permitted for user.
+            responses:
+              200:
+                body:
+                  application/json:
+                    schema: dashboardReportDtoPage
+              401:
+                body:
+                  application/json:
+                    schema: localizedMessage
+        /reportCategories:
+          displayName: Report Categories
+          get:
+            is: [ secured, paginated ]
+            description: Get all report categories matching certain criteria.
+            responses:
+              200:
+                body:
+                  application/json:
+                    schema: reportCategoryDtoPage
+              403:
+                body:
+                  application/json:
+                    schema: localizedMessage
+          post:
+            is: [ secured ]
+            description: Create report category.
+            body:
+              application/json:
+                schema: reportCategoryDto
+            responses:
+              200:
+                body:
+                  application/json:
+                    schema: reportCategoryDto
+              403:
+                body:
+                  application/json:
+                    schema: localizedMessage
+          put:
+            is: [ secured ]
+            description: Update report category.
+            body:
+              application/json:
+                schema: reportCategoryDto
+            responses:
+              200:
+                body:
+                  application/json:
+                    schema: reportCategoryDto
+              403:
+                body:
+                  application/json:
+                    schema: localizedMessage
+              404:
+                body:
+                  application/json:
+                    schema: localizedMessage
+          /{id}:
+            uriParameters:
+              id:
+                displayName: id
+                type: string
+                required: true
+                repeat: false
+            get:
+              is: [ secured ]
+              description: Get chosen report category.
+              responses:
+                200:
+                  body:
+                    application/json:
+                      schema: dashboardReportDto
+                401:
+                  body:
+                    application/json:
+                      schema: localizedMessage
+                403:
+                  body:
+                    application/json:
+                      schema: localizedMessage
+                404:
+                  body:
+                    application/json:
+                      schema: localizedMessage
+            delete:
+              is: [ secured ]
+              description: Delete chosen report category.
+              responses:
+                204:
+                403:
+                  body:
+                    application/json:
+                      schema: localizedMessage
+                404:
+                  body:
+                    application/json:
+                      schema: localizedMessage
   /settings:
       displayName: Settings.
       /{key}:

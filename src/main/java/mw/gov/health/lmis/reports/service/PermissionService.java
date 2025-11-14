@@ -17,6 +17,7 @@ package mw.gov.health.lmis.reports.service;
 
 import static mw.gov.health.lmis.reports.i18n.PermissionMessageKeys.ERROR_NO_PERMISSION;
 
+import java.util.ArrayList;
 import mw.gov.health.lmis.reports.dto.external.DetailedRoleAssignmentDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,9 +36,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@SuppressWarnings("PMD.TooManyMethods")
 public class PermissionService {
   public static final String REPORT_TEMPLATES_EDIT = "REPORT_TEMPLATES_EDIT";
   public static final String STOCK_INVENTORIES_EDIT = "STOCK_INVENTORIES_EDIT";
+  static final String REPORTS_MANAGE = "REPORTS_MANAGE";
+  static final String REPORT_CATEGORIES_MANAGE = "REPORT_CATEGORIES_MANAGE";
 
   public static final UUID AGGREGATE_ORDERS_ID =
           UUID.fromString("f28d0ebd-7276-4453-bc3c-48556a4bd25a");
@@ -52,8 +56,25 @@ public class PermissionService {
   @Autowired
   private UserReferenceDataService userReferenceDataService;
 
+  /**
+   * Check whether the user has REPORT_TEMPLATES_EDIT permission.
+   */
   public void canEditReportTemplates() {
     checkPermission(REPORT_TEMPLATES_EDIT);
+  }
+
+  /**
+   * Check whether the user can manage reports - has MANAGE_DASHBOARD_REPORTS permission.
+   */
+  public void canManageReports() {
+    checkPermission(REPORTS_MANAGE);
+  }
+
+  /**
+   * Check whether the user can manage report categories - has MANAGE_REPORT_CATEGORIES permission.
+   */
+  public void canManageReportCategories() {
+    checkPermission(REPORT_CATEGORIES_MANAGE);
   }
 
   /**
@@ -66,7 +87,18 @@ public class PermissionService {
     hasPermission(STOCK_INVENTORIES_EDIT, programId, facilityId, null);
   }
 
-
+  /**
+   * Filters rights for which user has permission.
+   */
+  public List<String> filterRightsForUser(List<String> rightNames) {
+    List<String> accessibleRights = new ArrayList<>();
+    for (String rightName : rightNames) {
+      if (hasPermission(rightName)) {
+        accessibleRights.add(rightName);
+      }
+    }
+    return accessibleRights;
+  }
 
   /**
    * Checks if current user has permission.

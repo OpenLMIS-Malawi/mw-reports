@@ -43,10 +43,15 @@
       "items": {
         "type": "string"
       }
+    },
+    "category": {
+      "type": "object",
+      "$ref": "reportCategoryDto.json"
     }
   },
   "required": [
     "id",
-    "name"
+    "name",
+    "category"
   ]
 }
