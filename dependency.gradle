@@ -1,7 +1,7 @@
 repositories {
     mavenCentral()
     jcenter()
-    maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts"}
+    maven { url "https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts" }
     maven { url "http://jasperreports.sourceforge.net/maven2/" }
 }
 
@@ -15,6 +15,7 @@ dependencies {
     compile "org.springframework.security.oauth:spring-security-oauth2"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate4"
+    compile 'org.projectlombok:lombok:1.18.22'
 
     compile "org.openlmis:openlmis-service-util:3.0.0"
 
@@ -25,9 +26,8 @@ dependencies {
     compile "net.sf.jasperreports:jasperreports:6.20.5"
     compile "org.apache.commons:commons-lang3:3.5"
     compile "org.flywaydb:flyway-core:4.0.3"
-    compile "org.javers:javers-spring-boot-starter-sql:2.8.1"
+    compile "org.javers:javers-spring-boot-starter-sql:5.13.2"
     compile "org.postgresql:postgresql:42.0.0"
-    compile "org.projectlombok:lombok:1.16.8"
     compile "org.webjars:swagger-ui:2.2.6"
 
     compile "org.apache.poi:poi:5.2.2"
@@ -45,4 +45,5 @@ dependencies {
     testCompile "org.powermock:powermock-api-mockito:1.6.5"
     testCompile "org.powermock:powermock-module-junit4:1.6.5"
     testCompile "org.springframework.boot:spring-boot-starter-test"
+    testCompile 'org.projectlombok:lombok:1.18.22'
 }

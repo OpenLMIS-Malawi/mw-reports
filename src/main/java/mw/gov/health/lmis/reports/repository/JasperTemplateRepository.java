@@ -13,4 +13,6 @@ public interface JasperTemplateRepository
   JasperTemplate findByName(@Param("name") String name);
 
   List<JasperTemplate> findByIsDisplayed(@Param("isDisplayed") boolean isDisplayed);
+
+  boolean existsByCategory_Id(UUID categoryId);
 }

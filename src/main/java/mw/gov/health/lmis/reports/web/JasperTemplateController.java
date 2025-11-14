@@ -6,7 +6,11 @@ import static mw.gov.health.lmis.reports.service.PermissionService.AGGREGATE_ORD
 import static mw.gov.health.lmis.reports.web.ReportTypes.CONSISTENCY_REPORT;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
 
+import java.util.Optional;
+import mw.gov.health.lmis.reports.domain.ReportCategory;
 import mw.gov.health.lmis.reports.dto.external.UserDto;
+import mw.gov.health.lmis.reports.i18n.ReportCategoryMessageKeys;
+import mw.gov.health.lmis.reports.repository.ReportCategoryRepository;
 import mw.gov.health.lmis.reports.service.JasperVirtualizerCleanupView;
 import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.utils.AuthenticationHelper;
@@ -16,7 +20,8 @@ import net.sf.jasperreports.engine.JRVirtualizer;
 import net.sf.jasperreports.engine.fill.JRSwapFileVirtualizer;
 import net.sf.jasperreports.engine.util.JRSwapFile;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -57,7 +62,7 @@ import javax.servlet.http.HttpServletRequest;
 @Transactional
 @RequestMapping("/api/reports/templates/malawi")
 public class JasperTemplateController extends BaseController {
-  private static final Logger LOGGER = Logger.getLogger(JasperTemplateController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JasperTemplateController.class);
 
   @Autowired
   private JasperTemplateService jasperTemplateService;
@@ -73,6 +78,9 @@ public class JasperTemplateController extends BaseController {
 
   @Autowired
   private ViewPermissionService viewPermissionService;
+
+  @Autowired
+  private ReportCategoryRepository reportCategoryRepository;
 
   @Autowired
   private Clock clock;
@@ -105,19 +113,26 @@ public class JasperTemplateController extends BaseController {
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(HttpStatus.OK)
   public void createJasperReportTemplate(
-      @RequestPart("file") MultipartFile file, String name, String description)
-      throws ReportingException {
+      @RequestPart("file") MultipartFile file, String name, String description,
+      String category) throws ReportingException {
     permissionService.canEditReportTemplates();
+
+    Optional<ReportCategory> reportCategory = reportCategoryRepository.findByName(category);
+    if (!reportCategory.isPresent()) {
+      throw new ReportingException(
+          ReportCategoryMessageKeys.ERROR_REPORT_CATEGORY_NOT_FOUND);
+    }
 
     JasperTemplate jasperTemplateToUpdate = jasperTemplateRepository.findByName(name);
     if (jasperTemplateToUpdate == null) {
       LOGGER.debug("Creating new template");
       jasperTemplateToUpdate = new JasperTemplate(
-          name, null, CONSISTENCY_REPORT, true, description, null, null, null);
+          name, null, CONSISTENCY_REPORT, true, description, null, null, reportCategory.get());
       jasperTemplateService.validateFileAndInsertTemplate(jasperTemplateToUpdate, file);
     } else {
       LOGGER.debug("Template found, updating template");
       jasperTemplateToUpdate.setDescription(description);
+      jasperTemplateToUpdate.setCategory(reportCategory.get());
       jasperTemplateService.validateFileAndSaveTemplate(jasperTemplateToUpdate, file);
     }
 

@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.domain.JasperTemplateParameter;
+import mw.gov.health.lmis.reports.domain.ReportCategory;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -64,7 +65,7 @@ public class JasperTemplateDto implements JasperTemplate.Importer, JasperTemplat
 
   @Getter
   @Setter
-  private String category;
+  private ReportCategory category;
 
   @Setter
   private List<JasperTemplateParameterDto> templateParameters;

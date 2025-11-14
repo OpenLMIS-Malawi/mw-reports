@@ -1,0 +1,40 @@
+package mw.gov.health.lmis.reports.repository;
+
+import java.util.List;
+import java.util.UUID;
+import mw.gov.health.lmis.reports.domain.DashboardReport;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
+
+public interface DashboardReportRepository
+    extends PagingAndSortingRepository<DashboardReport, UUID> {
+
+  Page<DashboardReport> findByEnabled(boolean enabled, Pageable pageable);
+
+  boolean existsByName(String name);
+
+  List<DashboardReport> findByShowOnHomePage(boolean showOnHomePage);
+
+  boolean existsByCategory_Id(UUID categoryId);
+
+  /**
+   * Retrieves a page of dashboard reports for which user has rights. If showOnHomePage
+   * was provided and user has rights, the home page report will be returned.
+   *
+   * @param pageable Pageable parameters for pagination.
+   * @param rightNames Names of user rights.
+   * @param showOnHomePage Filter to only include report that is shown on the home page.
+   * @return A page of dashboard reports matching the criteria.
+   */
+  @Query("SELECT r FROM DashboardReport r WHERE r.enabled = true "
+      + "AND r.rightName IN :rightNames "
+      + "AND (:showOnHomePage IS NULL OR r.showOnHomePage = :showOnHomePage)")
+  Page<DashboardReport> findByRightsAndShowOnHomePage(
+      @Param("rightNames") List<String> rightNames,
+      @Param("showOnHomePage") Boolean showOnHomePage,
+      Pageable pageable);
+}
+

@@ -9,7 +9,7 @@ import org.javers.repository.sql.DialectName;
 import org.javers.repository.sql.JaversSqlRepository;
 import org.javers.repository.sql.SqlRepositoryBuilder;
 import org.javers.spring.auditable.AuthorProvider;
-import org.javers.spring.boot.sql.JaversProperties;
+import org.javers.spring.boot.sql.JaversSqlProperties;
 import org.javers.spring.jpa.TransactionalJaversBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
-import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
@@ -36,7 +36,7 @@ import java.time.ZoneId;
 import java.util.Locale;
 
 @SpringBootApplication
-@ImportResource("applicationContext.xml")
+@ImportResource("classpath:applicationContext.xml")
 @EntityScan(basePackageClasses = {BaseEntity.class, ConfigurationSetting.class},
     basePackages = "org.openlmis.util.converter")
 public class Application {
@@ -46,7 +46,7 @@ public class Application {
   private DialectName dialectName;
 
   @Autowired
-  private JaversProperties javersProperties;
+  private JaversSqlProperties javersSqlProperties;
 
   @Value("${spring.jpa.properties.hibernate.default_schema}")
   private String preferredSchema;
@@ -114,22 +114,19 @@ public class Application {
         .withSchema(preferredSchema)
         .build();
 
-    JaVersDateProvider customDateProvider = new JaVersDateProvider();
-
     return TransactionalJaversBuilder
         .javers()
         .withTxManager(transactionManager)
         .registerJaversRepository(sqlRepository)
         .withObjectAccessHook(new HibernateUnproxyObjectAccessHook())
         .withListCompareAlgorithm(
-            ListCompareAlgorithm.valueOf(javersProperties.getAlgorithm().toUpperCase()))
+            ListCompareAlgorithm.valueOf(javersSqlProperties.getAlgorithm().toUpperCase()))
         .withMappingStyle(
-            MappingStyle.valueOf(javersProperties.getMappingStyle().toUpperCase()))
-        .withNewObjectsSnapshot(javersProperties.isNewObjectSnapshot())
-        .withPrettyPrint(javersProperties.isPrettyPrint())
-        .withTypeSafeValues(javersProperties.isTypeSafeValues())
-        .withPackagesToScan(javersProperties.getPackagesToScan())
-        .withDateTimeProvider(customDateProvider)
+            MappingStyle.valueOf(javersSqlProperties.getMappingStyle().toUpperCase()))
+        .withNewObjectsSnapshot(javersSqlProperties.isNewObjectSnapshot())
+        .withPrettyPrint(javersSqlProperties.isPrettyPrint())
+        .withTypeSafeValues(javersSqlProperties.isTypeSafeValues())
+        .withPackagesToScan(javersSqlProperties.getPackagesToScan())
         .build();
   }
 

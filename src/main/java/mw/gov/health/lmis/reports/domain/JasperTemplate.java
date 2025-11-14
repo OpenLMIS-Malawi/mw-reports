@@ -1,6 +1,8 @@
 package mw.gov.health.lmis.reports.domain;
 
 
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -25,6 +27,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "jasper_templates")
 @NoArgsConstructor
@@ -32,39 +36,22 @@ import lombok.Setter;
 public class JasperTemplate extends BaseEntity {
 
   @Column(columnDefinition = TEXT_COLUMN_DEFINITION, unique = true, nullable = false)
-  @Getter
-  @Setter
   private String name;
 
   @Column
-  @Getter
-  @Setter
   private byte[] data;
 
   @Column(columnDefinition = TEXT_COLUMN_DEFINITION)
-  @Getter
-  @Setter
   private String type;
 
   @Column(columnDefinition = "boolean DEFAULT true")
-  @Getter
-  @Setter
   private Boolean isDisplayed = true;
 
   @Column(columnDefinition = TEXT_COLUMN_DEFINITION)
-  @Getter
-  @Setter
   private String description;
 
   @ElementCollection
-  @Getter
-  @Setter
   private List<String> supportedFormats;
-
-  @Column
-  @Getter
-  @Setter
-  private String category;
 
   @OneToMany(
       mappedBy = "template",
@@ -72,9 +59,11 @@ public class JasperTemplate extends BaseEntity {
       fetch = FetchType.EAGER,
       orphanRemoval = true)
   @Fetch(FetchMode.SELECT)
-  @Getter
-  @Setter
   private List<JasperTemplateParameter> templateParameters;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "categoryid", referencedColumnName = "id", nullable = false)
+  private ReportCategory category;
 
   /**
    * Create a new instance of Jasper template based on data from {@link Importer}
@@ -160,7 +149,7 @@ public class JasperTemplate extends BaseEntity {
 
     void setSupportedFormats(List<String> formats);
 
-    void setCategory(String category);
+    void setCategory(ReportCategory category);
   }
 
   public interface Importer {
@@ -180,6 +169,6 @@ public class JasperTemplate extends BaseEntity {
 
     List<String> getSupportedFormats();
 
-    String getCategory();
+    ReportCategory getCategory();
   }
 }

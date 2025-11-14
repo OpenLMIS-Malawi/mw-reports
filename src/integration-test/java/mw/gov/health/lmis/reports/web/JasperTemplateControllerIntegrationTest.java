@@ -5,11 +5,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.util.Optional;
+import mw.gov.health.lmis.reports.domain.ReportCategory;
+import mw.gov.health.lmis.reports.repository.ReportCategoryRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -35,6 +39,7 @@ public class JasperTemplateControllerIntegrationTest extends BaseWebIntegrationT
   private static final String ID_URL = RESOURCE_URL + "/{id}";
   private static final String FORMAT_PARAM = "format";
   private static final String REPORT_URL = ID_URL + "/{" + FORMAT_PARAM + "}";
+  private static final String CATEGORY_NAME = "LMIS Reports";
 
   @MockBean
   private JasperTemplateRepository jasperTemplateRepository;
@@ -42,9 +47,22 @@ public class JasperTemplateControllerIntegrationTest extends BaseWebIntegrationT
   @MockBean
   private JasperReportsViewService jasperReportsViewService;
 
+  @MockBean
+  private ReportCategoryRepository reportCategoryRepository;
+
+  private ReportCategory reportCategory;
+
   @Before
   public void setUp() {
     mockUserAuthenticated();
+
+    reportCategory = new ReportCategory();
+    reportCategory.setId(UUID.randomUUID());
+    reportCategory.setName(CATEGORY_NAME);
+
+    given(reportCategoryRepository.findByName(anyString())).willReturn(
+        Optional.ofNullable(reportCategory));
+    given(reportCategoryRepository.save(any(ReportCategory.class))).willReturn(reportCategory);
   }
 
   // GET /api/reports/templates
@@ -235,6 +253,7 @@ public class JasperTemplateControllerIntegrationTest extends BaseWebIntegrationT
     template.setId(id);
     template.setName("name");
     template.setIsDisplayed(isDisplayed);
+    template.setCategory(reportCategory);
 
     given(jasperTemplateRepository.findOne(id)).willReturn(template);
 
