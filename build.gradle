@@ -16,6 +16,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'jacoco'
 
 sourceSets {
@@ -51,10 +52,10 @@ idea {
             xmlFile.asNode().component
                     .find { it.@name == 'CompilerConfiguration' }['annotationProcessing'][0]
                     .replaceNode {
-                annotationProcessing {
-                    profile(default: true, name: 'Default', useClasspath: 'true', enabled: true)
-                }
-            }
+                        annotationProcessing {
+                            profile(default: true, name: 'Default', useClasspath: 'true', enabled: true)
+                        }
+                    }
         }
     }
 }
@@ -78,4 +79,14 @@ build {
     dependsOn copyRamlHtmlToBuild
     dependsOn copyConsulRegistrationToBuild
     dependsOn jacocoTestReport
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group.startsWith('com.fasterxml.jackson')) {
+                details.useVersion '2.14.2'
+            }
+        }
+    }
 }
