@@ -9,6 +9,7 @@ public class DashboardReportDataBuilder {
   private final UUID id = UUID.randomUUID();
   private String name = RandomStringUtils.random(6);
   private String url = "http://example.com";
+  private String embeddedUuid = null;
   private ReportType type = ReportType.SUPERSET;
   private boolean enabled = true;
   private boolean showOnHomePage = false;
@@ -22,6 +23,11 @@ public class DashboardReportDataBuilder {
 
   public DashboardReportDataBuilder withUrl(String url) {
     this.url = url;
+    return this;
+  }
+
+  public DashboardReportDataBuilder withEmbeddedUuid(String embeddedUuid) {
+    this.embeddedUuid = embeddedUuid;
     return this;
   }
 
@@ -65,6 +71,7 @@ public class DashboardReportDataBuilder {
     return new DashboardReport(
         name,
         url,
+        embeddedUuid,
         type,
         enabled,
         showOnHomePage,
