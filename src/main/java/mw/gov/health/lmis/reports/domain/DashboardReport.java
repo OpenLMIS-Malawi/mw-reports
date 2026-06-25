@@ -31,6 +31,9 @@ public class DashboardReport extends BaseEntity {
   @Column(columnDefinition = TEXT_COLUMN_DEFINITION, nullable = false)
   private String url;
 
+  @Column(columnDefinition = TEXT_COLUMN_DEFINITION)
+  private String embeddedUuid;
+
   @Enumerated(EnumType.STRING)
   @Column(columnDefinition = TEXT_COLUMN_DEFINITION, nullable = false)
   private ReportType type;
@@ -70,6 +73,7 @@ public class DashboardReport extends BaseEntity {
   public void updateFrom(DashboardReport.Importer importer) {
     this.name = importer.getName();
     this.url = importer.getUrl();
+    this.embeddedUuid = importer.getEmbeddedUuid();
     this.type = importer.getType();
     this.enabled = importer.isEnabled();
     this.showOnHomePage = importer.isShowOnHomePage();
@@ -85,6 +89,7 @@ public class DashboardReport extends BaseEntity {
     exporter.setId(id);
     exporter.setName(name);
     exporter.setUrl(url);
+    exporter.setEmbeddedUuid(embeddedUuid);
     exporter.setType(type);
     exporter.setEnabled(enabled);
     exporter.setShowOnHomePage(showOnHomePage);
@@ -98,6 +103,8 @@ public class DashboardReport extends BaseEntity {
     void setName(String name);
 
     void setUrl(String url);
+
+    void setEmbeddedUuid(String embeddedUuid);
 
     void setType(ReportType type);
 
@@ -116,6 +123,8 @@ public class DashboardReport extends BaseEntity {
     String getName();
 
     String getUrl();
+
+    String getEmbeddedUuid();
 
     ReportType getType();
 

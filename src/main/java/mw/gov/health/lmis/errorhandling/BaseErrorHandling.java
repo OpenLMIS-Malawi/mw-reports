@@ -15,6 +15,7 @@ import mw.gov.health.lmis.reports.exception.BaseMessageException;
 import mw.gov.health.lmis.reports.exception.DataRetrievalException;
 import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
 import mw.gov.health.lmis.reports.exception.PermissionMessageException;
+import mw.gov.health.lmis.reports.exception.ServerException;
 import mw.gov.health.lmis.reports.exception.ValidationMessageException;
 import mw.gov.health.lmis.reports.i18n.MessageService;
 import mw.gov.health.lmis.utils.Message;
@@ -68,6 +69,13 @@ public class BaseErrorHandling {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ResponseBody
   public Message.LocalizedMessage handleNotFoundMessageException(NotFoundMessageException ex) {
+    return getLocalizedMessage(ex);
+  }
+
+  @ExceptionHandler(ServerException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @ResponseBody
+  public Message.LocalizedMessage handleServerException(ServerException ex) {
     return getLocalizedMessage(ex);
   }
 
