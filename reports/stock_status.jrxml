@@ -218,7 +218,7 @@ GROUP BY periodname]]>
 		INNER JOIN referencedata.processing_periods AS pp ON pp.id = r.processingPeriodId AND ($P{period}::varchar IS NULL OR pp.name = $P{period}::varchar)
 		INNER JOIN requisition.requisition_line_items AS rli ON rli.requisitionId = r.id AND rli.skipped IS FALSE AND NOT (rli.stockOnHand = 0 AND rli.totalConsumedQuantity = 0 AND rli.averageConsumption = 0 AND rli.totalReceivedQuantity = 0)
 		INNER JOIN referencedata.orderables AS o ON o.id = rli.orderableId AND o.versionnumber = rli.orderableversionnumber
-		INNER JOIN referencedata.program_orderables AS po ON po.orderableId = o.id AND po.programid = p.id AND po.fullsupply IS true
+		INNER JOIN (SELECT DISTINCT orderableId, programid FROM referencedata.program_orderables WHERE fullsupply IS true) AS po ON po.orderableId = o.id AND po.programid = p.id
 		INNER JOIN referencedata.facility_type_approved_products AS ftap ON rli.facilitytypeapprovedproductid = ftap.id AND rli.facilitytypeapprovedproductversionnumber = ftap.versionnumber,
 		number_of_weekly_periods_in_month
 	WHERE
