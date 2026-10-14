@@ -38,9 +38,8 @@
 	<parameter name="imagesDirectory" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="timeZone" class="java.lang.String" isForPrompting="false"/>
 	<queryString language="plsql">
-		<![CDATA[SELECT * FROM (
+		<![CDATA[WITH lines AS MATERIALIZED (
 	SELECT
-		false as is_subtotal,
 		case when reasons.reasontype='DEBIT' then facilities."name"
 		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
 		end AS sourcefacility,
@@ -53,7 +52,7 @@
 	FROM
 		stockmanagement.stock_event_line_items AS line_items
 		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
-		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
+		LEFT JOIN stockmanagement.nodes AS nodes ON nodes.id = COALESCE(line_items.destinationid, line_items.sourceid)
 		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
 		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
 		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
@@ -63,95 +62,30 @@
 		LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
 		LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
 	WHERE reasons.reasoncategory = 'TRANSFER'
-	AND products.versionnumber = (
-	   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
-	   )
+	AND products.id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM referencedata.orderables o2 WHERE o2.id = products.id AND o2.versionnumber > products.versionnumber)
 	AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
-	AND line_items.occurreddate::varchar >= $P{startDate}::varchar
-	AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+	AND line_items.occurreddate >= $P{startDate}::date
+	AND line_items.occurreddate <= $P{endDate}::date
 	GROUP BY sourcefacility, destinationfacility, fullproductname, batchnumber
-	UNION
-	SELECT
-		true as is_subtotal,
-		case when reasons.reasontype='DEBIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
-		end AS sourcefacility,
-		case when reasons.reasontype='CREDIT' then facilities."name"
-		else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
-	    end AS destinationfacility,
-		products.fullproductname AS fullproductname,
-		'subtotal' as batchnumber,
-		SUM(line_items.quantity) AS quantity
-	FROM
-		stockmanagement.stock_event_line_items AS line_items
-		LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
-		LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
-		LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
-		left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
-		LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
-		LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
-		LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
-		LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
-		LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
-		LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
-	WHERE
-		reasons.reasoncategory = 'TRANSFER'
-		AND products.versionnumber = (
-		   	SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
-		   )
-		AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
-		AND line_items.occurreddate::varchar >= $P{startDate}::varchar
-		AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-	GROUP BY sourcefacility, destinationfacility, products.fullproductname
-	) as agg_data
+), filtered AS (
+	SELECT * FROM lines AS agg_data
 	WHERE
 		agg_data.sourcefacility is not null
 		AND ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
 		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
 		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
+)
+SELECT * FROM (
+	SELECT false AS is_subtotal, sourcefacility, destinationfacility, fullproductname, batchnumber, quantity FROM filtered
+	UNION
+	SELECT true, sourcefacility, destinationfacility, fullproductname, 'subtotal', sum(quantity) FROM filtered
+	GROUP BY sourcefacility, destinationfacility, fullproductname
+	) as agg_data
 	UNION
 	SELECT
 	true, null, null, null, 'total'::text,
-	sum(agg_data_filtered.quantity) as total_quantity
-from (
-	select * FROM (
-		SELECT
-			case when reasons.reasontype='DEBIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
-			end AS sourcefacility,
-			case when reasons.reasontype='CREDIT' then facilities."name"
-			else (CASE WHEN nodes.isrefdatafacility = true THEN facilities_nodes."name" ELSE organizations."name" END)
-		    end AS destinationfacility,
-			products.fullproductname AS fullproductname,
-			sum(line_items.quantity) AS quantity
-		FROM
-			stockmanagement.stock_event_line_items AS line_items
-			LEFT JOIN stockmanagement.stock_events AS stock_events ON stock_events.id = line_items.stockeventid
-			LEFT JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid OR nodes.id = line_items.sourceid)
-			LEFT JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid
-			left join referencedata.facilities as facilities_nodes on facilities_nodes.id = nodes.referenceid
-			LEFT JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
-			LEFT JOIN referencedata.orderables AS products ON products.id = line_items.orderableid
-			LEFT JOIN stockmanagement.organizations AS organizations ON organizations.id = nodes.referenceid
-			LEFT join referencedata.lots AS lots ON lots.id = line_items.lotid
-			LEFT JOIN stockmanagement.stock_card_line_item_reasons as reasons on line_items.reasonid = reasons.id
-			LEFT JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
-		WHERE
-			reasons.reasoncategory = 'TRANSFER'
-			AND products.versionnumber = (
-		   		SELECT max(versionnumber) FROM referencedata.orderables o2 WHERE o2.id = products.id
-		   )
-			AND ($P{program}::varchar IS NULL OR programs.name = $P{program}::varchar)
-			AND line_items.occurreddate::varchar >= $P{startDate}::varchar
-			AND line_items.occurreddate::varchar <= $P{endDate}::varchar
-		GROUP BY sourcefacility, destinationfacility, fullproductname
-) as agg_data
-	WHERE
-		agg_data.sourcefacility is not null
-		and ($P{sourceFacility}::varchar IS NULL OR $X{IN, agg_data.sourcefacility, sourceFacilityList})
-		AND ($P{destinationFacility}::varchar IS NULL OR $X{IN, agg_data.destinationfacility, destinationFacilityList})
-		AND ($P{product}::varchar IS NULL OR $X{IN, agg_data.fullproductname, productList})
-) as agg_data_filtered
+	sum(filtered.quantity) as total_quantity
+from filtered
 ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 	</queryString>
 	<field name="is_subtotal" class="java.lang.Boolean">
@@ -182,7 +116,7 @@ ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 		<band height="150" splitType="Stretch">
 			<image>
 				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="261" y="10" width="280" height="39" uuid="8e830df2-45ad-4be4-b2a0-f3b2882d6203">
@@ -418,7 +352,7 @@ java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.Loca
 		<band height="100" splitType="Stretch">
 			<image scaleImage="FillFrame">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "MW_Standard_Footer.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageFooter>
