@@ -114,7 +114,7 @@ ORDER BY sourcefacility, destinationFacility, fullproductname, is_subtotal]]>
 	</title>
 	<pageHeader>
 		<band height="150" splitType="Stretch">
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
 				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
@@ -350,7 +350,7 @@ java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd").format(java.time.Loca
 	</detail>
 	<pageFooter>
 		<band height="100" splitType="Stretch">
-			<image scaleImage="FillFrame">
+			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
 				<imageExpression><![CDATA[$P{imagesDirectory} + "MW_Standard_Footer.png"]]></imageExpression>
 			</image>
