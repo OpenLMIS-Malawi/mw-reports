@@ -58,9 +58,9 @@
         events.reasonfreetext as adjustmentReason
 FROM (
     select
-        coalesce(adjustments.orderableid, inventories.orderableid) as orderableid,
-        coalesce(adjustments.programid, inventories.programid) as programid,
-        coalesce(adjustments.facilityid, inventories.facilityid) as facilityid,
+        adjustments.orderableid as orderableid,
+        adjustments.programid as programid,
+        adjustments.facilityid as facilityid,
         coalesce(adjustments.adjustmentAmount, 0) as adjustmentAmount,
         adjustments.adjustmentType as adjustmentType,
         adjustments.adjustmentDate as adjustmentDate,
@@ -79,22 +79,12 @@ FROM (
                      WHEN (reasons.reasoncategory = 'ADJUSTMENT') AND (reasons.reasontype = 'DEBIT') THEN (line_items.quantity * -1) ELSE 0 END) AS adjustmentAmount
         from stockmanagement.stock_event_line_items AS line_items
         JOIN stockmanagement.stock_events AS stock_events ON line_items.stockeventid = stock_events.id
-        left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
-        where line_items.occurreddate::varchar >= $P{startDate}::varchar
-            AND line_items.occurreddate::varchar <= $P{endDate}::varchar
+        JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid AND reasons.reasoncategory = 'ADJUSTMENT'
+        where line_items.occurreddate >= $P{startDate}::date
+            AND line_items.occurreddate <= $P{endDate}::date
+            AND stock_events.programid IN (SELECT id FROM referencedata.programs WHERE name = $P{program}::varchar)
         group by orderableid, programid, facilityid, adjustmentType, adjustmentDate, line_items.lotid, line_items.reasonfreetext
     ) as adjustments
-    full join (
-        select
-            physical_inventory_line_items.orderableid,
-            physical_inventories.programid,
-            physical_inventories.facilityid
-        from stockmanagement.physical_inventories AS physical_inventories
-        join stockmanagement.physical_inventory_line_items on physical_inventories.id = physical_inventory_line_items.physicalinventoryid
-        where physical_inventories.occurreddate::varchar >= $P{startDate}::varchar
-            AND physical_inventories.occurreddate::varchar <= $P{endDate}::varchar
-        group by orderableid, programid, facilityid
-    ) inventories ON adjustments.facilityid = inventories.facilityid and adjustments.programid = inventories.programid and adjustments.orderableid = inventories.orderableid
 ) as events
 JOIN (
     select
@@ -144,9 +134,9 @@ ORDER BY facility, adjustmentDate DESC]]>
 	</title>
 	<pageHeader>
 		<band height="150" splitType="Stretch">
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="261" y="10" width="280" height="39" uuid="8e830df2-45ad-4be4-b2a0-f3b2882d6203">
@@ -507,9 +497,9 @@ ORDER BY facility, adjustmentDate DESC]]>
 	</detail>
 	<pageFooter>
 		<band height="100" splitType="Stretch">
-			<image scaleImage="FillFrame">
+			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "MW_Standard_Footer.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageFooter>
