@@ -15,7 +15,7 @@
 				LEFT JOIN stockmanagement.physical_inventory_line_item_adjustments adj on adj.physicalinventorylineitemid = pil.id
 				WHERE pi.id = $P!{pi_id} AND pil.quantity IS NOT NULL
 			)
-			select max(rownum) as max_row_num,
+			select (SELECT max(rownum) FROM temp) as max_row_num,
 					o.code as productcode,
 					o.fullproductname as productname,
 					l.lotcode as lotcode,
@@ -26,7 +26,7 @@
 					adj.quantity as reasonquantity,
 					r.name as reasonname,
 					odc.displayname
-				from temp, stockmanagement.physical_inventory_line_items pil
+				from stockmanagement.physical_inventory_line_items pil
 				INNER JOIN stockmanagement.physical_inventories pi on pi.id = pil.physicalinventoryid
 				INNER JOIN referencedata.orderables o on o.id = pil.orderableid
 				INNER JOIN (select id, max(versionnumber) as max_version from referencedata.orderables GROUP BY id) vrs ON o.id = vrs.id AND o.versionnumber = vrs.max_version
