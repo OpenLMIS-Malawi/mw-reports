@@ -23,6 +23,7 @@
 					pil.quantity,
 					pil.previousstockonhandwhensubmitted as soh,
 					pil.extradata,
+					pil.extradata ->> 'vvmStatus' as vvmstatus,
 					adj.quantity as reasonquantity,
 					r.name as reasonname,
 					oc.displayname
@@ -47,6 +48,7 @@
 	<field name="reasonquantity" class="java.lang.Integer"/>
 	<field name="reasonname" class="java.lang.String"/>
 	<field name="extradata" class="java.lang.String"/>
+	<field name="vvmstatus" class="java.lang.String"/>
 	<field name="max_row_num" class="java.lang.Integer"/>
 	<field name="displayname" class="java.lang.String">
 		<fieldDescription><![CDATA[]]></fieldDescription>
@@ -333,7 +335,7 @@
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[(new org.json.JSONObject($F{extradata}).isNull("vvmStatus")) ? "" : new org.json.JSONObject($F{extradata}).getString("vvmStatus")]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{vvmstatus} == null ? "" : $F{vvmstatus}]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Group" evaluationGroup="lineItemGroup" isBlankWhenNull="true">
 				<reportElement x="520" y="0" width="72" height="25" printWhenGroupChanges="lineItemGroup" forecolor="#848484" uuid="547fa08c-24e6-4617-aa94-09384a952a19">
