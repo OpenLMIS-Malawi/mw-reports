@@ -8,14 +8,14 @@
 	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="decimalFormat" class="java.text.DecimalFormat" isForPrompting="false"/>
 	<queryString language="plsql">
-		<![CDATA[with temp as (
-				select row_number() over () as rownum
-				from stockmanagement.physical_inventory_line_items pil
-				INNER JOIN stockmanagement.physical_inventories pi on pi.id = pil.physicalinventoryid
-				LEFT JOIN stockmanagement.physical_inventory_line_item_adjustments adj on adj.physicalinventorylineitemid = pil.id
-				WHERE pi.id = $P!{pi_id} AND pil.quantity IS NOT NULL
+		<![CDATA[with own_category as (
+				select distinct on (po.orderableid) po.orderableid, odc.displayname, odc.displayorder
+				from referencedata.program_orderables po
+				INNER JOIN referencedata.orderable_display_categories odc ON odc.id = po.orderabledisplaycategoryid
+				WHERE po.programid = (select programid from stockmanagement.physical_inventories where id = $P!{pi_id})
+				ORDER BY po.orderableid, po.orderableversionnumber DESC, po.active DESC, odc.displayorder, odc.displayname
 			)
-			select (SELECT max(rownum) FROM temp) as max_row_num,
+			select count(*) over () as max_row_num,
 					o.code as productcode,
 					o.fullproductname as productname,
 					l.lotcode as lotcode,
@@ -25,19 +25,18 @@
 					pil.extradata,
 					adj.quantity as reasonquantity,
 					r.name as reasonname,
-					odc.displayname
+					oc.displayname
 				from stockmanagement.physical_inventory_line_items pil
 				INNER JOIN stockmanagement.physical_inventories pi on pi.id = pil.physicalinventoryid
 				INNER JOIN referencedata.orderables o on o.id = pil.orderableid
 				INNER JOIN (select id, max(versionnumber) as max_version from referencedata.orderables GROUP BY id) vrs ON o.id = vrs.id AND o.versionnumber = vrs.max_version
-				INNER JOIN referencedata.program_orderables po ON po.orderableid = o.id 
-				INNER JOIN referencedata.orderable_display_categories odc ON po.orderabledisplaycategoryid = odc.id				
+				INNER JOIN own_category oc ON oc.orderableid = o.id
 				LEFT JOIN referencedata.lots l on l.id = pil.lotId
 				LEFT JOIN stockmanagement.physical_inventory_line_item_adjustments adj on adj.physicalinventorylineitemid = pil.id
 				LEFT JOIN stockmanagement.stock_card_line_item_reasons r on r.id = adj.reasonid
 				WHERE pi.id = $P!{pi_id} AND pil.quantity IS NOT NULL
-				GROUP BY o.code, o.fullproductname, l.lotcode, l.expirationdate, pil.quantity, pil.previousstockonhandwhensubmitted, pil.extradata, adj.quantity, adj.id, r.name, odc.displayname, odc.displayorder
-				ORDER BY odc.displayorder, o.code, l.lotcode NULLS FIRST]]>
+				GROUP BY o.code, o.fullproductname, l.lotcode, l.expirationdate, pil.quantity, pil.previousstockonhandwhensubmitted, pil.extradata, adj.quantity, adj.id, r.name, oc.displayname, oc.displayorder
+				ORDER BY oc.displayorder, o.code, l.lotcode NULLS FIRST]]>
 	</queryString>
 	<field name="productcode" class="java.lang.String"/>
 	<field name="productname" class="java.lang.String"/>
@@ -417,7 +416,7 @@
 			</staticText>
 			<staticText>
 				<reportElement x="10" y="0" width="822" height="25" uuid="6071707f-3f5f-4ed6-ac1a-a65c8e4d2cb7">
-					<printWhenExpression><![CDATA[$V{REPORT_COUNT} == $F{max_row_num}]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$V{REPORT_COUNT}.equals($F{max_row_num})]]></printWhenExpression>
 				</reportElement>
 				<box padding="3">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
