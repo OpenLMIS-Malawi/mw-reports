@@ -73,22 +73,19 @@ FROM
 	left JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid)
 	left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
 	left JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
-		left JOIN (
-    select
-        id,
-        code,
-        fullproductname,
-        RANK () OVER (
-            PARTITION BY id
-            ORDER BY versionnumber DESC
-        ) AS productVersionRank
-    from referencedata.orderables
-) AS products on products.id = line_items.orderableid 
+		JOIN LATERAL (
+    SELECT id, code, fullproductname
+    FROM referencedata.orderables
+    WHERE orderables.id = line_items.orderableid
+    ORDER BY versionnumber DESC
+    LIMIT 1
+) AS products ON true
 	left join referencedata.lots as lots on lots.id = line_items.lotid
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
 	left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	left join (
+    WITH balances AS MATERIALIZED (
     SELECT
         soh.stockonhand AS soh,
         stock_cards.lotid as lotId,
@@ -98,11 +95,14 @@ FROM
         soh.occurreddate as occurredDate
     from stockmanagement.stock_cards AS stock_cards
     JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+    WHERE stock_cards.programid IN (SELECT id FROM referencedata.programs WHERE name = $P{program}::varchar)
+      AND soh.occurreddate::varchar >= $P{startDate}::varchar AND soh.occurreddate::varchar <= $P{endDate}::varchar
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate, soh
+    )
+    SELECT * FROM balances
 ) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
 WHERE
-	products.productVersionRank = 1
-	AND ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
+	($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
@@ -149,22 +149,19 @@ FROM
 	left JOIN stockmanagement.nodes AS nodes ON (nodes.id = line_items.destinationid)
 	left JOIN stockmanagement.stock_card_line_item_reasons AS reasons ON reasons.id = line_items.reasonid
 	left JOIN referencedata.programs AS programs ON programs.id = stock_events.programid
-left JOIN (
-    select
-        id,
-        code,
-        fullproductname,
-        RANK () OVER (
-            PARTITION BY id
-            ORDER BY versionnumber DESC
-        ) AS productVersionRank
-    from referencedata.orderables
-) AS products on products.id = line_items.orderableid 
+JOIN LATERAL (
+    SELECT id, code, fullproductname
+    FROM referencedata.orderables
+    WHERE orderables.id = line_items.orderableid
+    ORDER BY versionnumber DESC
+    LIMIT 1
+) AS products ON true
 	left join referencedata.lots as lots on lots.id = line_items.lotid
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
 		left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
 	left join (
+    WITH balances AS MATERIALIZED (
     SELECT
         sum(soh.stockonhand) AS soh,
         stock_cards.lotid as lotId,
@@ -174,11 +171,14 @@ left JOIN (
         soh.occurreddate as occurredDate
     from stockmanagement.stock_cards AS stock_cards
     JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
+    WHERE stock_cards.programid IN (SELECT id FROM referencedata.programs WHERE name = $P{program}::varchar)
+      AND soh.occurreddate::varchar >= $P{startDate}::varchar AND soh.occurreddate::varchar <= $P{endDate}::varchar
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
+    )
+    SELECT * FROM balances
 ) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
 WHERE
-products.productVersionRank = 1
-AND ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
+($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
 		when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, facilities.name ,facilityList}
 		 when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, facilities_types.name, facilityTypeList}
@@ -214,9 +214,9 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 	</title>
 	<pageHeader>
 		<band height="150" splitType="Stretch">
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="261" y="10" width="280" height="39" uuid="8e830df2-45ad-4be4-b2a0-f3b2882d6203">
@@ -573,9 +573,9 @@ order by issuedDate, sourceFacility, district,  productCode,fullProductName,lotC
 	</detail>
 	<pageFooter>
 		<band height="154" splitType="Stretch">
-			<image scaleImage="FillFrame">
+			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "MW_Standard_Footer.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="0" y="120" width="801" height="30" uuid="8c389e2c-6403-4800-8625-8a49c995ce57"/>
