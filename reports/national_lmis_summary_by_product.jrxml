@@ -140,7 +140,19 @@ GROUP BY periodname]]>
   SUM(requisition.requisition_line_items.totallossesandadjustments) AS totallossesandadjustments,
   SUM(requisition.requisition_line_items.totalconsumedquantity) / 3 AS averageconsumption,
   AVG(requisition.requisition_line_items.totalstockoutdays) AS totalstockoutdays
-FROM requisition.requisition_line_items
+FROM requisition.requisitions
+  JOIN referencedata.processing_periods ON
+   requisition.requisitions.processingperiodid = referencedata.processing_periods.id
+  JOIN referencedata.programs ON
+   requisition.requisitions.programid = referencedata.programs.id
+  JOIN referencedata.facilities ON
+   requisition.requisitions.facilityid = referencedata.facilities.id
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.geographic_levels ON
+  referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
+  JOIN requisition.requisition_line_items ON
+   requisition.requisition_line_items.requisitionid = requisition.requisitions.id
   JOIN referencedata.orderables ON
    requisition.requisition_line_items.orderableid = referencedata.orderables.id AND requisition.requisition_line_items.orderableversionnumber = referencedata.orderables.versionnumber
   JOIN referencedata.program_orderables ON
@@ -148,18 +160,6 @@ FROM requisition.requisition_line_items
   JOIN referencedata.orderable_display_categories ON
    referencedata.program_orderables.orderabledisplaycategoryid = referencedata.orderable_display_categories.id
   LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = orderables.dispensableid
-  JOIN requisition.requisitions ON
-   requisition.requisition_line_items.requisitionid = requisition.requisitions.id
-  JOIN referencedata.programs ON
-   requisition.requisitions.programid = referencedata.programs.id
-  JOIN referencedata.facilities ON
-   requisition.requisitions.facilityid = referencedata.facilities.id
-  JOIN referencedata.processing_periods ON
-   requisition.requisitions.processingperiodid = referencedata.processing_periods.id
-  JOIN referencedata.geographic_zones ON
-   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
-  JOIN referencedata.geographic_levels ON
-  referencedata.geographic_zones.levelid = referencedata.geographic_levels.id
 WHERE
    referencedata.programs.name = $P{program}::varchar
    AND referencedata.processing_periods.name = $P{period}::varchar
@@ -501,9 +501,9 @@ ORDER BY orderable_display_categories.displayorder ASC,
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="0" width="50" height="50" uuid="77f84ba4-7c14-4bc6-9237-b7c92e7f43fb"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="141" y="0" width="279" height="39" uuid="be626b5d-94e1-4670-838b-9eaa6fe960bc"/>
