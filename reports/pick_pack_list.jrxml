@@ -66,7 +66,135 @@ WHERE
 	<parameter name="decimalFormat" class="java.text.DecimalFormat" isForPrompting="false"/>
 	<parameter name="dateFormat" class="java.lang.String" isForPrompting="false"/>
 	<queryString language="plsql">
-		<![CDATA[SELECT DISTINCT
+		<![CDATA[WITH shipment_pairs AS MATERIALIZED
+(
+  SELECT DISTINCT
+    dispensable.id                      AS dispensableid,
+    shipment_orderable_identifier.value AS identifiervalue
+  FROM
+    fulfillment.shipment_draft_line_items shipment_li
+    JOIN
+    referencedata.orderables orderable
+      ON orderable.id = shipment_li.orderableid AND orderable.versionnumber = shipment_li.orderableversionnumber
+    JOIN
+    referencedata.dispensables dispensable
+      ON dispensable.id = orderable.dispensableid
+    JOIN
+    referencedata.orderable_identifiers shipment_orderable_identifier
+      ON orderable.id = shipment_orderable_identifier.orderableid
+         AND (shipment_orderable_identifier.key = 'tradeItem' OR shipment_orderable_identifier.key = 'commodityType')
+  WHERE
+    shipment_li.shipmentdraftid = $P{shipmentDraftId}::uuid
+    AND shipment_li.quantityshipped > 0
+),
+shipment_candidates AS MATERIALIZED
+(
+  -- the only orderables the sub-query in shipment_substitutes can return: those with an identifier equal to the
+  -- value, or whose identifier is a classified trade item or a commodity type
+  SELECT
+    candidate.dispensableid,
+    candidate.identifiervalue,
+    array_agg(DISTINCT candidate.orderableid) AS candidateids
+  FROM
+    (
+      SELECT
+        pair.dispensableid, pair.identifiervalue, identifier.orderableid
+      FROM
+        shipment_pairs pair
+        JOIN
+        referencedata.orderable_identifiers identifier
+          ON (identifier.key = 'tradeItem' OR identifier.key = 'commodityType')
+             AND identifier.value::uuid = pair.identifiervalue::uuid
+      UNION ALL
+      SELECT
+        pair.dispensableid, pair.identifiervalue, identifier.orderableid
+      FROM
+        shipment_pairs pair
+        CROSS JOIN
+        referencedata.orderable_identifiers identifier
+      WHERE
+        (identifier.key = 'tradeItem' OR identifier.key = 'commodityType')
+        AND (identifier.value::uuid IN (SELECT tradeitemid FROM referencedata.trade_item_classifications)
+             OR identifier.value::uuid IN (SELECT id FROM referencedata.commodity_types))
+    ) candidate
+  GROUP BY
+    candidate.dispensableid, candidate.identifiervalue
+),
+shipment_substitutes AS MATERIALIZED
+(
+  SELECT
+    pair.dispensableid,
+    pair.identifiervalue,
+    array_agg(DISTINCT substitute.id) AS orderableids
+  FROM
+    shipment_candidates pair
+    CROSS JOIN LATERAL
+    (
+        SELECT
+          o.id
+        FROM
+          referencedata.orderables o
+          LEFT JOIN
+          referencedata.orderable_identifiers order_orderable_identifier
+            ON o.id = order_orderable_identifier.orderableid
+               AND (order_orderable_identifier.key = 'tradeItem' OR order_orderable_identifier.key = 'commodityType')
+          LEFT JOIN
+          referencedata.trade_item_classifications trade_item_classification
+            ON trade_item_classification.tradeitemid = order_orderable_identifier.value::uuid
+          LEFT JOIN
+          referencedata.commodity_types commodity_type
+            ON order_orderable_identifier.value::uuid = commodity_type.id
+               OR (commodity_type.classificationid = trade_item_classification.classificationid AND commodity_type.classificationsystem = trade_item_classification.classificationsystem)
+          -- only the trade item equal to the value can pass the WHERE below
+          LEFT JOIN
+          referencedata.trade_items trade_item
+            ON pair.identifiervalue::uuid = trade_item.id
+               AND (order_orderable_identifier.value::uuid = trade_item.id
+               OR EXISTS
+               (
+                   SELECT
+                     1
+                   FROM
+                     referencedata.trade_item_classifications trade_item_classification
+                   WHERE
+                     trade_item_classification.tradeitemid = trade_item.id
+                     AND trade_item_classification.classificationid = commodity_type.classificationid
+                     AND trade_item_classification.classificationsystem = commodity_type.classificationsystem
+               ))
+        WHERE
+          NOT EXISTS
+          (
+              SELECT
+                1
+              FROM
+                referencedata.dispensable_attributes orderer_dispensable_attribute
+                JOIN
+                referencedata.dispensable_attributes shipment_dispensable_attribute
+                  ON shipment_dispensable_attribute.dispensableid = pair.dispensableid
+              WHERE
+                orderer_dispensable_attribute.dispensableid = o.dispensableid
+                AND orderer_dispensable_attribute.key = shipment_dispensable_attribute.key
+                AND orderer_dispensable_attribute.value <> shipment_dispensable_attribute.value
+          )
+          AND (pair.identifiervalue::uuid = trade_item.id OR pair.identifiervalue::uuid = commodity_type.id)
+          AND o.id = ANY (pair.candidateids)
+    ) substitute
+  GROUP BY
+    pair.dispensableid, pair.identifiervalue
+),
+shipment_order_lines AS MATERIALIZED
+(
+  SELECT
+    order_li.*
+  FROM
+    fulfillment.shipment_drafts shipment
+    JOIN
+    fulfillment.order_line_items order_li
+      ON order_li.orderid = shipment.orderid
+  WHERE
+    shipment.id = $P{shipmentDraftId}::uuid
+)
+SELECT DISTINCT
   order_orderable.code                  AS orderProductCode,
   order_orderable.fullproductname       AS orderProductName,
   orderable.code                        AS productCode,
@@ -94,55 +222,20 @@ FROM
   LEFT JOIN referencedata.orderable_identifiers shipment_orderable_identifier ON orderable.id = shipment_orderable_identifier.orderableid
                                                        AND (shipment_orderable_identifier.key = 'tradeItem' OR shipment_orderable_identifier.key = 'commodityType')
   LEFT JOIN
-  fulfillment.order_line_items order_li
-    ON order_li.orderid = ord.id AND (shipment_li.orderableid = order_li.orderableid AND shipment_li.orderableversionnumber = order_li.orderableversionnumber OR order_li.orderableid IN
-    (
-      SELECT
-        o.id
-      FROM
-        referencedata.orderables o
-        LEFT JOIN
-        referencedata.orderable_identifiers order_orderable_identifier
-          ON o.id = order_orderable_identifier.orderableid
-             AND (order_orderable_identifier.key = 'tradeItem' OR order_orderable_identifier.key = 'commodityType')
-        LEFT JOIN
-        referencedata.trade_item_classifications trade_item_classification
-          ON trade_item_classification.tradeitemid = order_orderable_identifier.value::uuid
-        LEFT JOIN
-        referencedata.commodity_types commodity_type
-          ON order_orderable_identifier.value::uuid = commodity_type.id
-             OR (commodity_type.classificationid = trade_item_classification.classificationid AND commodity_type.classificationsystem = trade_item_classification.classificationsystem)
-        LEFT JOIN
-        referencedata.trade_items trade_item
-          ON order_orderable_identifier.value::uuid = trade_item.id
-             OR EXISTS
-             (
-                 SELECT
-                   1
-                 FROM
-                   referencedata.trade_item_classifications trade_item_classification
-                 WHERE
-                   trade_item_classification.tradeitemid = trade_item.id
-                   AND trade_item_classification.classificationid = commodity_type.classificationid
-                   AND trade_item_classification.classificationsystem = commodity_type.classificationsystem
-             )
-      WHERE
-        NOT EXISTS
-        (
-            SELECT
-              1
-            FROM
-              referencedata.dispensable_attributes orderer_dispensable_attribute
-              JOIN
-              referencedata.dispensable_attributes shipment_dispensable_attribute
-                ON shipment_dispensable_attribute.dispensableid = dispensable.id
-            WHERE
-              orderer_dispensable_attribute.dispensableid = o.dispensableid
-              AND orderer_dispensable_attribute.key = shipment_dispensable_attribute.key
-              AND orderer_dispensable_attribute.value <> shipment_dispensable_attribute.value
-        )
-        AND (shipment_orderable_identifier.value::uuid = trade_item.id OR shipment_orderable_identifier.value::uuid = commodity_type.id)
-    ))
+  shipment_substitutes
+    ON shipment_substitutes.dispensableid = dispensable.id
+       AND shipment_substitutes.identifiervalue = shipment_orderable_identifier.value
+  LEFT JOIN LATERAL
+  (
+    SELECT
+      shipment_order_line.*
+    FROM
+      shipment_order_lines shipment_order_line
+    WHERE
+      shipment_order_line.orderid = ord.id
+      AND (shipment_li.orderableid = shipment_order_line.orderableid AND shipment_li.orderableversionnumber = shipment_order_line.orderableversionnumber
+           OR shipment_order_line.orderableid = ANY (shipment_substitutes.orderableids))
+  ) order_li ON TRUE
   LEFT JOIN
   referencedata.lots lot
     ON shipment_li.lotid = lot.id
@@ -150,21 +243,18 @@ FROM
   referencedata.orderables order_orderable
     ON order_orderable.id = order_li.orderableid
     AND order_orderable.versionnumber = order_li.orderableversionnumber
-  LEFT JOIN
+  JOIN
   stockmanagement.stock_cards stock_card
     ON (stock_card.facilityId = ord.supplyingFacilityId AND stock_card.programId = ord.programId AND shipment_li.orderableId = stock_card.orderableId AND ((shipment_li.lotId IS NULL AND stock_card.lotId IS NULL) OR shipment_li.lotId = stock_card.lotId))
-  LEFT JOIN
-  stockmanagement.stock_card_line_items stock_card_li
-    ON stock_card_li.stockCardId = stock_card.id
-WHERE
-  shipment.id = $P{shipmentDraftId}::uuid
-  AND shipment_li.quantityshipped > 0
-  AND stock_card_li.id IN
-  (SELECT id
+  JOIN LATERAL
+  (SELECT extraData
    FROM stockmanagement.stock_card_line_items
    WHERE stockCardId = stock_card.id
    ORDER BY occurredDate DESC NULLS LAST, processedDate DESC NULLS LAST
-   LIMIT 1)
+   LIMIT 1) stock_card_li ON TRUE
+WHERE
+  shipment.id = $P{shipmentDraftId}::uuid
+  AND shipment_li.quantityshipped > 0
 ORDER BY
   orderProductCode ASC,
   productCode ASC,
