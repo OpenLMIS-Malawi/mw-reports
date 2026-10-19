@@ -96,7 +96,24 @@ SELECT
     COUNT(CASE WHEN o.emergency THEN 1 END) AS emergency
 FROM
     fulfillment.orders o
-    INNER JOIN (SELECT orderId, SUM(orderedQuantity) AS sumOrderedQuantity FROM fulfillment.order_line_items GROUP BY orderId) oli ON o.id = oli.orderid AND oli.sumOrderedQuantity > 0
+    INNER JOIN (
+        SELECT orderId, SUM(orderedQuantity) AS sumOrderedQuantity
+        FROM fulfillment.order_line_items
+        WHERE $P{period}::varchar IS NULL
+        GROUP BY orderId
+        UNION ALL
+        SELECT orderId, SUM(orderedQuantity) AS sumOrderedQuantity
+        FROM fulfillment.order_line_items
+        WHERE NOT ($P{period}::varchar IS NULL)
+            AND orderId IN (
+                SELECT selected_order.id
+                FROM fulfillment.orders selected_order
+                    INNER JOIN referencedata.programs selected_program ON selected_order.programid = selected_program.id
+                WHERE selected_order.processingperiodid IN (SELECT id FROM findLastPeriods)
+                    AND ($P{program}::varchar IS NULL OR selected_program.name = $P{program}::varchar)
+            )
+        GROUP BY orderId
+    ) oli ON o.id = oli.orderid AND oli.sumOrderedQuantity > 0
     INNER JOIN referencedata.programs program ON o.programid = program.id
     INNER JOIN referencedata.facilities facility ON o.facilityid = facility.id
     INNER JOIN referencedata.facility_types facility_type ON facility.typeid = facility_type.id AND (CASE WHEN program.code = 'em' AND facility_type.code IN ('CHAM', 'pricH', 'privC') THEN FALSE ELSE TRUE END)
