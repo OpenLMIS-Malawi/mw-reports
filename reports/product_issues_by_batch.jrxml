@@ -84,8 +84,7 @@ FROM
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
 	left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
-	left join (
-    WITH balances AS MATERIALIZED (
+	left join lateral (
     SELECT
         soh.stockonhand AS soh,
         stock_cards.lotid as lotId,
@@ -95,12 +94,12 @@ FROM
         soh.occurreddate as occurredDate
     from stockmanagement.stock_cards AS stock_cards
     JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
-    WHERE stock_cards.programid IN (SELECT id FROM referencedata.programs WHERE name = $P{program}::varchar)
-      AND soh.occurreddate::varchar >= $P{startDate}::varchar AND soh.occurreddate::varchar <= $P{endDate}::varchar
+    WHERE stock_cards.facilityid = facilities.id AND stock_cards.programid = programs.id
+      AND stock_cards.orderableid = products.id
+      AND (stock_cards.lotid IS NULL OR stock_cards.lotid = lots.id)
+      AND soh.occurreddate = line_items.occurreddate
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate, soh
-    )
-    SELECT * FROM balances
-) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
+) as stock_cards on true
 WHERE
 	($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
@@ -160,8 +159,7 @@ JOIN LATERAL (
 	left JOIN referencedata.facilities AS facilities ON facilities.id = stock_events.facilityid 
 		left join referencedata.facility_types AS facilities_types on facilities.typeid = facilities_types.id
 	left JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
-	left join (
-    WITH balances AS MATERIALIZED (
+	left join lateral (
     SELECT
         sum(soh.stockonhand) AS soh,
         stock_cards.lotid as lotId,
@@ -171,12 +169,12 @@ JOIN LATERAL (
         soh.occurreddate as occurredDate
     from stockmanagement.stock_cards AS stock_cards
     JOIN stockmanagement.calculated_stocks_on_hand AS soh ON soh.stockcardid = stock_cards.id
-    WHERE stock_cards.programid IN (SELECT id FROM referencedata.programs WHERE name = $P{program}::varchar)
-      AND soh.occurreddate::varchar >= $P{startDate}::varchar AND soh.occurreddate::varchar <= $P{endDate}::varchar
+    WHERE stock_cards.facilityid = facilities.id AND stock_cards.programid = programs.id
+      AND stock_cards.orderableid = products.id
+      AND (stock_cards.lotid IS NULL OR stock_cards.lotid = lots.id)
+      AND soh.occurreddate = line_items.occurreddate
     GROUP BY orderableid, facilityid, programid, lotid, soh.occurreddate
-    )
-    SELECT * FROM balances
-) as stock_cards on ( stock_cards.occurredDate = line_items.occurreddate and ( stock_cards.lotId is null or stock_cards.lotId = lots.id) and stock_cards.orderableid = products.id and stock_cards.facilityid = facilities.id and stock_cards.programid = programs.id)
+) as stock_cards on true
 WHERE
 ($P{productId}::varchar IS NULL OR $X{IN, products.fullproductname, productIdList})
 	AND (case 
