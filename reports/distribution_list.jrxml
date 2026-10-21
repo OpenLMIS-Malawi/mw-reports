@@ -163,8 +163,8 @@ SELECT
   facilities.code AS facilitycode,
   productcategories.displayname AS productcategory,
   dispensingunit.value AS dispensingunit,
-  products.fullproductname AS productname,
-  products.code AS productcode,
+  lineitems.fullproductname AS productname,
+  lineitems.code AS productcode,
   zones.name AS zonename,
   facility_types.name AS facilitytype,
   facility_operators.code AS facilityoperator,
@@ -182,15 +182,18 @@ FROM
   JOIN referencedata.facility_types AS facility_types ON facility_types.id = facilities.typeid
   LEFT JOIN referencedata.facility_operators AS facility_operators ON facility_operators.id = facilities.operatedbyid
   CROSS JOIN LATERAL (
-    SELECT li.orderableid, li.orderableversionnumber, li.stockonhand, li.approvedquantity, li.totalconsumedquantity, li.skipped
+    SELECT li.stockonhand, li.approvedquantity, li.totalconsumedquantity, li.skipped,
+      products.id AS productid, products.versionnumber AS productversionnumber, products.fullproductname, products.code,
+      products.dispensableid
     FROM requisition.requisition_line_items AS li
+    JOIN referencedata.orderables AS products ON products.id = li.orderableid AND products.versionnumber = li.orderableversionnumber
     WHERE li.requisitionid = requisitions.id
+    OFFSET 0 -- keeps PostgreSQL from flattening this subquery, so the lines of each requisition are read through the requisitionid index
   ) AS lineitems
-  JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid AND products.versionnumber = lineitems.orderableversionnumber
-  JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id AND programproducts.orderableversionnumber = products.versionnumber
+  JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = lineitems.productid AND programproducts.orderableversionnumber = lineitems.productversionnumber
     AND programproducts.programid = requisitions.programid
   JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
-    LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
+    LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = lineitems.dispensableid
 WHERE
   programs.name = $P{program}::varchar
   AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
