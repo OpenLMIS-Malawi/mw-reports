@@ -81,6 +81,21 @@ FROM (
         SELECT stockcardid, max(occurreddate) as max_date
         FROM stockmanagement.calculated_stocks_on_hand
         where occurreddate::varchar <= $P{date}::varchar
+        and stockcardid IN (
+            SELECT scope_cards.id
+            FROM stockmanagement.stock_cards AS scope_cards
+            JOIN referencedata.programs AS scope_programs ON scope_programs.id = scope_cards.programid
+            JOIN referencedata.facilities AS scope_facilities ON scope_facilities.id = scope_cards.facilityid
+            JOIN referencedata.facility_types AS scope_types ON scope_types.id = scope_facilities.typeid
+            where scope_cards.lotid IS NOT NULL
+            and (scope_programs.name = $P{program}::varchar)
+            and (case
+            when ($P{facilityType}::varchar IS NULL AND $P{facility}::varchar NOTNULL) then $X{IN, scope_facilities.name, facilityList}
+            when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar IS NULL) then $X{IN, scope_types.name, facilityTypeList}
+            when ($P{facilityType}::varchar NOTNULL AND $P{facility}::varchar NOTNULL) then ($X{IN, scope_types.name, facilityTypeList} OR $X{IN, scope_facilities.name, facilityList})
+            else $P{facilityType}::varchar IS NULL AND $P{facility}::varchar IS NULL
+            end)
+        )
         group by stockcardid
     ) as cs on cs.stockcardid = soh.stockcardid and cs.max_date = soh.occurreddate
 		JOIN referencedata.orderables AS products ON products.id = stock_cards.orderableid
@@ -121,9 +136,9 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 	</title>
 	<pageHeader>
 		<band height="150" splitType="Stretch">
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="3" width="50" height="50" uuid="5f630588-4582-4ff0-bbd4-a7ba6476a9c9"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="261" y="10" width="280" height="39" uuid="8e830df2-45ad-4be4-b2a0-f3b2882d6203">
@@ -456,9 +471,9 @@ GROUP BY soh_data.facilityName, soh_data.productName, soh_data.productBatchNumbe
 	</detail>
 	<pageFooter>
 		<band height="100" splitType="Stretch">
-			<image scaleImage="FillFrame">
+			<image scaleImage="FillFrame" onErrorType="Blank">
 				<reportElement x="100" y="10" width="630" height="90" uuid="09977b23-c20a-4c6b-a499-a116c6d9835c"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "MW_Standard_Footer.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "MW_Standard_Footer.png"]]></imageExpression>
 			</image>
 		</band>
 	</pageFooter>
