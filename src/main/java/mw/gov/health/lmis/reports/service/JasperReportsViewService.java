@@ -160,7 +160,7 @@ public class JasperReportsViewService {
    */
   public JasperReportsMultiFormatView getJasperReportsView(
       JasperTemplate jasperTemplate, HttpServletRequest request) throws JasperReportViewException {
-    JasperReportsMultiFormatView jasperView = new JasperReportsMultiFormatView();
+    JasperReportsMultiFormatView jasperView = new MeasurementFreeCsvView();
     setFormatMappings(jasperView);
     jasperView.setUrl(getReportUrlForReportData(jasperTemplate));
     jasperView.setJdbcDataSource(replicationDataSource);

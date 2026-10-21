@@ -7,9 +7,13 @@ import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
+import mw.gov.health.lmis.reports.service.MeasurementFreeCsvView;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.util.JRSaver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +21,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
 
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +67,15 @@ public class JasperReportsViewServiceTest {
 
   @Mock
   private ProcessingScheduleDto processingSchedule;
+
+  @Mock
+  private HttpServletRequest request;
+
+  @Mock
+  private HttpSession session;
+
+  @Mock
+  private ServletContext servletContext;
 
   private ProcessingPeriodDto period = new ProcessingPeriodDto();
   private ProcessingPeriodDto nextPeriod = new ProcessingPeriodDto();
@@ -185,5 +205,29 @@ public class JasperReportsViewServiceTest {
 
     // then
     Assert.assertEquals("some_report_balaka_essential_meds_2022-11-15", filename);
+  }
+
+  @Test
+  public void shouldBuildViewThatFillsCsvWithoutTextMeasurement() throws Exception {
+    // given
+    JasperTemplate template = new JasperTemplate();
+    template.setName("Some report");
+    template.setData(compiledEmptyReport());
+    when(request.getSession()).thenReturn(session);
+    when(session.getServletContext()).thenReturn(servletContext);
+
+    // when
+    JasperReportsMultiFormatView view = service.getJasperReportsView(template, request);
+
+    // then
+    Assert.assertThat(view, instanceOf(MeasurementFreeCsvView.class));
+  }
+
+  private static byte[] compiledEmptyReport() throws Exception {
+    JasperDesign design = new JasperDesign();
+    design.setName("empty");
+    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    JRSaver.saveObject(JasperCompileManager.compileReport(design), bytes);
+    return bytes.toByteArray();
   }
 }
