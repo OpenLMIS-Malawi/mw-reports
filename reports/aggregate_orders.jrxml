@@ -116,7 +116,7 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   referencedata.orderables.fullproductname AS ProductName,
   referencedata.geographic_zones.name AS GeographicZoneName,
   referencedata.programs.name AS ProgramName,
-  referencedata.program_orderables.priceperpack AS PricePerPack,
+  po.priceperpack AS PricePerPack,
   approved_change.createddate AS ApprovalDate,
   authorized_change.createddate AS AuthorizationDate,
   released_change.createddate AS ReleaseDate,
@@ -125,24 +125,27 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   COALESCE(releaser.firstname || ' ' || releaser.lastname, releaser.username) || COALESCE(' (' || releaser.email || ')', '') AS ReleaserName,
   referencedata.programs.code AS ProgramCode,
   zone.code AS ZoneCode
-FROM fulfillment.order_line_items
-  JOIN fulfillment.orders ON
+FROM fulfillment.orders
+  JOIN referencedata.processing_periods ON
+   fulfillment.orders.processingperiodid = referencedata.processing_periods.id
+  JOIN referencedata.facilities ON
+    fulfillment.orders.facilityid = referencedata.facilities.id
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.facility_types ON
+    referencedata.facilities.typeid = referencedata.facility_types.id
+  JOIN referencedata.programs ON
+    fulfillment.orders.programid = referencedata.programs.id
+  JOIN fulfillment.order_line_items ON
    fulfillment.order_line_items.orderid = fulfillment.orders.id
   JOIN referencedata.orderables ON
    fulfillment.order_line_items.orderableid = referencedata.orderables.id
-  JOIN referencedata.programs ON
-    fulfillment.orders.programid = referencedata.programs.id
-  JOIN referencedata.program_orderables ON
-    referencedata.orderables.id = referencedata.program_orderables.orderableid
-    AND referencedata.programs.id = referencedata.program_orderables.programid
-  JOIN referencedata.facilities ON
-    fulfillment.orders.facilityid = referencedata.facilities.id
-  JOIN referencedata.facility_types ON
-    referencedata.facilities.typeid = referencedata.facility_types.id
-  JOIN referencedata.processing_periods ON
-   fulfillment.orders.processingperiodid = referencedata.processing_periods.id
-  JOIN referencedata.geographic_zones ON
-   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN LATERAL (
+    SELECT po.priceperpack FROM referencedata.program_orderables po
+    WHERE po.orderableid = referencedata.orderables.id AND po.programid = referencedata.programs.id
+    ORDER BY po.orderableversionnumber DESC, po.active DESC, po.id
+    LIMIT 1
+  ) AS po ON true
   LEFT JOIN fulfillment.status_changes authorized_change ON
    fulfillment.orders.id = authorized_change.orderid AND authorized_change.status = 'AUTHORIZED'
   LEFT JOIN referencedata.users authorizer ON
@@ -450,9 +453,9 @@ ORDER BY  referencedata.orderables.code ASC, referencedata.facilities.name DESC,
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="0" width="50" height="50" uuid="9e922171-83b2-4c5f-99db-047bde5e6378"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<staticText>
 				<reportElement x="141" y="0" width="279" height="39" uuid="9686f222-3778-4c4d-84fc-7db482ce8e3a"/>

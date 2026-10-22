@@ -121,24 +121,24 @@ SELECT DISTINCT ON (ProductCode, FacilityName, LineItemId)
   referencedata.program_orderables.priceperpack AS PricePerPack,
   fulfillment.status_changes.createddate AS ApprovalDate,
   COALESCE(NULLIF(TRIM(CONCAT(referencedata.users.firstname, ' ', referencedata.users.lastname)), ''), referencedata.users.username) AS ApproverName
-FROM fulfillment.order_line_items
-  JOIN fulfillment.orders ON
+FROM fulfillment.orders
+  JOIN referencedata.processing_periods ON
+   fulfillment.orders.processingperiodid = referencedata.processing_periods.id
+  JOIN referencedata.facilities ON
+    fulfillment.orders.facilityid = referencedata.facilities.id
+  JOIN referencedata.geographic_zones ON
+   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
+  JOIN referencedata.facility_types ON
+    referencedata.facilities.typeid = referencedata.facility_types.id
+  JOIN referencedata.programs ON
+    fulfillment.orders.programid = referencedata.programs.id
+  JOIN fulfillment.order_line_items ON
    fulfillment.order_line_items.orderid = fulfillment.orders.id
   JOIN referencedata.orderables ON
    fulfillment.order_line_items.orderableid = referencedata.orderables.id AND fulfillment.order_line_items.orderableversionnumber = referencedata.orderables.versionnumber
-  JOIN referencedata.programs ON
-    fulfillment.orders.programid = referencedata.programs.id
   JOIN referencedata.program_orderables ON
     referencedata.orderables.id = referencedata.program_orderables.orderableid AND referencedata.orderables.versionnumber = referencedata.program_orderables.orderableversionnumber
     AND referencedata.programs.id = referencedata.program_orderables.programid
-  JOIN referencedata.facilities ON
-    fulfillment.orders.facilityid = referencedata.facilities.id
-  JOIN referencedata.facility_types ON
-    referencedata.facilities.typeid = referencedata.facility_types.id
-  JOIN referencedata.processing_periods ON
-   fulfillment.orders.processingperiodid = referencedata.processing_periods.id
-  JOIN referencedata.geographic_zones ON
-   referencedata.facilities.geographiczoneid = referencedata.geographic_zones.id
   LEFT JOIN fulfillment.status_changes ON
    fulfillment.orders.id = fulfillment.status_changes.orderid AND fulfillment.status_changes.status = 'APPROVED'
   LEFT JOIN referencedata.users ON
