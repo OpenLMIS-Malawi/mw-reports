@@ -163,8 +163,8 @@ SELECT
   facilities.code AS facilitycode,
   productcategories.displayname AS productcategory,
   dispensingunit.value AS dispensingunit,
-  products.fullproductname AS productname,
-  products.code AS productcode,
+  lineitems.fullproductname AS productname,
+  lineitems.code AS productcode,
   zones.name AS zonename,
   facility_types.name AS facilitytype,
   facility_operators.code AS facilityoperator,
@@ -173,27 +173,34 @@ SELECT
   lineitems.approvedquantity AS approvedquantity,
   lineitems.totalconsumedquantity AS consumedquantity
 FROM
-  requisition.requisition_line_items AS lineitems
-  JOIN requisition.requisitions AS requisitions ON requisitions.id = lineitems.requisitionid
+  requisition.requisitions AS requisitions
+  JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
   JOIN referencedata.processing_periods AS periods ON periods.id = requisitions.processingperiodid
   JOIN findPreviousPeriods AS prev_periods ON prev_periods.id = periods.id AND prev_periods.rn <= 6
   JOIN referencedata.facilities AS facilities ON facilities.id = requisitions.facilityid
+  JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
   JOIN referencedata.facility_types AS facility_types ON facility_types.id = facilities.typeid
   LEFT JOIN referencedata.facility_operators AS facility_operators ON facility_operators.id = facilities.operatedbyid
-  JOIN referencedata.programs AS programs ON programs.id = requisitions.programid
-  JOIN referencedata.orderables AS products ON products.id = lineitems.orderableid AND products.versionnumber = lineitems.orderableversionnumber
-  JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = products.id AND programproducts.orderableversionnumber = products.versionnumber
+  CROSS JOIN LATERAL (
+    SELECT li.stockonhand, li.approvedquantity, li.totalconsumedquantity, li.skipped,
+      products.id AS productid, products.versionnumber AS productversionnumber, products.fullproductname, products.code,
+      products.dispensableid
+    FROM requisition.requisition_line_items AS li
+    JOIN referencedata.orderables AS products ON products.id = li.orderableid AND products.versionnumber = li.orderableversionnumber
+    WHERE li.requisitionid = requisitions.id
+    OFFSET 0 -- keeps PostgreSQL from flattening this subquery, so the lines of each requisition are read through the requisitionid index
+  ) AS lineitems
+  JOIN referencedata.program_orderables AS programproducts ON programproducts.orderableid = lineitems.productid AND programproducts.orderableversionnumber = lineitems.productversionnumber
     AND programproducts.programid = requisitions.programid
   JOIN referencedata.orderable_display_categories AS productcategories ON productcategories.id = programproducts.orderabledisplaycategoryid
-    LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = products.dispensableid
-  JOIN referencedata.geographic_zones AS zones ON zones.id = facilities.geographiczoneid
+    LEFT JOIN referencedata.dispensable_attributes AS dispensingunit ON dispensingunit.key = 'dispensingUnit' AND dispensingunit.dispensableid = lineitems.dispensableid
 WHERE
   programs.name = $P{program}::varchar
   AND ($P{district}::varchar IS NULL OR zones.id IN (SELECT id FROM findChildZones))
   AND (requisitions.status IN ('SUBMITTED', 'AUTHORIZED', 'IN_APPROVAL', 'APPROVED', 'RELEASED'))
   AND facilities.active = TRUE
     AND (lineitems.skipped IS FALSE)
-ORDER BY facilitycode, productcategory, productcode;]]>
+ORDER BY facilitycode, productcategory, productcode, periodnumber DESC, requisitions.emergency DESC, requisitions.id;]]>
 	</queryString>
 	<field name="periodname" class="java.lang.String"/>
 	<field name="periodnumber" class="java.lang.Integer"/>
@@ -1014,9 +1021,9 @@ ORDER BY facilitycode, productcategory, productcode;]]>
 				<textElement textAlignment="Left"/>
 				<textFieldExpression><![CDATA[" of " + $V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
-			<image>
+			<image onErrorType="Blank">
 				<reportElement x="0" y="-6" width="50" height="50" uuid="e916dce2-a090-4a92-83ae-9c46792bcf61"/>
-				<imageExpression><![CDATA[getClass().getResourceAsStream($P{imagesDirectory} + "malawi_crest.png")]]></imageExpression>
+				<imageExpression><![CDATA[$P{imagesDirectory} + "malawi_crest.png"]]></imageExpression>
 			</image>
 			<textField>
 				<reportElement mode="Opaque" x="0" y="50" width="802" height="20" forecolor="#FFFFFF" backcolor="#787878" uuid="32ea78b5-e1df-411f-9fab-df6c8237d654"/>
