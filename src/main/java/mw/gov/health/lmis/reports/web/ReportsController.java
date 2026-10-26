@@ -24,12 +24,12 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
+import mw.gov.health.lmis.reports.dto.ProofOfDeliveryOrderDto;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
 import mw.gov.health.lmis.reports.dto.external.PhysicalInventoryDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
-import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
 import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
@@ -37,10 +37,10 @@ import mw.gov.health.lmis.reports.exception.ProofOfDeliveryNotFoundException;
 import mw.gov.health.lmis.reports.exception.ValidationMessageException;
 import mw.gov.health.lmis.reports.i18n.MessageKeys;
 import mw.gov.health.lmis.reports.repository.JasperTemplateRepository;
+import mw.gov.health.lmis.reports.repository.ProofOfDeliveryOrderRepository;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.PermissionService;
 import mw.gov.health.lmis.reports.service.ViewPermissionService;
-import mw.gov.health.lmis.reports.service.fulfillment.ProofOfDeliveryDataService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
@@ -97,7 +97,7 @@ public class ReportsController extends BaseController {
   private OrderableReferenceDataService orderableReferenceDataService;
 
   @Autowired
-  private ProofOfDeliveryDataService proofOfDeliveryDataService;
+  private ProofOfDeliveryOrderRepository proofOfDeliveryOrderRepository;
 
   @Autowired
   private PermissionService permissionService;
@@ -190,11 +190,11 @@ public class ReportsController extends BaseController {
                                            OAuth2Authentication authentication)
       throws JasperReportViewException {
 
-    ProofOfDeliveryDto proofOfDelivery = findProofOfDelivery(id);
+    viewPermissionService.canViewProofOfDelivery(findProofOfDeliveryOrder(id));
 
     Map<String, Object> params = new HashMap<>();
     params.put(FORMAT, "pdf");
-    params.put("id", proofOfDelivery.getId());
+    params.put("id", id);
     params.put("dateFormat", dateFormat);
     DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
     decimalFormatSymbols.setGroupingSeparator(groupingSeparator.charAt(0));
@@ -376,12 +376,8 @@ public class ReportsController extends BaseController {
     }
   }
 
-  private ProofOfDeliveryDto findProofOfDelivery(UUID id) {
-    ProofOfDeliveryDto entity = proofOfDeliveryDataService.findProofOfDelivery(id);
-    if (null == entity) {
-      throw new ProofOfDeliveryNotFoundException(id);
-    }
-
-    return entity;
+  private ProofOfDeliveryOrderDto findProofOfDeliveryOrder(UUID id) {
+    return proofOfDeliveryOrderRepository.findByProofOfDeliveryId(id)
+        .orElseThrow(() -> new ProofOfDeliveryNotFoundException(id));
   }
 }
