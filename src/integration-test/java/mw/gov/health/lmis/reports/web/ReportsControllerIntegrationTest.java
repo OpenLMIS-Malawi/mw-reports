@@ -17,7 +17,9 @@ import guru.nidi.ramltester.junit.RamlMatchers;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import mw.gov.health.lmis.reports.dto.ProofOfDeliveryOrderDto;
 import mw.gov.health.lmis.reports.dto.external.GeographicLevelDto;
 import mw.gov.health.lmis.reports.dto.external.GeographicZoneDto;
 import mw.gov.health.lmis.reports.dto.external.OrderableDto;
@@ -25,6 +27,7 @@ import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
 import mw.gov.health.lmis.reports.exception.PermissionMessageException;
+import mw.gov.health.lmis.reports.repository.ProofOfDeliveryOrderRepository;
 import mw.gov.health.lmis.reports.service.ViewPermissionService;
 import mw.gov.health.lmis.reports.service.referencedata.GeographicZoneReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.OrderableReferenceDataService;
@@ -44,6 +47,7 @@ import org.springframework.http.MediaType;
 public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
   private static final String RESOURCE_URL = "/api/reports";
   private static final String CARD_SUMMARY_REPORT = RESOURCE_URL + "/stockCardSummaries/print";
+  private static final String POD_PRINT = RESOURCE_URL + "/proofsOfDelivery/{id}/print";
   private static final String NAME = "name";
   private static final String CODE = "code";
   private static final String DESCRIPTION = "description";
@@ -65,6 +69,9 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
 
   @MockBean
   private ViewPermissionService viewPermissionService;
+
+  @MockBean
+  private ProofOfDeliveryOrderRepository proofOfDeliveryOrderRepository;
 
   @Before
   public void setUp() {
@@ -221,6 +228,44 @@ public class ReportsControllerIntegrationTest extends BaseWebIntegrationTest {
         .get(CARD_SUMMARY_REPORT)
         .then()
         .statusCode(403);
+  }
+
+  @Test
+  public void return403WhenUserHasNoPermissionToViewProofOfDelivery() throws Exception {
+    //given
+    UUID proofOfDeliveryId = UUID.randomUUID();
+    ProofOfDeliveryOrderDto order = new ProofOfDeliveryOrderDto(
+        UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+    given(proofOfDeliveryOrderRepository.findByProofOfDeliveryId(proofOfDeliveryId))
+        .willReturn(Optional.of(order));
+    doThrow(new PermissionMessageException(new Message("key"))).when(viewPermissionService)
+        .canViewProofOfDelivery(order);
+
+    //when
+    restAssured.given()
+        .queryParam(ACCESS_TOKEN, getToken())
+        .pathParam("id", proofOfDeliveryId)
+        .when()
+        .get(POD_PRINT)
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  public void return404WhenProofOfDeliveryDoesNotExist() throws Exception {
+    //given
+    UUID proofOfDeliveryId = UUID.randomUUID();
+    given(proofOfDeliveryOrderRepository.findByProofOfDeliveryId(proofOfDeliveryId))
+        .willReturn(Optional.empty());
+
+    //when
+    restAssured.given()
+        .queryParam(ACCESS_TOKEN, getToken())
+        .pathParam("id", proofOfDeliveryId)
+        .when()
+        .get(POD_PRINT)
+        .then()
+        .statusCode(404);
   }
 
   private GeographicZoneDto generateGeographicZone() {

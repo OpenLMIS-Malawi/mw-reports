@@ -15,7 +15,12 @@
 
 package mw.gov.health.lmis.reports.service;
 
+import static mw.gov.health.lmis.reports.i18n.PermissionMessageKeys.ERROR_NO_PERMISSION;
+
+import mw.gov.health.lmis.reports.dto.ProofOfDeliveryOrderDto;
 import mw.gov.health.lmis.reports.dto.external.RequisitionDto;
+import mw.gov.health.lmis.reports.exception.PermissionMessageException;
+import mw.gov.health.lmis.utils.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +37,9 @@ public class ViewPermissionService {
   public static final String REPORTS_VIEW = "REPORTS_VIEW";
   public static final String REQUISITION_VIEW = "REQUISITION_VIEW";
   public static final String STOCK_CARDS_VIEW = "STOCK_CARDS_VIEW";
+  public static final String PODS_MANAGE = "PODS_MANAGE";
+  public static final String PODS_VIEW = "PODS_VIEW";
+  public static final String SHIPMENTS_EDIT = "SHIPMENTS_EDIT";
 
   public static final UUID ORDER_ID =
       UUID.fromString("3c9d1e80-1e45-4adb-97d9-208b6fdceeec");
@@ -53,7 +61,27 @@ public class ViewPermissionService {
    * @param facilityId facility id.
    */
   public void canViewStockCard(UUID programId, UUID facilityId) {
-    permissionService.hasPermission(STOCK_CARDS_VIEW, programId, facilityId, null);
+    permissionService.checkPermission(STOCK_CARDS_VIEW, programId, facilityId, null);
+  }
+
+  /**
+   * Checks if current user has permission to view a proof of delivery: PODS_MANAGE or PODS_VIEW
+   * for the receiving facility and program, or SHIPMENTS_EDIT for the supplying facility.
+   *
+   * @param order program and facilities of the order the proof of delivery belongs to.
+   */
+  public void canViewProofOfDelivery(ProofOfDeliveryOrderDto order) {
+    UUID programId = order.getProgramId();
+    UUID receivingFacilityId = order.getReceivingFacilityId();
+
+    if (permissionService.hasPermission(PODS_MANAGE, receivingFacilityId, programId)
+        || permissionService.hasPermission(PODS_VIEW, receivingFacilityId, programId)
+        || permissionService.hasPermission(SHIPMENTS_EDIT, order.getSupplyingFacilityId())) {
+      return;
+    }
+
+    throw new PermissionMessageException(new Message(ERROR_NO_PERMISSION,
+        Arrays.asList(PODS_MANAGE, PODS_VIEW, SHIPMENTS_EDIT)));
   }
 
   /**
