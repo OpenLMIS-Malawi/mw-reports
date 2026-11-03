@@ -10,6 +10,7 @@ public class MessageKeys {
   protected static final String SERVICE_ERROR = join(SERVICE, "error");
   protected static final String REQUISITION_ERROR = "requisition.error";
   private static final String PROOF_OF_DELIVERY = "proofOfDelivery";
+  private static final String STOCK_CARD_SUMMARIES = "stockCardSummaries";
 
   public static final String ERROR_IO = REQUISITION_ERROR + ".io";
   public static final String ERROR_JASPER_FILE_FORMAT = REQUISITION_ERROR + ".jasper.file.format";
@@ -31,6 +32,9 @@ public class MessageKeys {
 
   public static final String PROOF_OF_DELIVERY_NOT_FOUND =
       join(SERVICE_ERROR, PROOF_OF_DELIVERY, NOT_FOUND);
+
+  public static final String ERROR_STOCK_CARD_SUMMARIES_NOT_FOUND =
+      join(SERVICE_ERROR, STOCK_CARD_SUMMARIES, NOT_FOUND);
 
   protected static String join(String... params) {
     return String.join(DELIMITER, Arrays.asList(params));
