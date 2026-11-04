@@ -6,6 +6,7 @@ import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_GENERATE_R
 import static mw.gov.health.lmis.reports.i18n.JasperMessageKeys.ERROR_JASPER_FILE_CREATION;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_IO;
 import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_JASPER_FILE_FORMAT;
+import static mw.gov.health.lmis.reports.i18n.MessageKeys.ERROR_STOCK_CARD_SUMMARIES_NOT_FOUND;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_CLASS_NOT_FOUND;
 import static mw.gov.health.lmis.reports.i18n.ReportingMessageKeys.ERROR_REPORTING_IO;
 import static mw.gov.health.lmis.reports.web.ReportTypes.ORDER_REPORT;
@@ -81,6 +82,8 @@ import javax.sql.DataSource;
 
 import mw.gov.health.lmis.reports.domain.JasperTemplate;
 import mw.gov.health.lmis.reports.exception.JasperReportViewException;
+import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
+import mw.gov.health.lmis.utils.Message;
 import org.springframework.web.servlet.view.jasperreports.AbstractJasperReportsView;
 import org.springframework.web.servlet.view.jasperreports.JasperReportsCsvView;
 import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiFormatView;
@@ -529,6 +532,7 @@ public class JasperReportsViewService {
    * @param program  program id
    * @param facility facility id
    * @return generated stock card summary report.
+   * @throws NotFoundMessageException when the program and facility have no stock cards.
    */
   public ModelAndView getStockCardSummariesReportView(UUID program, UUID facility)
       throws JasperReportViewException {
@@ -542,6 +546,9 @@ public class JasperReportsViewService {
           .collect(Collectors.toList()));
     }
     List<StockCardDto> cards = stockCardReferenceDataService.findByIds(cardIds);
+    if (cards.isEmpty()) {
+      throw new NotFoundMessageException(new Message(ERROR_STOCK_CARD_SUMMARIES_NOT_FOUND));
+    }
     cards.stream()
         .forEach(c -> {
           c.setOrderable(orderableReferenceDataService.findById(c.getOrderableId()));

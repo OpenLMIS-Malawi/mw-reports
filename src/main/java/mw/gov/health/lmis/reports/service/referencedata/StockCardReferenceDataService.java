@@ -21,13 +21,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class StockCardReferenceDataService
     extends BaseReferenceDataService<StockCardDto> {
+
+  // Each id adds about 40 characters to the request URL; 150 ids keep the request line well
+  // under nginx's default 8 KB limit.
+  static final int MAX_IDS_PER_REQUEST = 150;
 
   @Override
   protected String getUrl() {
@@ -45,16 +53,35 @@ public class StockCardReferenceDataService
   }
 
   /**
-   * Finds stock cards by their ids.
+   * Finds stock cards by their ids, requesting them in batches of {@link #MAX_IDS_PER_REQUEST}.
+   * Stockmanagement returns every stock card when no id is given, so an empty collection is
+   * answered without calling it. Null and duplicate ids are skipped.
    *
    * @param ids ids to look for.
-   * @return list of stock cards.
+   * @return list of stock cards, empty when no ids are given.
    */
   public List<StockCardDto> findByIds(Collection<UUID> ids) {
-    return getPage("", RequestParameters
-        .init()
-        .set("id", ids)
-        .setPage(new PageRequest(0, Integer.MAX_VALUE, Sort.Direction.ASC, "id")))
-        .getContent();
+    if (ids == null) {
+      return Collections.emptyList();
+    }
+
+    List<UUID> idList = ids.stream()
+        .filter(Objects::nonNull)
+        .distinct()
+        .collect(Collectors.toList());
+    List<StockCardDto> stockCards = new ArrayList<>(idList.size());
+
+    for (int from = 0; from < idList.size(); from += MAX_IDS_PER_REQUEST) {
+      List<UUID> batch = idList.subList(from,
+          Math.min(from + MAX_IDS_PER_REQUEST, idList.size()));
+
+      stockCards.addAll(getPage("", RequestParameters
+          .init()
+          .set("id", batch)
+          .setPage(new PageRequest(0, batch.size(), Sort.Direction.ASC, "id")))
+          .getContent());
+    }
+
+    return stockCards;
   }
 }

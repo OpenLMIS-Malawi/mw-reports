@@ -6,11 +6,14 @@ import mw.gov.health.lmis.reports.dto.external.OrderDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingPeriodDto;
 import mw.gov.health.lmis.reports.dto.external.ProcessingScheduleDto;
 import mw.gov.health.lmis.reports.dto.external.ProgramDto;
+import mw.gov.health.lmis.reports.exception.NotFoundMessageException;
 import mw.gov.health.lmis.reports.service.JasperReportsViewService;
 import mw.gov.health.lmis.reports.service.MeasurementFreeCsvView;
 import mw.gov.health.lmis.reports.service.fulfillment.OrderService;
 import mw.gov.health.lmis.reports.service.referencedata.PeriodReferenceDataService;
 import mw.gov.health.lmis.reports.service.referencedata.ProgramReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.StockCardReferenceDataService;
+import mw.gov.health.lmis.reports.service.referencedata.StockCardSummariesReferenceDataService;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.util.JRSaver;
@@ -26,6 +29,7 @@ import org.springframework.web.servlet.view.jasperreports.JasperReportsMultiForm
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +56,12 @@ public class JasperReportsViewServiceTest {
 
   @Mock
   private PeriodReferenceDataService periodReferenceDataService;
+
+  @Mock
+  private StockCardSummariesReferenceDataService stockCardSummariesDataService;
+
+  @Mock
+  private StockCardReferenceDataService stockCardReferenceDataService;
 
   @Mock
   private ProgramDto program;
@@ -221,6 +231,19 @@ public class JasperReportsViewServiceTest {
 
     // then
     Assert.assertThat(view, instanceOf(MeasurementFreeCsvView.class));
+  }
+
+  @Test(expected = NotFoundMessageException.class)
+  public void shouldThrowNotFoundWhenProgramAndFacilityHaveNoStockCards() throws Exception {
+    // given
+    UUID facilityId = UUID.randomUUID();
+    when(stockCardSummariesDataService.findStockCardsSummaries(programId, facilityId))
+        .thenReturn(Collections.emptyList());
+    when(stockCardReferenceDataService.findByIds(Collections.emptySet()))
+        .thenReturn(Collections.emptyList());
+
+    // when
+    service.getStockCardSummariesReportView(programId, facilityId);
   }
 
   private static byte[] compiledEmptyReport() throws Exception {
