@@ -139,7 +139,8 @@ FROM referencedata.facilities
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
   	WHERE CASE WHEN $P{program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
-  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END
+  	ORDER BY requisitionid, createddate DESC) status_change
   		ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
@@ -249,7 +250,8 @@ FROM referencedata.facilities
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
   	WHERE CASE WHEN $P{program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
-  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END
+  	ORDER BY requisitionid, createddate DESC) status_change
    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
