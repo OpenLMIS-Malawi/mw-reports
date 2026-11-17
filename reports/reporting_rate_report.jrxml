@@ -139,7 +139,8 @@ FROM referencedata.facilities
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
   	WHERE CASE WHEN $P{program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
-  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END
+  	ORDER BY requisitionid, createddate DESC) status_change
   		ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
@@ -219,8 +220,18 @@ findLastPeriodStartDate AS (
 SELECT
   referencedata.geographic_zones.name AS geographiczonename,
   COUNT(CASE WHEN status_change.createddate IS NOT NULL THEN 1 END) AS completed,
-  COUNT(CASE WHEN status_change.createddate <= (CASE WHEN $P{dueDays}::varchar IS NULL THEN referencedata.processing_periods.enddate + INTERVAL '10 days'
-  ELSE referencedata.processing_periods.enddate + ($P{dueDays}::int || ' days')::interval END) THEN 1 END) AS ontime,
+  COUNT(
+    CASE
+        WHEN DATE(status_change.createddate) <= (
+            CASE
+                WHEN $P{dueDays}::varchar IS NULL
+                THEN DATE(referencedata.processing_periods.enddate + INTERVAL '10 days')
+                ELSE DATE(referencedata.processing_periods.enddate + ($P{dueDays}::int || ' days')::interval)
+            END
+        )
+        THEN 1
+    END
+) AS ontime,
   COUNT(CASE WHEN status_change.createddate IS NULL THEN 1 END) AS missed,
   COUNT(*) as total
 FROM referencedata.facilities
@@ -239,7 +250,8 @@ FROM referencedata.facilities
     AND requisition.requisitions.emergency = false
   LEFT JOIN (SELECT DISTINCT ON (requisitionid) requisitionid, createddate FROM requisition.status_changes
   	WHERE CASE WHEN $P{program}::varchar = 'EPI' THEN requisition.status_changes.status = 'AUTHORIZED'
-  		ELSE requisition.status_changes.status = 'SUBMITTED' END) status_change
+  		ELSE requisition.status_changes.status = 'SUBMITTED' END
+  	ORDER BY requisitionid, createddate DESC) status_change
    ON status_change.requisitionid = requisition.requisitions.id
 WHERE
    referencedata.facilities.active = true
