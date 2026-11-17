@@ -13,36 +13,21 @@
  * http://www.gnu.org/licenses.  For additional information contact info@OpenLMIS.org.
  */
 
-package mw.gov.health.lmis.reports.service.fulfillment;
+package mw.gov.health.lmis.reports.dto;
 
-import mw.gov.health.lmis.reports.dto.external.ProofOfDeliveryDto;
-import mw.gov.health.lmis.utils.RequestParameters;
-import org.springframework.stereotype.Service;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.UUID;
 
-@Service
-public class ProofOfDeliveryDataService extends BaseFulfillmentService<ProofOfDeliveryDto> {
-  @Override
-  protected String getUrl() {
-    return "/api/proofsOfDelivery";
-  }
+/**
+ * Program and facilities of the order a proof of delivery belongs to.
+ */
+@Getter
+@AllArgsConstructor
+public class ProofOfDeliveryOrderDto {
 
-  @Override
-  protected Class<ProofOfDeliveryDto> getResultClass() {
-    return ProofOfDeliveryDto.class;
-  }
-
-  @Override
-  protected Class<ProofOfDeliveryDto[]> getArrayResultClass() {
-    return ProofOfDeliveryDto[].class;
-  }
-
-  /**
-   * Finds proof of delivery matching all of the provided parameters.
-   */
-  public ProofOfDeliveryDto findProofOfDelivery(UUID id) {
-
-    return findOne("/" + id, RequestParameters.init());
-  }
+  private UUID programId;
+  private UUID receivingFacilityId;
+  private UUID supplyingFacilityId;
 }
